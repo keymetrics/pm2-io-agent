@@ -2,7 +2,7 @@
 'use strict';
 
 const path = require('path');
-const Conf = require('../../../pm2/lib/Configuration');
+const Conf = require('pm2/lib/Configuration');
 const Password = require('../Password.js');
 const fork = require('child_process').fork;
 

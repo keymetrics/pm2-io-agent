@@ -13,8 +13,8 @@ const rpc = require('pm2-axon-rpc');
 const axon = require('pm2-axon');
 const chalk = require('chalk');
 const os = require('os');
-const Common = require('../../pm2/lib/Common');
-const UX = require('../../pm2/lib/API/CliUx.js');
+const Common = require('pm2/lib/Common');
+const UX = require('pm2/lib/API/CliUx.js');
 
 const InteractorDaemonizer = module.exports = {};
 

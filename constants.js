@@ -6,7 +6,7 @@
 
 'use strict';
 
-const pm2Constants = require('../pm2/constants.js');
+const pm2Constants = require('pm2/constants.js');
 
 // override pm2 configuration
 const override = {

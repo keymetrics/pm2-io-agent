@@ -11,7 +11,7 @@ var cst = require('../constants.js');
 var ReverseInteractor = require('./reverse/ReverseInteractor.js');
 var PushInteractor = require('./push/PushInteractor.js');
 var Utility = require('./Utility.js');
-var Conf = require('../../pm2/lib/Configuration');
+var Conf = require('pm2/lib/Configuration');
 var PM2Client = require('./PM2Client.js');
 var WebsocketTransport = require('./WebsocketTransport.js');
 
@@ -219,7 +219,7 @@ InteractorDaemon.prototype.retrieveConf = function () {
 InteractorDaemon.prototype.start = function (cb) {
   var self = this;
   this._ipm2 = new PM2Client();
-  this.pm2 = require('../../pm2');
+  this.pm2 = require('pm2');
 
   this.pm2.connect(function (err) {
     return err ? console.error(err) : console.log('Connected to PM2');
@@ -271,7 +271,7 @@ InteractorDaemon.prototype.start = function (cb) {
 // otherwise we just required it to use a function
 if (require.main === module) {
   process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')';
-  require('../../pm2/lib/Utility.js').overrideConsole();
+  require('pm2/lib/Utility.js').overrideConsole();
   console.log('[Keymetrics.io] Launching agent');
   new InteractorDaemon().start();
 }

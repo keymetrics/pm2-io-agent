@@ -4,7 +4,7 @@
  * can be found in the LICENSE file.
  */
 
-var pm2 = require('../../../pm2');
+var pm2 = require('pm2');
 var domain = require('domain');
 var Utility = require('../Utility.js');
 
