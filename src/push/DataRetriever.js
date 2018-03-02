@@ -4,11 +4,11 @@
  * can be found in the LICENSE file.
  */
 
-const os = require('os');
+const os = require('os')
 const cpuMeta = {
   number: os.cpus().length,
   info: os.cpus().length > 0 ? os.cpus()[0].model : 'no-data'
-};
+}
 
 module.exports = class DataRetriever {
   /**
@@ -17,7 +17,7 @@ module.exports = class DataRetriever {
    * @param {Object} conf interactor configuration
   */
   static status (processes, conf) {
-    processes = processes || [];
+    processes = processes || []
     const formattedProcs = processes
       .filter(proc => !proc.pm2_env.name.match(/_old_/))
       .map((proc) => {
@@ -42,12 +42,12 @@ module.exports = class DataRetriever {
           axm_monitor: proc.pm2_env.axm_monitor || {},
           axm_options: proc.pm2_env.axm_options || {},
           axm_dynamic: proc.pm2_env.dynamic || {}
-        };
-      });
+        }
+      })
 
-    const nodeVersion = process.version.match(/v[123]./) ? `iojs ${process.verion}` : process.version;
+    const nodeVersion = process.version.match(/v[123]./) ? `iojs ${process.verion}` : process.version
     const username = process.env.SUDO_USER || process.env.C9_USER || process.env.LOGNAME ||
-      process.env.USER || process.env.LNAME || process.env.USERNAME;
+      process.env.USER || process.env.LNAME || process.env.USERNAME
 
     return {
       process: formattedProcs,
@@ -66,6 +66,6 @@ module.exports = class DataRetriever {
         pm2_version: conf.PM2_VERSION,
         node_version: nodeVersion
       }
-    };
+    }
   }
-};
+}
