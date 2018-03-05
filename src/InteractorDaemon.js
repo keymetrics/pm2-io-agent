@@ -13,7 +13,7 @@ var PushInteractor = require('./push/PushInteractor.js')
 var Utility = require('./Utility.js')
 var Conf = require('pm2/lib/Configuration')
 var PM2Client = require('./PM2Client.js')
-var WebsocketTransport = require('./WebsocketTransport.js')
+var AxonTransport = require('./AxonTransport.js')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -24,7 +24,7 @@ global._logs = false
 var InteractorDaemon = module.exports = function () {
   this.opts = this.retrieveConf()
   this.DAEMON_ACTIVE = false
-  this.transport = new WebsocketTransport(this.opts, this)
+  this.transport = new AxonTransport(this.opts, this)
   this.transport.on('error', function (err) {
     return console.error('[NETWORK] Error : ' + err.message || err)
   })
@@ -177,9 +177,15 @@ InteractorDaemon.prototype._verifyEndpoint = function (cb) {
     if (data.active === false) return cb(null, false)
 
     if (!this.transport.isConnected()) {
-      this.transport.connect(data.endpoints.push, cb)
+      this.transport.connect({
+        push: data.endpoints.push,
+        pull: data.endpoints.reverse
+      }, cb)
     } else if (data.endpoints.push !== this.km_data.endpoints.push) {
-      this.transport.reconnect(data.endpoints.push, cb)
+      this.transport.reconnect({
+        push: data.endpoints.push,
+        pull: data.endpoints.reverse
+      }, cb)
     } else {
       return cb(null, true)
     }
@@ -196,7 +202,7 @@ InteractorDaemon.prototype.retrieveConf = function () {
   opts.PUBLIC_KEY = process.env.PM2_PUBLIC_KEY
   opts.SECRET_KEY = process.env.PM2_SECRET_KEY
   opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
-  opts.PM2_VERSION = pkg.version
+  opts.PM2_VERSION = require('pm2/package.json').version
 
   if (!opts.MACHINE_NAME) {
     console.error('You must provide a PM2_MACHINE_NAME environment variable')

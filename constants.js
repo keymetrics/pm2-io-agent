@@ -4,9 +4,9 @@
  * can be found in the LICENSE file.
  */
 
-'use strict';
+'use strict'
 
-const pm2Constants = require('pm2/constants.js');
+const pm2Constants = require('pm2/constants.js')
 
 // override pm2 configuration
 const override = {
@@ -21,6 +21,6 @@ const override = {
   CONTEXT_ON_ERROR: 2,
   TRANSACTION_FLUSH_INTERVAL: process.env.NODE_ENV === 'local_test' || process.env.PM2_DEBUG ? 1000 : 30000,
   AGGREGATION_DURATION: process.env.PM2_DEBUG || process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development' ? 0 : 60 * 10
-};
+}
 
-module.exports = Object.assign(override, pm2Constants);
+module.exports = Object.assign(override, pm2Constants)
