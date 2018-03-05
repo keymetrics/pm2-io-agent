@@ -5,7 +5,7 @@
  */
 
 var pm2 = require('pm2')
-var domain = require('domain')
+var domain = require('domain') // eslint-disable-line 
 var Utility = require('../Utility.js')
 
 var d = domain.create()
