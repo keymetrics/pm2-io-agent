@@ -4,14 +4,16 @@
  * can be found in the LICENSE file.
  */
 
-var debug = require('debug')('interface:watchdog')
-var shelljs = require('shelljs')
+'use strict'
+
+const debug = require('debug')('interface:watchdog')
+const shelljs = require('shelljs')
 
 process.env.PM2_AGENT_ONLINE = true
 
 module.exports = class WatchDog {
   static start (p) {
-    var self = this
+    const self = this
     this.ipm2 = p.conf.ipm2
     this.relaunching = false
     this.pm2_instance = p.conf.pm2_instance
@@ -42,7 +44,7 @@ module.exports = class WatchDog {
   }
 
   static resurrect () {
-    var self = this
+    const self = this
 
     console.log('[WATCHDOG] Trying to launch PM2 #1')
     shelljs.exec('node ' + process.cwd() + '/bin/pm2 resurrect', function () {

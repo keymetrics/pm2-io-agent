@@ -1,13 +1,13 @@
 
 'use strict'
 
-var debug = require('debug')('interactor:push-interactor')
-var fs = require('fs')
-var path = require('path')
-var cst = require('../../constants.js')
-var DataRetriever = require('./DataRetriever.js')
-var Utility = require('../Utility.js')
-var Aggregator = require('./TransactionAggregator.js')
+const debug = require('debug')('interactor:push-interactor')
+const fs = require('fs')
+const path = require('path')
+const cst = require('../../constants.js')
+const DataRetriever = require('./DataRetriever.js')
+const Utility = require('../Utility.js')
+const Aggregator = require('./TransactionAggregator.js')
 
 /**
  * PushInteractor is the class that handle pushing data to KM
@@ -15,7 +15,7 @@ var Aggregator = require('./TransactionAggregator.js')
  * @param {PM2Client} ipm2 pm2 daemon client used to listen on bus
  * @param {WebsocketTransport} transport websocket transport used to send data to KM
  */
-var PushInteractor = module.exports = function (opts, ipm2, transport) {
+const PushInteractor = module.exports = function (opts, ipm2, transport) {
   this._ipm2 = ipm2
   this.transport = transport
   this.opts = opts
@@ -25,7 +25,7 @@ var PushInteractor = module.exports = function (opts, ipm2, transport) {
   this._cacheFS = new Utility.Cache({
     miss: function (key) {
       try {
-        var content = fs.readFileSync(path.resolve(key))
+        const content = fs.readFileSync(path.resolve(key))
         return content.toString().split(/\r?\n/)
       } catch (err) {
         return debug('Error while trying to get file from FS : %s', err.message || err)
@@ -94,7 +94,7 @@ PushInteractor.prototype._onPM2Event = function (event, packet) {
 
     // try to parse stacktrace and attach callsite + context if available
     if (typeof packet.data.stackframes === 'object') {
-      var result = this.stackParser.parse(packet.data.stackframes)
+      const result = this.stackParser.parse(packet.data.stackframes)
       // no need to send it since there is already the stacktrace
       delete packet.data.stackframes
       if (result) {
@@ -156,9 +156,9 @@ PushInteractor.prototype._worker = function () {
  * Handle packet containing file metadata to send to KM
  */
 PushInteractor.prototype._sendFile = function (packet) {
-  var self = this
-  var filePath = JSON.parse(JSON.stringify(packet.data.return.dump_file))
-  var type = packet.data.return.heapdump ? 'heapdump' : 'cpuprofile'
+  const self = this
+  const filePath = JSON.parse(JSON.stringify(packet.data.return.dump_file))
+  const type = packet.data.return.heapdump ? 'heapdump' : 'cpuprofile'
 
   packet = {
     pm_id: packet.process.pm_id,
