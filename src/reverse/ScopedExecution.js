@@ -4,18 +4,18 @@
  * can be found in the LICENSE file.
  */
 
-var pm2 = require('pm2')
-var domain = require('domain') // eslint-disable-line 
-var Utility = require('../Utility.js')
+const pm2 = require('pm2')
+const domain = require('domain') // eslint-disable-line 
+const Utility = require('../Utility.js')
 
-var d = domain.create()
+const d = domain.create()
 
 d.once('error', function (err) {
   process.send(JSON.stringify({ err: err.message || err, isFinished: true }))
 })
 
 d.run(function () {
-  var params = JSON.parse(process.env.fork_params)
+  const params = JSON.parse(process.env.fork_params)
   console.log('Executing: pm2 %s %s', params.action, params.opts.args ? params.opts.args.join(' ') : '')
 
   pm2.connect(function () {

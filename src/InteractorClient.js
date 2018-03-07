@@ -32,8 +32,8 @@ InteractorDaemonizer.ping = function (opts, cb) {
   } else if (typeof opts !== 'object' || !opts || !opts.INTERACTOR_RPC_PORT) {
     return cb(new Error('Missing parameters'))
   }
-  var req = axon.socket('req')
-  var client = new rpc.Client(req)
+  const req = axon.socket('req')
+  const client = new rpc.Client(req)
 
   log('[PING INTERACTOR] Trying to connect to Interactor daemon')
 
@@ -96,22 +96,22 @@ InteractorDaemonizer.killInteractorDaemon = function (conf, cb) {
  * @param {Function} cb invoked with <err>
  */
 InteractorDaemonizer.launchRPC = function (conf, cb) {
-  var self = this
-  var req = axon.socket('req')
+  const self = this
+  const req = axon.socket('req')
   this.client = new rpc.Client(req)
 
   log('Generating Interactor methods of RPC client')
 
   // attach known methods to RPC client
-  var generateMethods = function (cb) {
+  const generateMethods = function (cb) {
     self.client.methods(function (err, methods) {
       if (err) return cb(err)
       Object.keys(methods).forEach(function (key) {
-        var method = methods[key]
+        let method = methods[key]
         log('+ Adding %s method to interactor RPC client', method.name);
         (function (name) {
           self.rpc[name] = function () {
-            var args = Array.prototype.slice.call(arguments)
+            let args = Array.prototype.slice.call(arguments)
             args.unshift(name)
             self.client.call.apply(self.client, args)
           }
@@ -153,15 +153,15 @@ InteractorDaemonizer.launchRPC = function (conf, cb) {
  * @param {Function} cb invoked with <err, msg, process>
  */
 const daemonize = function (conf, infos, cb) {
-  var InteractorJS = path.resolve(path.dirname(module.filename), 'InteractorDaemon.js')
+  const InteractorJS = path.resolve(path.dirname(module.filename), 'InteractorDaemon.js')
 
   // Redirect PM2 internal err and out
   // to STDERR STDOUT when running with Travis
-  var testEnv = process.env.TRAVIS || (process.env.NODE_ENV && process.env.NODE_ENV.match(/test/))
-  var out = testEnv ? 1 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
-  var err = testEnv ? 2 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
+  const testEnv = process.env.TRAVIS || (process.env.NODE_ENV && process.env.NODE_ENV.match(/test/))
+  const out = testEnv ? 1 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
+  const err = testEnv ? 2 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
 
-  var child = require('child_process').spawn('node', [InteractorJS], {
+  const child = require('child_process').spawn('node', [InteractorJS], {
     silent: false,
     detached: true,
     cwd: process.cwd(),
@@ -287,13 +287,13 @@ InteractorDaemonizer.update = function (conf, cb) {
  */
 InteractorDaemonizer.getOrSetConf = function (cst, infos, cb) {
   infos = infos || {}
-  var configuration = {
+  let configuration = {
     version_management: {
       active: true,
       password: null
     }
   }
-  var confFS = {}
+  let confFS = {}
 
   // Try loading configuration file on FS
   try {
@@ -355,7 +355,7 @@ InteractorDaemonizer.disconnectRPC = function (cb) {
   }
 
   try {
-    var timer
+    let timer
 
     log('Closing RPC INTERACTOR')
 

@@ -1,19 +1,19 @@
 
 'use strict'
 
-var fs = require('fs')
-var rpc = require('pm2-axon-rpc')
-var axon = require('pm2-axon')
-var log = require('debug')('interactor:daemon')
-var os = require('os')
-var pkg = require('../package.json')
-var cst = require('../constants.js')
-var ReverseInteractor = require('./reverse/ReverseInteractor.js')
-var PushInteractor = require('./push/PushInteractor.js')
-var Utility = require('./Utility.js')
-var Conf = require('pm2/lib/Configuration')
-var PM2Client = require('./PM2Client.js')
-var AxonTransport = require('./AxonTransport.js')
+const fs = require('fs')
+const rpc = require('pm2-axon-rpc')
+const axon = require('pm2-axon')
+const log = require('debug')('interactor:daemon')
+const os = require('os')
+const pkg = require('../package.json')
+const cst = require('../constants.js')
+const ReverseInteractor = require('./reverse/ReverseInteractor.js')
+const PushInteractor = require('./push/PushInteractor.js')
+const Utility = require('./Utility.js')
+const Conf = require('pm2/lib/Configuration')
+const PM2Client = require('./PM2Client.js')
+const AxonTransport = require('./AxonTransport.js')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -21,7 +21,7 @@ if (!process.send) {
 }
 global._logs = false
 
-var InteractorDaemon = module.exports = function () {
+const InteractorDaemon = module.exports = function () {
   this.opts = this.retrieveConf()
   this.DAEMON_ACTIVE = false
   this.transport = new AxonTransport(this.opts, this)
@@ -90,9 +90,9 @@ InteractorDaemon.prototype.exit = function (err) {
 InteractorDaemon.prototype.startRPC = function (opts) {
   log('Launching Interactor RPC server (bind to %s)', cst.INTERACTOR_RPC_PORT)
 
-  var self = this
-  var rep = axon.socket('rep')
-  var rpcServer = new rpc.Server(rep)
+  const self = this
+  const rep = axon.socket('rep')
+  const rpcServer = new rpc.Server(rep)
   rep.bind(cst.INTERACTOR_RPC_PORT)
 
   rpcServer.expose({
@@ -145,7 +145,7 @@ InteractorDaemon.prototype.getSystemMetadata = function () {
  * @param {Function} cb invoked with <Error, Object> where Object is the response sended by the server
  */
 InteractorDaemon.prototype._pingRoot = function (cb) {
-  var data = this.getSystemMetadata()
+  let data = this.getSystemMetadata()
   data = Utility.Cipher.cipherMessage(JSON.stringify(data), this.opts.SECRET_KEY)
   if (!data) return cb(new Error('Failed to retrieve/cipher system metadata'))
 
@@ -196,7 +196,7 @@ InteractorDaemon.prototype._verifyEndpoint = function (cb) {
  * Retrieve configuration from environnement
  */
 InteractorDaemon.prototype.retrieveConf = function () {
-  var opts = {}
+  let opts = {}
 
   opts.MACHINE_NAME = process.env.PM2_MACHINE_NAME
   opts.PUBLIC_KEY = process.env.PM2_PUBLIC_KEY
@@ -223,7 +223,7 @@ InteractorDaemon.prototype.retrieveConf = function () {
  * @param {Function} cb invoked with <Error> [optional]
  */
 InteractorDaemon.prototype.start = function (cb) {
-  var self = this
+  const self = this
   this._ipm2 = new PM2Client()
   this.pm2 = require('pm2')
 

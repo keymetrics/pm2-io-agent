@@ -38,7 +38,7 @@ const PM2_REMOTE_METHOD_ALLOWED = {
  * @param {PM2} pm2 pm2 api
  * @param {WebsocketTransport} transport websocket transport used to receive data to KM
  */
-var ReverseInteractor = module.exports = function (opts, pm2, transport) {
+const ReverseInteractor = module.exports = function (opts, pm2, transport) {
   this.pm2 = pm2
   this.transport = transport
   this.opts = opts
@@ -69,8 +69,8 @@ ReverseInteractor.prototype.start = function () {
  * @param {Object} data.uuid [for scoped action] uuid used to recognized the scoped action
  */
 ReverseInteractor.prototype._onCustomAction = function (data) {
-  var self = this
-  var type = data.uuid ? 'SCOPED' : 'REMOTE'
+  const self = this
+  const type = data.uuid ? 'SCOPED' : 'REMOTE'
 
   console.log('[REVERSE] New %s action %s triggered for process %s', type, data.action_name, data.process_id)
   // send the request to pmx via IPC
@@ -105,7 +105,7 @@ ReverseInteractor.prototype._onCustomAction = function (data) {
  * @param {Object} data.parameters optional parameters used to call the method
  */
 ReverseInteractor.prototype._onPM2Action = function (data) {
-  var self = this
+  const self = this
   // callback when the action has been executed
   function callback (err, res) {
     console.log('[REVERSE] PM2 action ended : pm2 %s (%s)', data.method_name, !err ? 'no error' : (err.message || err))
@@ -122,8 +122,8 @@ ReverseInteractor.prototype._onPM2Action = function (data) {
 
   console.log('[REVERSE] New PM2 action triggered : pm2 %s %j', data.method_name, data.parameters)
 
-  var method = JSON.parse(JSON.stringify(data.method_name))
-  var parameters = data.parameters
+  const method = JSON.parse(JSON.stringify(data.method_name))
+  let parameters = data.parameters
   try {
     parameters = JSON.parse(JSON.stringify(data.parameters))
   } catch (err) {
@@ -136,10 +136,10 @@ ReverseInteractor.prototype._onPM2Action = function (data) {
 
   // verify that if a password is required, they actually match
   if (PM2_REMOTE_METHOD_ALLOWED[method] === true) {
-    var passwd = Conf.getSync('pm2:passwd')
+    const passwd = Conf.getSync('pm2:passwd')
     if (!passwd) return callback(new Error('Not password is configured for pm2, please set one : pm2 set pm2:passwd <password>'))
 
-    var err = new Error('you need to use the configured password in order to use this method')
+    const err = new Error('you need to use the configured password in order to use this method')
     if (!data.password) return callback(err)
     if (Password.verify(data.password, passwd) !== true) return callback(err)
   }
@@ -166,7 +166,7 @@ ReverseInteractor.prototype._onPM2Action = function (data) {
  * @param {Object} data.parameters optional parameters used to call the method
  */
 ReverseInteractor.prototype._onPM2ScopedAction = function (data) {
-  var self = this
+  const self = this
   // callback when the action has been executed
   function callback (err, res) {
     console.log('[REVERSE] PM2 scoped action ended (id: %s): pm2 %s (%s)', data.uuid, data.action_name,
@@ -185,8 +185,8 @@ ReverseInteractor.prototype._onPM2ScopedAction = function (data) {
 
   console.log('[REVERSE] New PM2 scoped action triggered (id: %s) : pm2 %s ', data.uuid, data.action_name)
 
-  var actionName = data.action_name
-  var opts = data.options
+  const actionName = data.action_name
+  let opts = data.options
 
   if (!data.uuid || !actionName) {
     return callback(new Error('Missing parameters'))
@@ -198,10 +198,10 @@ ReverseInteractor.prototype._onPM2ScopedAction = function (data) {
 
   // verify that if a password is required, they actually match
   if (PM2_REMOTE_METHOD_ALLOWED[actionName] === true) {
-    var passwd = Conf.getSync('pm2:passwd')
+    const passwd = Conf.getSync('pm2:passwd')
     if (!passwd) return callback(new Error('Not password is configured for pm2, please set one : pm2 set pm2:passwd <password>'))
 
-    var err = new Error('you need to use the configured password in order to use this method')
+    const err = new Error('you need to use the configured password in order to use this method')
     if (!data.password) return callback(err)
     if (Password.verify(data.password, passwd) !== true) return callback(err)
   }
@@ -216,7 +216,7 @@ ReverseInteractor.prototype._onPM2ScopedAction = function (data) {
   })
 
   process.env.fork_params = JSON.stringify({ action: actionName, opts: opts })
-  var app = fork(path.resolve(__dirname, './ScopedExecution.js'), [], {
+  const app = fork(path.resolve(__dirname, './ScopedExecution.js'), [], {
     silent: true
   })
   app.once('error', callback)

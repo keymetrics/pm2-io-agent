@@ -6,12 +6,12 @@
 
 'use strict'
 
-var axon = require('pm2-axon')
-var cst = require('../constants.js')
-var util = require('util')
-var rpc = require('pm2-axon-rpc')
-var log = require('debug')('pm2:interface')
-var EventEmitter = require('events').EventEmitter
+const axon = require('pm2-axon')
+const cst = require('../constants.js')
+const util = require('util')
+const rpc = require('pm2-axon-rpc')
+const log = require('debug')('pm2:interface')
+const EventEmitter = require('events').EventEmitter
 
 /**
  * PM2 API Wrapper used to setup connection with the daemon
@@ -20,18 +20,18 @@ var EventEmitter = require('events').EventEmitter
  * @param {String} opts.rpc_port socket file of the PM2 RPC server [optionnal]
  */
 var PM2Wrapper = function (opts) {
-  var subSocket = (opts && opts.sub_port) || cst.DAEMON_PUB_PORT
-  var rpcSocket = (opts && opts.rpc_port) || cst.DAEMON_RPC_PORT
+  const subSocket = (opts && opts.sub_port) || cst.DAEMON_PUB_PORT
+  const rpcSocket = (opts && opts.rpc_port) || cst.DAEMON_RPC_PORT
 
   var self = this
 
   EventEmitter.call(this)
 
-  var sub = axon.socket('sub-emitter')
+  const sub = axon.socket('sub-emitter')
   this.sub_sock = sub.connect(subSocket)
   this.bus = sub
 
-  var req = axon.socket('req')
+  const req = axon.socket('req')
   this.rpc_sock = req.connect(rpcSocket)
   this.rpc_client = new rpc.Client(req)
 
