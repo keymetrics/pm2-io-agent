@@ -277,7 +277,7 @@ InteractorDaemon.prototype.start = function (cb) {
 // otherwise we just required it to use a function
 if (require.main === module) {
   process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')'
-  // require('pm2/lib/Utility.js').overrideConsole();
+  require('pm2/lib/Utility.js').overrideConsole()
   log('[Keymetrics.io] Launching agent')
   new InteractorDaemon().start()
 }

@@ -328,11 +328,6 @@ InteractorDaemonizer.getOrSetConf = function (cst, infos, cb) {
     console.error('Error when writting configuration file %s', cst.INTERACTION_CONF)
     return cb(e)
   }
-
-  // Don't block the event loop
-  process.nextTick(function () {
-    return cb(null, configuration)
-  })
 }
 
 /**
