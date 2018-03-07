@@ -1,4 +1,3 @@
-
 'use strict'
 
 const axon = require('pm2-axon')
@@ -108,7 +107,7 @@ AxonTransport.prototype.connect = function (urls, cb) {
  */
 AxonTransport.prototype.disconnect = function () {
   if (this.isConnected()) {
-    this._socket.close(1000, 'Disconnecting')
+    this._socket.destroy()
     this._axon.close()
   }
   this._axon = null
@@ -176,18 +175,13 @@ AxonTransport.prototype.send = function (channel, data) {
   packet.data.status = this.lastStatus
   // Cipher data
   packet.data = Utility.Cipher.cipherMessage(packet.data, this.opts.SECRET_KEY)
-  // this._socket.addEventListener('error', (err) => {
-  //   self.emit('error', err)
-  //   // buffer the packet to send it when the connection will be up again
-  //   self.queue.push({ channel: channel, data: data })
-  // })
+
   // Send data to reverse server if is a result from a trigger otherwise send to interact server
   if (channel.indexOf('trigger:') !== -1) {
     this._socket.send(channel, data)
   } else {
     this._axon.emit(JSON.stringify(packet))
   }
-  // this._socket.removeEventListener('error')
 }
 
 // PRIVATE METHODS //
@@ -199,6 +193,7 @@ AxonTransport.prototype.send = function (channel, data) {
  * @param {String} reason
  */
 AxonTransport.prototype._onClose = function (code, reason) {
+  this.disconnect()
   this.emit('close', code, reason)
 }
 
@@ -210,10 +205,7 @@ AxonTransport.prototype._onClose = function (code, reason) {
  */
 AxonTransport.prototype._onError = function (err) {
   // close connection if needed
-  if (this.isConnected()) {
-    this._socket.close(400, err.message)
-    this._axon.close()
-  }
+  this.disconnect()
   this.emit('error', err)
 }
 
@@ -233,9 +225,6 @@ AxonTransport.prototype._onMessage = function (event, data) {
 
   // ensure that all required field are present
   let eventName = event.event.join(':').substr('data:'.length)
-  if (!data) {
-    return log('Received message without all necessary fields')
-  }
   log('Recevied event %s', eventName)
   this.emit(eventName, data)
 }
@@ -286,20 +275,20 @@ AxonTransport.prototype._checkInternet = function (cb) {
  *  -> test internet connection with dns request (if fail retry in 2 sec)
  *  -> try to connect to endpoint (if fail retry in 5 sec)
  */
-AxonTransport.prototype._reconnect = function (skipInternet) {
+AxonTransport.prototype._reconnect = function () {
   this._reconnecting = true
 
   console.log('[NETWORK] Trying to reconnect to remote endpoint')
   this._checkInternet((online) => {
-    if (!online && cst.PM2_DEBUG === false) {
+    if (!online && !cst.PM2_DEBUG) {
       console.log('[NETWORK] Retrying in 2 seconds ..')
-      return setTimeout(this._reconnect.bind(this), 2000)
+      return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 2000)
     }
 
     this.connect((err) => {
       if (err) {
         console.log('[NETWORK] Endpoint down in 5 seconds ..')
-        return setTimeout(this._reconnect.bind(this), 5000)
+        return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 5000)
       }
 
       console.log('[NETWORK] Connection etablished with remote endpoint')
