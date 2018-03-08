@@ -300,8 +300,8 @@ InteractorDaemonizer.getOrSetConf = function (cst, infos, cb) {
     confFS = JSON.parse(fs.readFileSync(cst.INTERACTION_CONF))
 
     if (confFS.version_management) {
-      configuration.version_management_password = confFS.version_management.password
-      configuration.version_management_active = confFS.version_management.active
+      configuration.version_management.password = confFS.version_management.password
+      configuration.version_management.active = confFS.version_management.active
     }
   } catch (e) {
     log('Interaction file does not exists')
@@ -313,7 +313,7 @@ InteractorDaemonizer.getOrSetConf = function (cst, infos, cb) {
   //    -> from configuration on FS
   configuration.public_key = process.env.PM2_PUBLIC_KEY || process.env.KEYMETRICS_PUBLIC || infos.public_key || confFS.public_key
   configuration.secret_key = process.env.PM2_SECRET_KEY || process.env.KEYMETRICS_SECRET || infos.secret_key || confFS.secret_key
-  configuration.machine_name = infos.machine_name || confFS.machine_name || os.hostname()
+  configuration.machine_name = process.env.PM2_MACHINE_NAME || infos.machine_name || confFS.machine_name || os.hostname()
   configuration.reverse_interact = confFS.reverse_interact || true
   // is setup empty ? use the one provided in env OR root OTHERWISE get the one on FS conf OR fallback on root
   configuration.info_node = process.env.KEYMETRICS_NODE || infos.info_node || confFS.info_node || cst.KEYMETRICS_ROOT_URL
@@ -328,6 +328,7 @@ InteractorDaemonizer.getOrSetConf = function (cst, infos, cb) {
     console.error('Error when writting configuration file %s', cst.INTERACTION_CONF)
     return cb(e)
   }
+  cb(null, configuration)
 }
 
 /**

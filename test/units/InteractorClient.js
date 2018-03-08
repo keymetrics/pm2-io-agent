@@ -14,6 +14,7 @@ const assert = require('assert')
 const cst = require('../../constants')
 const axon = require('pm2-axon')
 const rpc = require('pm2-axon-rpc')
+const os = require('os')
 
 describe('InteractorClient', () => {
   describe('ping', _ => {
@@ -178,14 +179,193 @@ describe('InteractorClient', () => {
     })
   })
   describe('getOrSetConf', _ => {
-    it('should set configuration')
-    it('should fail with invalid configuration file')
-    it('should work with invalid configuration file')
-    it('should use process key first')
-    it('should use params key first')
-    it('should use configuration key as default')
-    it('should throw an error without public key')
-    it('should throw an error without private key')
+    it('should set configuration', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => '{}'
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err === null)
+        assert(config.version_management.active === true)
+        assert(config.version_management.password === null)
+        assert(config.public_key === process.env.PM2_PUBLIC_KEY)
+        assert(config.secret_key === process.env.PM2_SECRET_KEY)
+        assert(config.machine_name === process.env.PM2_MACHINE_NAME)
+        assert(config.reverse_interact === true)
+        assert(config.info_node === process.env.KEYMETRICS_NODE)
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        done()
+      })
+    })
+    it('should fail with invalid configuration file', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      fs.writeFileSync = _ => { throw new Error('Test') }
+      fs.readFileSync = _ => '{}'
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err instanceof Error)
+        assert(config === undefined)
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        done()
+      })
+    })
+    it('should work with invalid configuration file', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => { throw new Error('Test') }
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err === null)
+        assert(config.version_management.active === true)
+        assert(config.version_management.password === null)
+        assert(config.public_key === process.env.PM2_PUBLIC_KEY)
+        assert(config.secret_key === process.env.PM2_SECRET_KEY)
+        assert(config.machine_name === process.env.PM2_MACHINE_NAME)
+        assert(config.reverse_interact === true)
+        assert(config.info_node === process.env.KEYMETRICS_NODE)
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        done()
+      })
+    })
+    it('should use params key first', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      let tmpEnv = process.env
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => '{}'
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      process.env = {}
+      InteractorClient.getOrSetConf(cst, {
+        public_key: 'public',
+        secret_key: 'private',
+        machine_name: 'machine',
+        info_node: 'info'
+      }, (err, config) => {
+        assert(err === null)
+        assert(config.version_management.active === true)
+        assert(config.version_management.password === null)
+        assert(config.public_key === 'public')
+        assert(config.secret_key === 'private')
+        assert(config.machine_name === 'machine')
+        assert(config.reverse_interact === true)
+        assert(config.info_node === 'info')
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        process.env = tmpEnv
+        done()
+      })
+    })
+    it('should use configuration key as default', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      let tmpEnv = process.env
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => JSON.stringify({
+        public_key: 'public',
+        secret_key: 'private',
+        machine_name: 'machine',
+        info_node: 'info',
+        reverse_interact: 'lol',
+        version_management: {
+          active: false,
+          password: 'ok'
+        }
+      })
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      process.env = {}
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err === null)
+        assert(config.version_management.active === false)
+        assert(config.version_management.password === 'ok')
+        assert(config.public_key === 'public')
+        assert(config.secret_key === 'private')
+        assert(config.machine_name === 'machine')
+        assert(config.reverse_interact === 'lol')
+        assert(config.info_node === 'info')
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        process.env = tmpEnv
+        done()
+      })
+    })
+    it('should throw an error without public key', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      let tmpEnv = process.env
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => JSON.stringify({
+        machine_name: 'machine',
+        info_node: 'info',
+        reverse_interact: 'lol',
+        version_management: {
+          active: false,
+          password: 'ok'
+        }
+      })
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      process.env = {}
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err instanceof Error)
+        assert(config === undefined)
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        process.env = tmpEnv
+        done()
+      })
+    })
+    it('should throw an error without private key', (done) => {
+      let fs = require('fs')
+      let tmpWrite = fs.writeFileSync
+      let tmpRead = fs.readFileSync
+      let tmpEnv = process.env
+      fs.writeFileSync = _ => true
+      fs.readFileSync = _ => JSON.stringify({
+        public_key: 'public',
+        machine_name: 'machine',
+        info_node: 'info',
+        reverse_interact: 'lol',
+        version_management: {
+          active: false,
+          password: 'ok'
+        }
+      })
+      module.exports = fs
+      cst.INTERACTION_CONF = 'fake.test'
+      process.env = {}
+      InteractorClient.getOrSetConf(cst, {}, (err, config) => {
+        assert(err instanceof Error)
+        assert(config === undefined)
+        fs.writeFileSync = tmpWrite
+        fs.readFileSync = tmpRead
+        module.exports = fs
+        process.env = tmpEnv
+        done()
+      })
+    })
   })
   describe('disconnectRPC', _ => {
     it('should fail with RPC client not launched')
