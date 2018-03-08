@@ -17,7 +17,6 @@
   ],
   "dependencies": {
     "async": "^2.2",
-    "clone": "^2.1.1",
     "handy-http": "^1.0.2",
     "pm2": "^2.4.6",
     "pm2-axon": "3.0.2",

@@ -30,7 +30,7 @@ const AxonTransport = module.exports = function (opts, daemon) {
     delimiter: ':'
   })
 
-  this._worker = setInterval(this._emptyQueue.bind(this), 10000)
+  this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
 }
 
 util.inherits(AxonTransport, EventEmitter2)
@@ -217,11 +217,8 @@ AxonTransport.prototype._onError = function (err) {
  */
 AxonTransport.prototype._onMessage = function (event, data) {
   if (!data) return
-  try {
-    data = Utility.Cipher.decipherMessage(data, this.opts.SECRET_KEY)
-  } catch (err) {
-    return log('Bad packet received from remote : %s', err.message || err)
-  }
+  data = Utility.Cipher.decipherMessage(data, this.opts.SECRET_KEY)
+  if (!data) return
 
   // ensure that all required field are present
   let eventName = event.event.join(':').substr('data:'.length)
