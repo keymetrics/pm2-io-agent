@@ -4,7 +4,7 @@ const axon = require('pm2-axon')
 const nssocket = require('nssocket')
 const EventEmitter2 = require('eventemitter2').EventEmitter2
 const util = require('util')
-const log = require('debug')('interactor:ws')
+const log = require('debug')('interactor:axon')
 const cst = require('../constants.js')
 const Utility = require('./Utility.js')
 const dns = require('dns')
@@ -17,6 +17,7 @@ const async = require('async')
  * @param {Daemon} daemon Interactor instance
  */
 const AxonTransport = module.exports = function (opts, daemon) {
+  log('AxonTransporter constructed')
   this.opts = opts
   this._daemon = daemon
   this._socket = null
@@ -41,6 +42,7 @@ util.inherits(AxonTransport, EventEmitter2)
  * @param {Function} cb invoked with <err>
  */
 AxonTransport.prototype.connect = function (urls, cb) {
+  log('Connecting axon transporter...')
   let self = this
   if (typeof urls === 'function') {
     cb = urls
@@ -67,6 +69,7 @@ AxonTransport.prototype.connect = function (urls, cb) {
 
   // Authenticate request on reverse server
   this._socket.data('ask', () => {
+    log('Authenticate axon transporter')
     let data = this._daemon.getSystemMetadata()
     for (let key in data) {
       data[key.toLowerCase()] = data[key]
@@ -106,8 +109,13 @@ AxonTransport.prototype.connect = function (urls, cb) {
  * Disconnect clients
  */
 AxonTransport.prototype.disconnect = function () {
-  if (this.isConnected()) {
+  log('Disconnect axon transporter')
+  if (this._socket && this._socket.connected) {
+    log('Destroy pull socket on axon transporter')
     this._socket.destroy()
+  }
+  if (this._axon && this._axon.sock.connected) {
+    log('Destroy push axon on axon transporter')
     this._axon.close()
   }
   this._axon = null
@@ -120,6 +128,7 @@ AxonTransport.prototype.disconnect = function () {
  * @param {Function} cb invoked with <err>
  */
 AxonTransport.prototype.reconnect = function (url, cb) {
+  log('Reconnect axon transporter')
   this.disconnect()
   this.connect(url, cb)
 }
@@ -193,6 +202,7 @@ AxonTransport.prototype.send = function (channel, data) {
  * @param {String} reason
  */
 AxonTransport.prototype._onClose = function (code, reason) {
+  log('Close axon transporter')
   this.disconnect()
   this.emit('close', code, reason)
 }
@@ -204,6 +214,7 @@ AxonTransport.prototype._onClose = function (code, reason) {
  * @param {Error} err
  */
 AxonTransport.prototype._onError = function (err) {
+  log('Error axon transporter')
   // close connection if needed
   this.disconnect()
   this.emit('error', err)
@@ -254,12 +265,12 @@ AxonTransport.prototype._checkInternet = function (cb) {
   dns.lookup('google.com', function (err) {
     if (err && (err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN')) {
       if (self._online) {
-        console.error('[NETWORK] Internet is unreachable (DNS)')
+        log('[NETWORK] Internet is unreachable (DNS)')
       }
       self._online = false
     } else {
       if (!self._online) {
-        console.log('[NETWORK] Internet is reachable again')
+        log('[NETWORK] Internet is reachable again')
       }
       self._online = true
     }
@@ -275,20 +286,20 @@ AxonTransport.prototype._checkInternet = function (cb) {
 AxonTransport.prototype._reconnect = function () {
   this._reconnecting = true
 
-  console.log('[NETWORK] Trying to reconnect to remote endpoint')
+  log('[NETWORK] Trying to reconnect to remote endpoint')
   this._checkInternet((online) => {
     if (!online && !cst.PM2_DEBUG) {
-      console.log('[NETWORK] Retrying in 2 seconds ..')
+      log('[NETWORK] Retrying in 2 seconds ..')
       return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 2000)
     }
 
     this.connect((err) => {
       if (err) {
-        console.log('[NETWORK] Endpoint down in 5 seconds ..')
+        log('[NETWORK] Endpoint down in 5 seconds ..')
         return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 5000)
       }
 
-      console.log('[NETWORK] Connection etablished with remote endpoint')
+      log('[NETWORK] Connection etablished with remote endpoint')
       this._reconnecting = false
       this._emptyQueue()
     })

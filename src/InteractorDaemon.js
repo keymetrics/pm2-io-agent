@@ -75,12 +75,14 @@ InteractorDaemon.prototype.exit = function (err) {
   log('Exiting Interactor')
 
   if (!this._rpc || !this._rpc.sock) {
-    return process.exit(cst.ERROR_EXIT)
+    return process.env.NODE_ENV === 'test' ? '' : process.exit(cst.ERROR_EXIT)
   }
 
   this._rpc.sock.close(function () {
     log('RPC server closed')
-    process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
+    }
   })
 }
 
