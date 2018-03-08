@@ -9,76 +9,126 @@ process.env.PM2_PUBLIC_KEY = 'g94c9opeq5i4f6j'
 process.env.PM2_SECRET_KEY = 'ydz2i1lbkccm7g2'
 process.env.KEYMETRICS_NODE = 'http://cl1.km.io:3400'
 
-const InteractorClient = require('../../')
+const InteractorClient = require('../../src/InteractorClient')
 const assert = require('assert')
 const cst = require('../../constants')
-const InteractorDaemon = require('../../src/InteractorDaemon')
-const servers = require('../mock/servers')
+const axon = require('pm2-axon')
+const rpc = require('pm2-axon-rpc')
 
 describe('InteractorClient', () => {
-  before(done => {
-    servers.launch(done)
-  })
   describe('ping', _ => {
-    describe('should fail', _ => {
-      before((done) => {
-        InteractorClient.killInteractorDaemon(cst, () => done())
-      })
-
-      it('should throw an error when no callback', (done) => {
-        try {
-          InteractorClient.ping(cst)
-        } catch (err) {
-          assert(err !== null)
-          assert(err instanceof Error)
-          done()
-        }
-      })
-
-      it('should handle when no options are given', (done) => {
-        InteractorClient.ping(null, (err, state) => {
-          assert(err !== null)
-          assert(state === undefined)
-          done()
-        })
-      })
-
-      it('should handle when no options are given', (done) => {
-        InteractorClient.ping({}, (err, state) => {
-          assert(err !== null)
-          assert(state === undefined)
-          done()
-        })
-      })
-
-      it('should try to ping but fail', (done) => {
-        InteractorClient.ping(cst, (err, state) => {
-          assert(err === null)
-          assert(state === false)
-          done()
-        })
-      })
+    it('should throw an error when no callback', (done) => {
+      try {
+        InteractorClient.ping(cst)
+      } catch (err) {
+        assert(err !== null)
+        assert(err instanceof Error)
+        done()
+      }
     })
-    describe('should work', _ => {
-      before((done) => {
-        new InteractorDaemon().start()
+    it('should handle when no options are given', (done) => {
+      InteractorClient.ping(null, (err, state) => {
+        assert(err !== null)
+        assert(state === undefined)
         done()
       })
-
-      it('should ping', (done) => {
+    })
+    it('should handle when no options are given', (done) => {
+      InteractorClient.ping({}, (err, state) => {
+        assert(err !== null)
+        assert(state === undefined)
+        done()
+      })
+    })
+    it('should try to ping but fail', (done) => {
+      InteractorClient.ping(cst, (err, state) => {
+        assert(err === null)
+        assert(state === false)
+        done()
+      })
+    })
+    it('should ping', (done) => {
+      const rep = axon.socket('rep')
+      const rpcServer = new rpc.Server(rep)
+      rep.bind(cst.INTERACTOR_RPC_PORT).on('bind', _ => {
         InteractorClient.ping(cst, (err, state) => {
           assert(err === null)
           assert(state === true)
+          rpcServer.sock.close()
           done()
         })
       })
     })
   })
   describe('killInteractorDaemon', _ => {
-    it('should return an error with daemon not launched')
-
-    it('should kill daemon with rpc launched')
-    it('should kill daemon without rpc launched')
+    it('should return an error with daemon not launched', (done) => {
+      let client = require('../../src/InteractorClient')
+      client.ping = (conf, cb) => {
+        cb(null, false)
+      }
+      client.killInteractorDaemon(cst, (err) => {
+        assert(err instanceof Error)
+        done()
+      })
+    })
+    it('should kill daemon with rpc launch error', (done) => {
+      let client = require('../../src/InteractorClient')
+      let launchRPCCalled = false
+      let pingCalled = false
+      let disconnectRPCCalled = false
+      client.ping = (conf, cb) => {
+        pingCalled = true
+        cb(null, true)
+      }
+      client.launchRPC = (conf, cb) => {
+        launchRPCCalled = true
+        cb(new Error('Test'))
+      }
+      client.disconnectRPC = (cb) => {
+        disconnectRPCCalled = true
+        cb()
+      }
+      client.killInteractorDaemon(cst, (err) => {
+        assert(err === undefined)
+        assert(pingCalled === true)
+        assert(launchRPCCalled === true)
+        assert(disconnectRPCCalled === true)
+        done()
+      })
+    })
+    it('should kill daemon with rpc launched', (done) => {
+      let client = require('../../src/InteractorClient')
+      let launchRPCCalled = false
+      let pingCalled = false
+      let disconnectRPCCalled = false
+      let killRPCCalled = false
+      client.ping = (conf, cb) => {
+        pingCalled = true
+        cb(null, true)
+      }
+      client.launchRPC = (conf, cb) => {
+        launchRPCCalled = true
+        cb()
+      }
+      client.rpc = {
+        kill: (cb) => {
+          killRPCCalled = true
+          cb()
+        }
+      }
+      client.disconnectRPC = (cb) => {
+        disconnectRPCCalled = true
+        cb()
+      }
+      client.killInteractorDaemon(cst, (err) => {
+        assert(err === undefined)
+        assert(pingCalled === true)
+        assert(launchRPCCalled === true)
+        assert(disconnectRPCCalled === true)
+        assert(killRPCCalled === true)
+        done()
+      })
+    })
   })
   describe('launchRPC', _ => {
     it('should fail with reconnect')
@@ -86,8 +136,46 @@ describe('InteractorClient', () => {
     it('should connect and generate methods')
   })
   describe('update', _ => {
-    it('should fail with interactor not launched')
-    it('should relaunch interactor')
+    it('should fail with interactor not launched', (done) => {
+      let client = require('../../src/InteractorClient')
+      client.ping = (conf, cb) => {
+        cb(null, false)
+      }
+      client.update(cst, (err) => {
+        assert(err instanceof Error)
+        done()
+      })
+    })
+    it('should relaunch interactor', (done) => {
+      let client = require('../../src/InteractorClient')
+      let pingCalled, launchRPCCalled, killRPCCalled, launchAndInteractCalled
+      client.ping = (conf, cb) => {
+        pingCalled = true
+        cb(true) // eslint-disable-line
+      }
+      client.launchRPC = (conf, cb) => {
+        launchRPCCalled = true
+        cb()
+      }
+      client.rpc = {
+        kill: (cb) => {
+          killRPCCalled = true
+          cb()
+        }
+      }
+      client.launchAndInteract = (conf, data, cb) => {
+        launchAndInteractCalled = true
+        cb()
+      }
+      client.update(cst, (err) => {
+        assert(err === null)
+        assert(pingCalled === true)
+        assert(launchRPCCalled === true)
+        assert(killRPCCalled === true)
+        assert(launchAndInteractCalled === true)
+        done()
+      })
+    })
   })
   describe('getOrSetConf', _ => {
     it('should set configuration')
@@ -120,10 +208,5 @@ describe('InteractorClient', () => {
     it('should fail if get infos fail')
     it('should return if pm2 interactor processing is active')
     it('should disconnect rpc and return')
-  })
-
-  after(done => {
-    InteractorClient.killInteractorDaemon(cst, () => done())
-    servers.stop(done)
   })
 })
