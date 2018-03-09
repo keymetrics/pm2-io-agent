@@ -511,5 +511,7 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
     }, cst.TRANSACTION_FLUSH_INTERVAL)
   }
 
-  this.launchWorker()
+  if (process.env.NODE_ENV !== 'test') {
+    this.launchWorker()
+  }
 }

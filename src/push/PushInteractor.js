@@ -33,7 +33,7 @@ const PushInteractor = module.exports = function (opts, ipm2, transport) {
     }
   })
   this._stackParser = new Utility.StackTraceParser({ cache: this._cacheFS, context: cst.CONTEXT_ON_ERROR })
-  // start transaction aggregator
+  // // start transaction aggregator
   this.aggregator = new Aggregator(this)
 }
 
