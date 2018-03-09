@@ -80,12 +80,14 @@ describe('AxonTransport', () => {
       axon._socket = {
         destroy: _ => {
           _destroyCalls++
-        }
+        },
+        connected: true
       }
       axon._axon = {
         close: _ => {
           _destroyCalls++
-        }
+        },
+        sock: {connected: true}
       }
       clearInterval(axon._worker)
       axon.disconnect()

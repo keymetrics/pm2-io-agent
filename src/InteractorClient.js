@@ -128,8 +128,8 @@ InteractorDaemonizer.launchRPC = function (conf, cb) {
   })
 
   this.client.sock.once('error', function (err) {
-    console.error('-- Error in error catch all on Interactor --')
-    console.error(err)
+    log('-- Error in error catch all on Interactor --', err)
+    return cb(err, { success: false, msg: 'reconnect attempt' })
   })
 
   this.client.sock.once('connect', function () {
@@ -153,7 +153,7 @@ InteractorDaemonizer.launchRPC = function (conf, cb) {
  * @param {String} infos.machine_name [optional] override name of the machine
  * @param {Function} cb invoked with <err, msg, process>
  */
-const daemonize = function (conf, infos, cb) {
+InteractorDaemonizer.daemonize = function (conf, infos, cb) {
   const InteractorJS = path.resolve(path.dirname(module.filename), 'InteractorDaemon.js')
 
   // Redirect PM2 internal err and out
@@ -235,18 +235,19 @@ const daemonize = function (conf, infos, cb) {
  * @param {String} infos.machine_name [optional] override name of the machine
  * @param {Function} cb invoked with <err, msg, process>
  */
-function launchOrAttach (conf, infos, cb) {
-  InteractorDaemonizer.ping(conf, function (online) {
-    if (online) {
+InteractorDaemonizer.launchOrAttach = function (conf, infos, cb) {
+  const self = this
+  self.ping(conf, function (err, online) {
+    if (!err && online) {
       log('Interactor online, restarting it...')
-      InteractorDaemonizer.launchRPC(conf, function () {
-        InteractorDaemonizer.rpc.kill(function (ignoredErr) {
-          daemonize(conf, infos, cb)
+      self.launchRPC(conf, function () {
+        self.rpc.kill(function (ignoredErr) {
+          self.daemonize(conf, infos, cb)
         })
       })
     } else {
       log('Interactor offline, launching it...')
-      daemonize(conf, infos, cb)
+      self.daemonize(conf, infos, cb)
     }
   })
 }
@@ -258,8 +259,8 @@ function launchOrAttach (conf, infos, cb) {
  */
 InteractorDaemonizer.update = function (conf, cb) {
   const self = this
-  self.ping(conf, function (online) {
-    if (!online) {
+  self.ping(conf, function (err, online) {
+    if (err || !online) {
       return cb ? cb(new Error('Interactor not launched')) : Common.printError('Interactor not launched')
     }
     self.launchRPC(conf, function () {
@@ -391,7 +392,7 @@ InteractorDaemonizer.launchAndInteract = function (cst, opts, cb) {
   const self = this
   // For Watchdog
   if (process.env.PM2_AGENT_ONLINE) {
-    return process.nextTick(cb)
+    return cb()
   }
 
   process.env.PM2_INTERACTOR_PROCESSING = true
@@ -400,7 +401,7 @@ InteractorDaemonizer.launchAndInteract = function (cst, opts, cb) {
     if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
     console.log(chalk.cyan('[Keymetrics.io]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
-    return launchOrAttach(cst, conf, cb)
+    return self.launchOrAttach(cst, conf, cb)
   })
 }
 
@@ -414,8 +415,8 @@ InteractorDaemonizer.getInteractInfo = function (cst, cb) {
   log('Getting interaction info')
   if (process.env.PM2_NO_INTERACTION) return
 
-  self.ping(cst, function (online) {
-    if (!online) return cb(new Error('Interactor is offline'))
+  self.ping(cst, function (err, online) {
+    if (err || !online) return cb(new Error('Interactor is offline'))
 
     self.launchRPC(cst, function () {
       self.rpc.getInfos(function (err, infos) {
