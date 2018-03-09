@@ -6,12 +6,10 @@ const rpc = require('pm2-axon-rpc')
 const axon = require('pm2-axon')
 const log = require('debug')('interactor:daemon')
 const os = require('os')
-const pkg = require('../package.json')
 const cst = require('../constants.js')
 const ReverseInteractor = require('./reverse/ReverseInteractor.js')
 const PushInteractor = require('./push/PushInteractor.js')
 const Utility = require('./Utility.js')
-const Conf = require('pm2/lib/Configuration')
 const PM2Client = require('./PM2Client.js')
 const AxonTransport = require('./AxonTransport.js')
 
@@ -75,14 +73,12 @@ InteractorDaemon.prototype.exit = function (err) {
   log('Exiting Interactor')
 
   if (!this._rpc || !this._rpc.sock) {
-    return process.env.NODE_ENV === 'test' ? '' : process.exit(cst.ERROR_EXIT)
+    return process.exit(cst.ERROR_EXIT)
   }
 
   this._rpc.sock.close(function () {
     log('RPC server closed')
-    if (process.env.NODE_ENV !== 'test') {
-      process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
-    }
+    process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
   })
 }
 
@@ -134,7 +130,7 @@ InteractorDaemon.prototype.getSystemMetadata = function () {
     MACHINE_NAME: this.opts.MACHINE_NAME,
     PUBLIC_KEY: this.opts.PUBLIC_KEY,
     RECYCLE: this.opts.RECYCLE || false,
-    PM2_VERSION: pkg.version,
+    PM2_VERSION: require('pm2/package.json').version,
     MEMORY: os.totalmem() / 1000 / 1000,
     HOSTNAME: os.hostname(),
     CPUS: os.cpus()
@@ -171,7 +167,6 @@ InteractorDaemon.prototype._verifyEndpoint = function (cb) {
 
   this._pingRoot((err, data) => {
     if (err) return cb(err)
-    this.km_data = data
 
     if (data.disabled === true || data.pending === true) {
       return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
@@ -183,11 +178,13 @@ InteractorDaemon.prototype._verifyEndpoint = function (cb) {
         push: data.endpoints.push,
         pull: data.endpoints.reverse
       }, cb)
-    } else if (data.endpoints.push !== this.km_data.endpoints.push) {
+      this.km_data = data
+    } else if (data.endpoints.push !== this.km_data.endpoints.push || data.endpoints.reverse !== this.km_data.endpoints.reverse) {
       this.transport.reconnect({
         push: data.endpoints.push,
         pull: data.endpoints.reverse
       }, cb)
+      this.km_data = data
     } else {
       return cb(null, true)
     }
@@ -225,7 +222,6 @@ InteractorDaemon.prototype.retrieveConf = function () {
  * @param {Function} cb invoked with <Error> [optional]
  */
 InteractorDaemon.prototype.start = function (cb) {
-  const self = this
   this._ipm2 = new PM2Client()
   this.pm2 = require('pm2')
 
@@ -236,42 +232,36 @@ InteractorDaemon.prototype.start = function (cb) {
   this._rpc = this.startRPC()
 
   this.opts.ROOT_URL = cst.KEYMETRICS_ROOT_URL
-  if (cst.DEBUG) {
-    this.opts.ROOT_URL = 'http://127.0.0.1' + (process.env.NODE_ENV === 'test' ? ':3400' : ':3000')
-  }
 
-  if (Conf.getSync('pm2:passwd')) {
-    global._pm2_password_protected = true
-  }
-
-  this._verifyEndpoint(function (err, result) {
+  this._verifyEndpoint((err, result) => {
     if (err) {
       console.error('Error while trying to retrieve endpoints : ' + (err.message || err))
       process.send({ error: true, msg: err.message || err })
-      return self.exit()
+      return this.exit()
     }
-    if (result === false) return self.exit()
+    if (result === false) return this.exit()
 
     // send data over IPC for CLI feedback
     process.send({
       error: false,
-      km_data: self.km_data,
+      km_data: this.km_data,
       online: true,
       pid: process.pid,
-      machine_name: self.opts.MACHINE_NAME,
-      public_key: self.opts.PUBLIC_KEY,
-      secret_key: self.opts.SECRET_KEY,
+      machine_name: this.opts.MACHINE_NAME,
+      public_key: this.opts.PUBLIC_KEY,
+      secret_key: this.opts.SECRET_KEY,
       reverse_interaction: true
     })
 
     // start workers
-    self._workerEndpoint = setInterval(self._verifyEndpoint.bind(self), 60000 * 10)
-    // start interactors
-    self.push = new PushInteractor(self.opts, self._ipm2, self.transport)
-    self.reverse = new ReverseInteractor(self.opts, self.pm2, self.transport)
-    self.push.start()
-    self.reverse.start()
+    this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
+    // // start interactors
+    this.push = new PushInteractor(this.opts, this._ipm2, this.transport)
+    this.reverse = new ReverseInteractor(this.opts, this.pm2, this.transport)
+    this.push.start()
+    this.reverse.start()
     // TODO: start Watchdog
+    setTimeout(cb, 20)
   })
 }
 

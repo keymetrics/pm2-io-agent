@@ -5,20 +5,20 @@ module.exports = class ModuleMocker {
   }
 
   mock (methods) {
-    let module = require(this.module)
+    let m = require(this.module)
     for (let name in methods) {
-      this.oldMethods[name] = module[name]
-      module[name] = methods[name]
+      this.oldMethods[name] = m[name]
+      m[name] = methods[name]
     }
-    module.exports = module
+    module.exports = m
   }
 
   reset () {
-    let module = require(this.module)
+    let m = require(this.module)
     for (let name in this.oldMethods) {
-      module[name] = this.oldMethods[name]
+      m[name] = this.oldMethods[name]
       delete this.oldMethods[name]
     }
-    module.exports = module
+    module.exports = m
   }
 }
