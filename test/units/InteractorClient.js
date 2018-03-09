@@ -14,7 +14,7 @@ const assert = require('assert')
 const cst = require('../../constants')
 const axon = require('pm2-axon')
 const rpc = require('pm2-axon-rpc')
-const os = require('os')
+const clone = require('clone')
 
 describe('InteractorClient', () => {
   describe('ping', _ => {
@@ -63,7 +63,7 @@ describe('InteractorClient', () => {
   })
   describe('killInteractorDaemon', _ => {
     it('should return an error with daemon not launched', (done) => {
-      let client = require('../../src/InteractorClient')
+      let client = clone(require('../../src/InteractorClient'))
       client.ping = (conf, cb) => {
         cb(null, false)
       }
@@ -73,7 +73,7 @@ describe('InteractorClient', () => {
       })
     })
     it('should kill daemon with rpc launch error', (done) => {
-      let client = require('../../src/InteractorClient')
+      let client = clone(require('../../src/InteractorClient'))
       let launchRPCCalled = false
       let pingCalled = false
       let disconnectRPCCalled = false
@@ -98,7 +98,7 @@ describe('InteractorClient', () => {
       })
     })
     it('should kill daemon with rpc launched', (done) => {
-      let client = require('../../src/InteractorClient')
+      let client = clone(require('../../src/InteractorClient'))
       let launchRPCCalled = false
       let pingCalled = false
       let disconnectRPCCalled = false
@@ -138,7 +138,7 @@ describe('InteractorClient', () => {
   })
   describe('update', _ => {
     it('should fail with interactor not launched', (done) => {
-      let client = require('../../src/InteractorClient')
+      let client = clone(require('../../src/InteractorClient'))
       client.ping = (conf, cb) => {
         cb(null, false)
       }
@@ -148,7 +148,7 @@ describe('InteractorClient', () => {
       })
     })
     it('should relaunch interactor', (done) => {
-      let client = require('../../src/InteractorClient')
+      let client = clone(require('../../src/InteractorClient'))
       let pingCalled, launchRPCCalled, killRPCCalled, launchAndInteractCalled
       client.ping = (conf, cb) => {
         pingCalled = true
@@ -368,9 +368,73 @@ describe('InteractorClient', () => {
     })
   })
   describe('disconnectRPC', _ => {
-    it('should fail with RPC client not launched')
-    it('should fail with RPC closed')
-    it('should disconnect RPC client')
+    it('should fail with RPC client not launched', (done) => {
+      let client = clone(require('../../src/InteractorClient'))
+      client.client_sock = false
+      client.disconnectRPC((err, result) => {
+        assert(err === null)
+        assert(result.success === false)
+        assert(result.msg === 'RPC connection to Interactor Daemon is not launched')
+        done()
+      })
+    })
+    it('should fail with RPC closed', (done) => {
+      let client = clone(require('../../src/InteractorClient'))
+      client.client_sock = {close: _ => {}, connected: false}
+      client.disconnectRPC((err, result) => {
+        assert(err === null)
+        assert(result.success === false)
+        assert(result.msg === 'RPC closed')
+        done()
+      })
+    })
+    it('should fail to disconnect RPC client', (done) => {
+      let client = clone(require('../../src/InteractorClient'))
+      client.client_sock = {
+        close: _ => { throw new Error('Test') },
+        connected: true,
+        closing: false
+      }
+      client.disconnectRPC((err, result) => {
+        assert(err instanceof Error)
+        assert(result === undefined)
+        done()
+      })
+    })
+    it('should disconnect RPC client without destroy', (done) => {
+      let client = clone(require('../../src/InteractorClient'))
+      client.client_sock = {
+        close: _ => client.client_sock.once('close', _ => {}),
+        once: (event, cb) => {},
+        connected: true,
+        closing: false,
+        destroy: false
+      }
+      client.disconnectRPC((err, result) => {
+        assert(err === null)
+        assert(result.success === true)
+        done()
+      })
+    })
+    it('should disconnect RPC client with destroy', (done) => {
+      let client = clone(require('../../src/InteractorClient'))
+      let _destroyCalls = 0
+      client.client_sock = {
+        close: _ => client.client_sock.once('close', _ => {}),
+        once: (event, cb) => {},
+        connected: true,
+        closing: false,
+        destroy: _ => {
+          _destroyCalls++
+        }
+      }
+      client.disconnectRPC((err, result) => {
+        assert(err === null)
+        assert(result.success === true)
+        assert(_destroyCalls === 1)
+        done()
+      })
+    })
   })
   describe('launchAndInteract', _ => {
     it('should stop if pm2 agent already started')
