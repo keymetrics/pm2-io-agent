@@ -12,6 +12,7 @@ const PushInteractor = require('./push/PushInteractor.js')
 const Utility = require('./Utility.js')
 const PM2Client = require('./PM2Client.js')
 const AxonTransport = require('./AxonTransport.js')
+// const WatchDog = require('./WatchDog')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -255,12 +256,17 @@ InteractorDaemon.prototype.start = function (cb) {
 
     // start workers
     this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
-    // // start interactors
+    // start interactors
     this.push = new PushInteractor(this.opts, this._ipm2, this.transport)
     this.reverse = new ReverseInteractor(this.opts, this.pm2, this.transport)
     this.push.start()
     this.reverse.start()
-    // TODO: start Watchdog
+    // WatchDog.start({
+    //   conf: {
+    //     ipm2: this._ipm2,
+    //     pm2_instance: this.pm2
+    //   }
+    // })
     setTimeout(cb, 20)
   })
 }

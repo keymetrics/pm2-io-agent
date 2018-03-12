@@ -40,7 +40,7 @@ describe('StackTrace Utility', function () {
         labels: {
           stacktrace: JSON.stringify(TraceFactory.stacktrace)
         }
-      }]g
+      }]
 
       aggregator.parseStacktrace(obj)
       assert(obj[0].labels['source/file'].indexOf('test/interface/misc/trace_factory.js:10') < 0)
