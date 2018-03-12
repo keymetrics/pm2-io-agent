@@ -93,6 +93,9 @@ class StackTraceParser {
 
     for (let i = 0, len = stack.length; i < len; i++) {
       let callsite = stack[i]
+      if (!callsite.file_name) {
+        continue
+      }
       let type = (!path.isAbsolute(callsite.file_name) && callsite.file_name[0] !== '.') ? 'core' : 'user'
 
       // only use the callsite if its inside user space
