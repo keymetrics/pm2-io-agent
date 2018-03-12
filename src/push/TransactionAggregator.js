@@ -404,7 +404,7 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
 
     spans.forEach(function (span) {
       // if empty make sure that it doesnt exist
-      if (!span.labels.stacktrace || typeof (span.labels.stacktrace) !== 'string') return
+      if (!span.labels || !span.labels.stacktrace || typeof (span.labels.stacktrace) !== 'string') return
 
       // you never know what come through that door
       try {
@@ -423,6 +423,7 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
     })
 
     spans.forEach(function (span) {
+      if (!span.labels) return
       delete span.labels.stacktrace
     })
   }
