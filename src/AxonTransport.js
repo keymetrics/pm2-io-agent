@@ -17,7 +17,10 @@ const async = require('async')
  */
 module.exports = class AxonTransport extends EventEmitter2 {
   constructor (opts, daemon) {
-    super()
+    super({
+      delimiter: ':',
+      wildcard: true
+    })
 
     log('AxonTransporter constructed')
     this.opts = opts
@@ -26,10 +29,6 @@ module.exports = class AxonTransport extends EventEmitter2 {
     this._axon = null
     this.queue = []
     this.lastStatus = null
-
-    // setup the eventemitter
-    this.wildcard = true
-    this.delimiter = ':'
 
     this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
   }
