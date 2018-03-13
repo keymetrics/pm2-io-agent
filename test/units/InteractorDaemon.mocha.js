@@ -19,7 +19,6 @@ const Utility = require('../../src/Utility')
 
 const getDaemon = () => {
   let Daemon = clone(InteractorDaemon)
-  Daemon.prototype = clone(InteractorDaemon.prototype)
   return Daemon
 }
 const useDaemon = (cb) => {
@@ -603,6 +602,7 @@ describe('InteractorDaemon', () => {
           assert(daemon.reverse instanceof require('../../src/reverse/ReverseInteractor.js'))
           clearInterval(daemon._workerEndpoint)
           daemon.push.stop()
+          clearInterval(daemon.push.aggregator._worker)
           daemon.reverse.stop()
           process.send = sendTmp
           axonMock.reset()
