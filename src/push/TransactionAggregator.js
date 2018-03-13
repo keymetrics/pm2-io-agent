@@ -501,9 +501,9 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
     return normalized
   }
 
-  this.launchWorker = function () {
+  this.launchWorker = () => {
     log('Worker launched')
-    setInterval(function () {
+    this._worker = setInterval(function () {
       const normalized = self.prepareAggregationforShipping()
 
       Object.keys(normalized).forEach(function (key) {
@@ -512,7 +512,5 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
     }, cst.TRANSACTION_FLUSH_INTERVAL)
   }
 
-  if (process.env.NODE_ENV !== 'test') {
-    this.launchWorker()
-  }
+  this.launchWorker()
 }
