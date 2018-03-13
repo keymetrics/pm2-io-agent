@@ -14,8 +14,20 @@ const assert = require('assert')
 const cst = require('../../constants')
 const axon = require('pm2-axon')
 const rpc = require('pm2-axon-rpc')
-const clone = require('clone')
 const ModuleMocker = require('../mock/module')
+
+let mockeds = {}
+const mock = (methods) => {
+  Object.keys(methods).forEach((method) => {
+    mockeds[method] = InteractorClient[method]
+    InteractorClient[method] = methods[method]
+  })
+}
+const resetMock = _ => {
+  Object.keys(mockeds).forEach((method) => {
+    InteractorClient[method] = mockeds[method]
+  })
+}
 
 describe('InteractorClient', () => {
   describe('ping', _ => {
@@ -64,77 +76,82 @@ describe('InteractorClient', () => {
   })
   describe('killInteractorDaemon', _ => {
     it('should return an error with daemon not launched', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.ping = (conf, cb) => {
-        cb(null, false)
-      }
-      client.killInteractorDaemon(cst, (err) => {
+      mock({
+        ping: (conf, cb) => {
+          cb(null, false)
+        }
+      })
+      InteractorClient.killInteractorDaemon(cst, (err) => {
         assert(err instanceof Error)
+        resetMock()
         done()
       })
     })
     it('should kill daemon with rpc launch error', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let launchRPCCalled = false
       let pingCalled = false
       let disconnectRPCCalled = false
-      client.ping = (conf, cb) => {
-        pingCalled = true
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        launchRPCCalled = true
-        cb(new Error('Test'))
-      }
-      client.disconnectRPC = (cb) => {
-        disconnectRPCCalled = true
-        cb()
-      }
-      client.killInteractorDaemon(cst, (err) => {
+      mock({
+        ping: (conf, cb) => {
+          pingCalled = true
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          launchRPCCalled = true
+          cb(new Error('Test'))
+        },
+        disconnectRPC: (cb) => {
+          disconnectRPCCalled = true
+          cb()
+        }
+      })
+      InteractorClient.killInteractorDaemon(cst, (err) => {
         assert(err === undefined)
         assert(pingCalled === true)
         assert(launchRPCCalled === true)
         assert(disconnectRPCCalled === true)
+        resetMock()
         done()
       })
     })
     it('should kill daemon with rpc launched', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let launchRPCCalled = false
       let pingCalled = false
       let disconnectRPCCalled = false
       let killRPCCalled = false
-      client.ping = (conf, cb) => {
-        pingCalled = true
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        launchRPCCalled = true
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          killRPCCalled = true
+      mock({
+        ping: (conf, cb) => {
+          pingCalled = true
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          launchRPCCalled = true
+          cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            killRPCCalled = true
+            cb()
+          }
+        },
+        disconnectRPC: (cb) => {
+          disconnectRPCCalled = true
           cb()
         }
-      }
-      client.disconnectRPC = (cb) => {
-        disconnectRPCCalled = true
-        cb()
-      }
-      client.killInteractorDaemon(cst, (err) => {
+      })
+      InteractorClient.killInteractorDaemon(cst, (err) => {
         assert(err === undefined)
         assert(pingCalled === true)
         assert(launchRPCCalled === true)
         assert(disconnectRPCCalled === true)
         assert(killRPCCalled === true)
+        resetMock()
         done()
       })
     })
   })
   describe('launchRPC', _ => {
     it('should fail with reconnect', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let mockAxon = new ModuleMocker('pm2-axon')
       let _connectCalled = 0
       let req = axon.socket('req')
@@ -146,7 +163,7 @@ describe('InteractorClient', () => {
       mockAxon.mock({
         socket: _ => req
       })
-      client.launchRPC(cst, (err) => {
+      InteractorClient.launchRPC(cst, (err) => {
         assert(err instanceof Error)
         assert(_connectCalled === 1)
         mockAxon.reset()
@@ -154,7 +171,6 @@ describe('InteractorClient', () => {
       })
     })
     it('should fail', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let mockAxon = new ModuleMocker('pm2-axon')
       let _connectCalled = 0
       let req = axon.socket('req')
@@ -166,7 +182,7 @@ describe('InteractorClient', () => {
       mockAxon.mock({
         socket: _ => req
       })
-      client.launchRPC(cst, (err) => {
+      InteractorClient.launchRPC(cst, (err) => {
         assert(err instanceof Error)
         assert(_connectCalled === 1)
         mockAxon.reset()
@@ -174,7 +190,6 @@ describe('InteractorClient', () => {
       })
     })
     it('should connect and generate methods', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       const rep = axon.socket('rep')
       const rpcServer = new rpc.Server(rep)
       rep.bind(4222)
@@ -183,11 +198,11 @@ describe('InteractorClient', () => {
           cb(null)
         }
       })
-      client.launchRPC({INTERACTOR_RPC_PORT: 4222}, (err, status) => {
+      InteractorClient.launchRPC({INTERACTOR_RPC_PORT: 4222}, (err, status) => {
         assert(err === null)
         assert(status.success === true)
-        assert(typeof client.rpc.testMethod === 'function')
-        client.client_sock.close()
+        assert(typeof InteractorClient.rpc.testMethod === 'function')
+        InteractorClient.client_sock.close()
         rpcServer.sock.close()
         done()
       })
@@ -195,37 +210,40 @@ describe('InteractorClient', () => {
   })
   describe('update', _ => {
     it('should fail with interactor not launched', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.ping = (conf, cb) => {
-        cb(null, false)
-      }
-      client.update(cst, (err) => {
+      mock({
+        ping: (conf, cb) => {
+          cb(null, false)
+        }
+      })
+      InteractorClient.update(cst, (err) => {
         assert(err instanceof Error)
+        resetMock()
         done()
       })
     })
     it('should relaunch interactor', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let pingCalled, launchRPCCalled, killRPCCalled, launchAndInteractCalled
-      client.ping = (conf, cb) => {
-        pingCalled = true
-        cb(null, true) // eslint-disable-line
-      }
-      client.launchRPC = (conf, cb) => {
-        launchRPCCalled = true
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          killRPCCalled = true
+      mock({
+        ping: (conf, cb) => {
+          pingCalled = true
+          cb(null, true) // eslint-disable-line
+        },
+        launchRPC: (conf, cb) => {
+          launchRPCCalled = true
+          cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            killRPCCalled = true
+            cb()
+          }
+        },
+        launchAndInteract: (conf, data, cb) => {
+          launchAndInteractCalled = true
           cb()
         }
-      }
-      client.launchAndInteract = (conf, data, cb) => {
-        launchAndInteractCalled = true
-        cb()
-      }
-      client.update(cst, (err) => {
+      })
+      InteractorClient.update(cst, (err) => {
         assert(err === null)
         assert(pingCalled === true)
         assert(launchRPCCalled === true)
@@ -426,69 +444,79 @@ describe('InteractorClient', () => {
   })
   describe('disconnectRPC', _ => {
     it('should fail with RPC client not launched', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.client_sock = false
-      client.disconnectRPC((err, result) => {
+      mock({
+        client_sock: false
+      })
+      InteractorClient.disconnectRPC((err, result) => {
         assert(err === null)
         assert(result.success === false)
         assert(result.msg === 'RPC connection to Interactor Daemon is not launched')
+        resetMock()
         done()
       })
     })
     it('should fail with RPC closed', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.client_sock = {close: _ => {}, connected: false}
-      client.disconnectRPC((err, result) => {
+      mock({
+        client_sock: {close: _ => {}, connected: false}
+      })
+      InteractorClient.disconnectRPC((err, result) => {
         assert(err === null)
         assert(result.success === false)
         assert(result.msg === 'RPC closed')
+        resetMock()
         done()
       })
     })
     it('should fail to disconnect RPC client', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.client_sock = {
-        close: _ => { throw new Error('Test') },
-        connected: true,
-        closing: false
-      }
-      client.disconnectRPC((err, result) => {
+      mock({
+        client_sock: {
+          close: _ => { throw new Error('Test') },
+          connected: true,
+          closing: false
+        }
+      })
+      InteractorClient.disconnectRPC((err, result) => {
         assert(err instanceof Error)
         assert(result === undefined)
+        resetMock()
         done()
       })
     })
     it('should disconnect RPC client without destroy', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
-      client.client_sock = {
-        close: _ => client.client_sock.once('close', _ => {}),
-        once: (event, cb) => {},
-        connected: true,
-        closing: false,
-        destroy: false
-      }
-      client.disconnectRPC((err, result) => {
+      mock({
+        client_sock: {
+          close: _ => InteractorClient.client_sock.once('close', _ => {}),
+          once: (event, cb) => {},
+          connected: true,
+          closing: false,
+          destroy: false
+        }
+      })
+      InteractorClient.disconnectRPC((err, result) => {
         assert(err === null)
         assert(result.success === true)
+        resetMock()
         done()
       })
     })
     it('should disconnect RPC client with destroy', (done) => {
-      let client = clone(require('../../src/InteractorClient'))
       let _destroyCalls = 0
-      client.client_sock = {
-        close: _ => client.client_sock.once('close', _ => {}),
-        once: (event, cb) => {},
-        connected: true,
-        closing: false,
-        destroy: _ => {
-          _destroyCalls++
+      mock({
+        client_sock: {
+          close: _ => InteractorClient.client_sock.once('close', _ => {}),
+          once: (event, cb) => {},
+          connected: true,
+          closing: false,
+          destroy: _ => {
+            _destroyCalls++
+          }
         }
-      }
-      client.disconnectRPC((err, result) => {
+      })
+      InteractorClient.disconnectRPC((err, result) => {
         assert(err === null)
         assert(result.success === true)
         assert(_destroyCalls === 1)
+        resetMock()
         done()
       })
     })
@@ -496,19 +524,20 @@ describe('InteractorClient', () => {
   describe('launchAndInteract', _ => {
     it('should stop if pm2 agent already started', (done) => {
       process.env.PM2_AGENT_ONLINE = true
-      let client = clone(require('../../src/InteractorClient'))
-      assert(client.launchAndInteract(cst, {}, done) === undefined)
+      assert(InteractorClient.launchAndInteract(cst, {}, done) === undefined)
     })
     it('should fail without configuration', (done) => {
       delete process.env.PM2_AGENT_ONLINE
       delete process.env.PM2_INTERACTOR_PROCESSING
-      let client = clone(require('../../src/InteractorClient'))
-      client.getOrSetConf = (cst, opts, cb) => {
-        cb(new Error('Test'))
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          cb(new Error('Test'))
+        }
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(err instanceof Error)
+        resetMock()
         done()
       })
     })
@@ -551,28 +580,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(err === null)
         assert(_pingCalled === 1)
@@ -582,6 +612,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -624,28 +655,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(err instanceof Error)
         assert(_pingCalled === 1)
@@ -655,6 +687,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 0)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -702,28 +735,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(typeof err === 'object')
         assert(_pingCalled === 1)
@@ -733,6 +767,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -779,28 +814,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(typeof err === 'object')
         assert(_pingCalled === 1)
@@ -810,6 +846,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -856,28 +893,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(typeof err === 'object')
         assert(_pingCalled === 1)
@@ -887,6 +925,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -934,28 +973,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, true)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, true)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(typeof err === 'object')
         assert(_pingCalled === 1)
@@ -965,6 +1005,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -1007,28 +1048,29 @@ describe('InteractorClient', () => {
           stop: _ => {}
         }
       })
-      let client = clone(require('../../src/InteractorClient'))
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
-      client.getOrSetConf = (cst, opts, cb) => {
-        _getOrSetConfCalled++
-        cb(null, config)
-      }
-      client.ping = (conf, cb) => {
-        _pingCalled++
-        assert(conf === cst)
-        cb(null, false)
-      }
-      client.launchRPC = (conf, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.rpc = {
-        kill: (cb) => {
-          _killCalled++
+      mock({
+        getOrSetConf: (cst, opts, cb) => {
+          _getOrSetConfCalled++
+          cb(null, config)
+        },
+        ping: (conf, cb) => {
+          _pingCalled++
+          assert(conf === cst)
+          cb(null, false)
+        },
+        launchRPC: (conf, cb) => {
+          _launchRPCCalled++
           cb()
+        },
+        rpc: {
+          kill: (cb) => {
+            _killCalled++
+            cb()
+          }
         }
-      }
-      client.launchAndInteract(cst, {}, (err) => {
+      })
+      InteractorClient.launchAndInteract(cst, {}, (err) => {
         assert(process.env.PM2_INTERACTOR_PROCESSING === 'true')
         assert(err === null)
         assert(_pingCalled === 1)
@@ -1038,6 +1080,7 @@ describe('InteractorClient', () => {
         assert(_disconnectCalled === 1)
         uxMock.reset()
         childMock.reset()
+        resetMock()
         done()
       })
     })
@@ -1045,116 +1088,126 @@ describe('InteractorClient', () => {
   describe('getInteractInfo', _ => {
     it('should stop if interaction is disabled', (done) => {
       process.env.PM2_NO_INTERACTION = true
-      let client = clone(require('../../src/InteractorClient'))
       let _pingCalled = 0
-      client.ping = (cst, cb) => {
-        _pingCalled++
-        cb()
-      }
-      assert(client.getInteractInfo(cst, () => {}) === undefined)
+      mock({
+        ping: (cst, cb) => {
+          _pingCalled++
+          cb()
+        }
+      })
+      assert(InteractorClient.getInteractInfo(cst, () => {}) === undefined)
       assert(_pingCalled === 0)
+      resetMock()
       done()
     })
     it('should fail if interactor is offline', (done) => {
       delete process.env.PM2_NO_INTERACTION
-      let client = clone(require('../../src/InteractorClient'))
       let _pingCalled = 0
-      client.ping = (cst, cb) => {
-        _pingCalled++
-        cb(null, false)
-      }
-      client.getInteractInfo(cst, (err, infos) => {
+      mock({
+        ping: (cst, cb) => {
+          _pingCalled++
+          cb(null, false)
+        }
+      })
+      InteractorClient.getInteractInfo(cst, (err, infos) => {
         assert(err instanceof Error)
         assert(infos === undefined)
         assert(_pingCalled === 1)
+        resetMock()
         done()
       })
     })
     it('should fail if get infos fail', (done) => {
       delete process.env.PM2_NO_INTERACTION
-      let client = clone(require('../../src/InteractorClient'))
       let _pingCalled = 0
       let _launchRPCCalled = 0
-      client.rpc = {
-        getInfos: (cb) => cb(new Error('Test'))
-      }
-      client.launchRPC = (cst, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.ping = (cst, cb) => {
-        _pingCalled++
-        cb(null, true)
-      }
-      client.getInteractInfo(cst, (err, infos) => {
+      mock({
+        launchRPC: (cst, cb) => {
+          _launchRPCCalled++
+          cb()
+        },
+        rpc: {
+          getInfos: (cb) => cb(new Error('Test'))
+        },
+        ping: (cst, cb) => {
+          _pingCalled++
+          cb(null, true)
+        }
+      })
+      InteractorClient.getInteractInfo(cst, (err, infos) => {
         assert(err instanceof Error)
         assert(infos === undefined)
         assert(_pingCalled === 1)
         assert(_launchRPCCalled === 1)
+        resetMock()
         done()
       })
     })
     it('should return if pm2 interactor processing is active', (done) => {
       delete process.env.PM2_NO_INTERACTION
       process.env.PM2_INTERACTOR_PROCESSING = true
-      let client = clone(require('../../src/InteractorClient'))
       let infos = {infos: 'infos'}
       let _pingCalled = 0
       let _disconnectRPCCalled = 0
       let _launchRPCCalled = 0
-      client.rpc = {
-        getInfos: (cb) => cb(null, infos)
-      }
-      client.launchRPC = (cst, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.disconnectRPC = (cb) => {
-        _disconnectRPCCalled++
-        cb()
-      }
-      client.ping = (cst, cb) => {
-        _pingCalled++
-        cb(null, true)
-      }
-      client.getInteractInfo(cst, (err, data) => {
+      mock({
+        launchRPC: (cst, cb) => {
+          _launchRPCCalled++
+          cb()
+        },
+        disconnectRPC: (cb) => {
+          _disconnectRPCCalled++
+          cb()
+        },
+        rpc: {
+          getInfos: (cb) => cb(null, infos)
+        },
+        ping: (cst, cb) => {
+          _pingCalled++
+          cb(null, true)
+        }
+      })
+      InteractorClient.getInteractInfo(cst, (err, data) => {
         assert(err === null)
         assert(data === infos)
         assert(_pingCalled === 1)
         assert(_disconnectRPCCalled === 0)
         assert(_launchRPCCalled === 1)
+        resetMock()
         done()
       })
     })
     it('should disconnect rpc and return', (done) => {
       delete process.env.PM2_NO_INTERACTION
       delete process.env.PM2_INTERACTOR_PROCESSING
-      let client = clone(require('../../src/InteractorClient'))
       let infos = {infos: 'infos'}
       let _pingCalled = 0
       let _disconnectRPCCalled = 0
       let _launchRPCCalled = 0
-      client.rpc = {
-        getInfos: (cb) => cb(null, infos)
-      }
-      client.launchRPC = (cst, cb) => {
-        _launchRPCCalled++
-        cb()
-      }
-      client.disconnectRPC = (cb) => {
-        _disconnectRPCCalled++
-        cb()
-      }
-      client.ping = (cst, cb) => {
-        _pingCalled++
-        cb(null, true)
-      }
-      client.getInteractInfo(cst, (err, data) => {
+      mock({
+        launchRPC: (cst, cb) => {
+          _launchRPCCalled++
+          cb()
+        },
+        disconnectRPC: (cb) => {
+          _disconnectRPCCalled++
+          cb()
+        },
+        rpc: {
+          getInfos: (cb) => cb(null, infos)
+        },
+        ping: (cst, cb) => {
+          _pingCalled++
+          cb(null, true)
+        }
+      })
+      InteractorClient.getInteractInfo(cst, (err, data) => {
         assert(err === null)
         assert(data === infos)
         assert(_pingCalled === 1)
         assert(_disconnectRPCCalled === 1)
         assert(_launchRPCCalled === 1)
+        resetMock()
         done()
       })
     })
