@@ -11,6 +11,7 @@ const cst = require('../../constants.js')
 const log = require('debug')('pm2:aggregator')
 const Utility = require('../Utility.js')
 const fclone = require('fclone')
+const Histogram = require('pmx/lib/utils/probes/Histogram.js')
 
 const LABELS = {
   HTTP_RESPONSE_CODE_LABEL_KEY: 'http/status_code',
@@ -23,6 +24,7 @@ const LABELS = {
   HTTP_SOURCE_IP: 'http/source/ip',
   HTTP_PATH_LABEL_KEY: 'http/path'
 }
+const SPANS_DB = ['redis', 'mysql', 'pg', 'mongo', 'outbound_http']
 
 /**
  *
@@ -112,7 +114,9 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
         trace_count: 0,
         mean_latency: 0,
         http_meter: new Utility.EWMA(),
-        db_meter: new Utility.EWMA()
+        db_meter: new Utility.EWMA(),
+        histogram: new Histogram({ measurement: 'median' }),
+        db_histograms: {}
       },
       process: process
     }
@@ -120,6 +124,23 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
 
   this.getAggregation = function () {
     return this.processes
+  }
+
+  this.validateData = function (packet) {
+    if (!packet || !packet.data) {
+      log('Packet malformated', packet)
+      return false
+    } else if (!packet.process) {
+      log('Got packet without process: %j', packet)
+      return false
+    } else if (!packet.data.spans || !packet.data.spans[0]) {
+      log('Trace without spans: %s', Object.keys(packet.data))
+      return false
+    } else if (!packet.data.spans[0].labels) {
+      log('Trace spans without labels: %s', Object.keys(packet.data.spans))
+      return false
+    }
+    return true
   }
 
   /**
@@ -130,55 +151,77 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
    * @param {Object} packet.data     trace
    */
   this.aggregate = function (packet) {
-    if (!packet) return log('No any data passed')
-    if (!packet.data) return log('Got packet without trace: %s', JSON.stringify(Object.keys(packet)))
-    if (!packet.process) return log('Got packet without process: %s', JSON.stringify(Object.keys(packet)))
+    if (!self.validateData(packet)) return false
 
-    const newTrace = packet.data
+    var newTrace = packet.data
+    var appName = packet.process.name
 
-    if (!newTrace.spans || !newTrace.spans[0]) return log('Trace without spans: %s', Object.keys(newTrace))
-    if (!newTrace.spans[0].labels) return log('Trace spans without labels: %s', Object.keys(newTrace.spans))
-
-    if (!self.processes[packet.process.name]) {
-      self.processes[packet.process.name] = initializeRouteMeta(packet.process)
+    if (!self.processes[appName]) {
+      self.processes[appName] = initializeRouteMeta(packet.process)
     }
 
-    const process = self.processes[packet.process.name]
+    var process = self.processes[appName]
 
     // Get http path of current span
-    let path = newTrace.spans[0].labels[LABELS.HTTP_PATH_LABEL_KEY]
+    var path = newTrace.spans[0].labels[LABELS.HTTP_PATH_LABEL_KEY]
 
     // Cleanup spans
     self.censorSpans(newTrace.spans)
 
+    // remove spans with startTime == endTime
+    newTrace.spans = newTrace.spans.filter(function (span) {
+      return span.endTime !== span.startTime
+    })
+
+    // compute duration of child spans
+    newTrace.spans.forEach(function (span) {
+      span.mean = Math.round(new Date(span.endTime) - new Date(span.startTime))
+      delete span.endTime
+    })
+
     // Update app meta (mean_latency, http_meter, db_meter, trace_count)
     newTrace.spans.forEach(function (span) {
-      if (!span.name || !span.kind) {
-        return false
-      } else if (span.kind === 'RPC_SERVER') {
-        const duration = Math.round(new Date(span.endTime) - new Date(span.startTime))
-        process.meta.mean_latency = process.meta.trace_count > 0
-          ? (duration + (process.meta.mean_latency * process.meta.trace_count)) / (process.meta.trace_count + 1) : duration
+      if (!span.name || !span.kind) return false
+
+      if (span.kind === 'RPC_SERVER') {
+        process.meta.histogram.update(span.mean)
         return process.meta.http_meter.update()
-      } else if (span.name.indexOf('mongo') > -1 || span.name.indexOf('redis') > -1 || span.name.indexOf('sql') > -1) {
-        return process.meta.db_meter.update()
+      }
+
+      // Override outbount http queries for processing
+      if (span.labels && span.labels['http/method'] && span.labels['http/status_code']) {
+        span.labels['service'] = span.name
+        span.name = 'outbound_http'
+      }
+
+      for (var i = 0, len = SPANS_DB.length; i < len; i++) {
+        if (span.name.indexOf(SPANS_DB[i]) > -1) {
+          process.meta.db_meter.update()
+          if (!process.meta.db_histograms[SPANS_DB[i]]) {
+            process.meta.db_histograms[SPANS_DB[i]] = new Histogram({ measurement: 'mean' })
+          }
+          process.meta.db_histograms[SPANS_DB[i]].update(span.mean)
+          break
+        }
       }
     })
+
     process.meta.trace_count++
 
-    // remove the last slash if exist
+    /**
+     * Handle traces aggregation
+     */
     if (path[0] === '/' && path !== '/') {
       path = path.substr(1, path.length - 1)
     }
-    // Find
-    const matched = self.matchPath(path, process.routes)
+
+    var matched = self.matchPath(path, process.routes)
+
     if (!matched) {
       process.routes[path] = []
-      log('Path %s isnt aggregated yet, creating new entry', path)
-      self.mergeTrace(process.routes[path], newTrace)
+      self.mergeTrace(process.routes[path], newTrace, process)
     } else {
-      log('Path %s already aggregated under %s', path, matched)
-      self.mergeTrace(process.routes[matched], newTrace)
+      self.mergeTrace(process.routes[matched], newTrace, process)
     }
 
     return self.processes
@@ -191,81 +234,94 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
    * @param {Object}  trace
    */
   this.mergeTrace = function (aggregated, trace) {
-    const self = this
+    var self = this
 
     if (!aggregated || !trace) return
 
-    // remove spans with startTime == endTime
-    trace.spans = trace.spans.filter(function (span) {
-      return span.endTime !== span.startTime
-    })
     // if the trace doesn't any spans stop aggregation here
     if (trace.spans.length === 0) return
 
     // create data structure if needed
-    if (!aggregated.variances) {
-      aggregated.variances = []
-    }
+    if (!aggregated.variances) aggregated.variances = []
     if (!aggregated.meta) {
       aggregated.meta = {
-        count: 0,
-        min: 100000,
-        max: 0
+        histogram: new Histogram({ measurement: 'median' }),
+        meter: new Utility.EWMA()
       }
     }
 
-    // compute duration of child spans
-    trace.spans.forEach(function (span) {
-      span.min = span.max = span.mean = Math.round(new Date(span.endTime) - new Date(span.startTime))
-      delete span.endTime
-    })
+    aggregated.meta.histogram.update(trace.spans[0].mean)
+    aggregated.meta.meter.update()
 
-    // Calculate/Update mean
-    if (aggregated.meta.count > 0) {
-      aggregated.meta.mean = (trace.spans[0].mean + (aggregated.meta.mean * aggregated.meta.count)) / (aggregated.meta.count + 1)
-    } else {
-      aggregated.meta.mean = trace.spans[0].mean
-    }
-
-    // update min/max
-    aggregated.meta.min = aggregated.meta.min > trace.spans[0].mean ? trace.spans[0].mean : aggregated.meta.min
-    aggregated.meta.max = aggregated.meta.max < trace.spans[0].mean ? trace.spans[0].mean : aggregated.meta.max
-    aggregated.meta.count++
-    // round mean value
-    aggregated.meta.mean = Math.round(aggregated.meta.mean * 100) / 100
-
-    const merge = function (variance) {
+    var merge = function (variance) {
       // no variance found so its a new one
       if (variance == null) {
         delete trace.projectId
         delete trace.traceId
-        trace.count = 1
-        trace.mean = trace.min = trace.max = trace.spans[0].mean
-        trace.meter = new Utility.EWMA()
-        trace.meter.update()
+        trace.histogram = new Histogram({ measurement: 'median' })
+        trace.histogram.update(trace.spans[0].mean)
+
+        trace.spans.forEach(function (span) {
+          span.histogram = new Histogram({ measurement: 'median' })
+          span.histogram.update(span.mean)
+          delete span.mean
+        })
 
         // parse strackrace
         self.parseStacktrace(trace.spans)
         aggregated.variances.push(trace)
       } else {
+        // check to see if request is anormally slow, if yes send it as inquisitor
+        if (trace.spans[0].mean > variance.histogram.percentiles([0.95])[0.95] &&
+          typeof pushInteractor !== 'undefined' && !process.initialization_timeout) {
+          // serialize and add metadata
+          self.parseStacktrace(trace.spans)
+          var data = {
+            trace: fclone(trace.spans),
+            variance: fclone(variance.spans.map(function (span) {
+              return {
+                labels: span.labels,
+                kind: span.kind,
+                name: span.name,
+                startTime: span.startTime,
+                percentiles: {
+                  p5: variance.histogram.percentiles([0.5])[0.5],
+                  p95: variance.histogram.percentiles([0.95])[0.95]
+                }
+              }
+            })),
+            meta: {
+              value: trace.spans[0].mean,
+              percentiles: {
+                p5: variance.histogram.percentiles([0.5])[0.5],
+                p75: variance.histogram.percentiles([0.75])[0.75],
+                p95: variance.histogram.percentiles([0.95])[0.95],
+                p99: variance.histogram.percentiles([0.99])[0.99]
+              },
+              min: variance.histogram.getMin(),
+              max: variance.histogram.getMax(),
+              count: variance.histogram.getCount()
+            },
+            process: process.process
+          }
+          pushInteractor.bufferData('axm:transaction:outlier', data)
+        }
+
+        // variance found, merge spans
+        variance.histogram.update(trace.spans[0].mean)
+
+        // update duration of spans to be mean
+        self.updateSpanDuration(variance.spans, trace.spans, variance.count)
+
         // delete stacktrace before merging
         trace.spans.forEach(function (span) {
           delete span.labels.stacktrace
         })
-        variance.min = variance.min > trace.spans[0].mean ? trace.spans[0].mean : variance.min
-        variance.max = variance.max < trace.spans[0].mean ? trace.spans[0].mean : variance.max
-        variance.mean = (trace.spans[0].mean + (variance.mean * variance.count)) / (variance.count + 1)
-        variance.mean = Math.round(variance.mean * 100) / 100
-
-        // update duration of spans to be mean
-        self.updateSpanDuration(variance.spans, trace.spans, variance.count, true)
-        variance.meter.update()
-        variance.count++
       }
     }
 
     // for every variance, check spans same variance
-    for (let i = 0; i < aggregated.variances.length; i++) {
+    for (var i = 0; i < aggregated.variances.length; i++) {
       if (self.compareList(aggregated.variances[i].spans, trace.spans)) {
         return merge(aggregated.variances[i])
       }
@@ -308,6 +364,7 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
    */
   this.matchPath = function (path, routes) {
     // empty route is / without the fist slash
+    if (!path || !routes) return false
     if (path === '/') return routes[path] ? path : null
 
     // remove the last slash if exist
@@ -361,8 +418,16 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
   this.isIdentifier = function (id) {
     id = typeof (id) !== 'string' ? id + '' : id
 
-    return id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[14][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{12}[14][0-9a-f]{19}/i) ||
-              id.match(/\d+/) || id.match(/[0-9]+[a-z]+|[a-z]+[0-9]+/)
+    return (
+      // uuid v1/v4 with/without dash
+      id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[14][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{12}[14][0-9a-f]{19}/i) ||
+      // if number
+      id.match(/\d+/) ||
+      // if suit of nb/letters
+      id.match(/[0-9]+[a-z]+|[a-z]+[0-9]+/) ||
+      // if match pattern with multiple char spaced by . - _ @
+      id.match(/((?:[0-9a-zA-Z]+[@\-_.][0-9a-zA-Z]+|[0-9a-zA-Z]+[@\-_.]|[@\-_.][0-9a-zA-Z]+)+)/)
+    )
   }
 
   const REGEX_JSON_CLEANUP = /":(?!\[|{)\\"[^"]*\\"|":(["'])(?:(?=(\\?))\2.)*?\1|":(?!\[|{)[^,}\]]*|":\[[^{]*]/g
@@ -434,15 +499,16 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
    * @param {Function} cb callback
    */
   this.prepareAggregationforShipping = function (cb) {
-    const normalized = {}
+    var normalized = {}
 
     // Iterate each applications
     Object.keys(self.processes).forEach(function (appName) {
-      const process = self.processes[appName]
-      const routes = process.routes
+      var process = self.processes[appName]
+      var routes = process.routes
 
-      if (self.processes[appName].learning === true) {
-        return log('Process %s currently in aggregation mode, dont send any data for now.', appName)
+      if (process.initialization_timeout) {
+        log('Waiting for app %s to be initialized', appName)
+        return null
       }
 
       normalized[appName] = {
@@ -450,29 +516,48 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
           routes: [],
           meta: fclone({
             trace_count: process.meta.trace_count,
-            mean_latency: Math.round(process.meta.mean_latency * 100) / 100,
             http_meter: Math.round(process.meta.http_meter.rate(1000) * 100) / 100,
-            db_meter: Math.round(process.meta.db_meter.rate(1000) * 100) / 100
+            db_meter: Math.round(process.meta.db_meter.rate(1000) * 100) / 100,
+            http_percentiles: {
+              median: process.meta.histogram.percentiles([0.5])[0.5],
+              p95: process.meta.histogram.percentiles([0.95])[0.95],
+              p99: process.meta.histogram.percentiles([0.99])[0.99]
+            },
+            db_percentiles: {}
           })
         },
         process: process.process
       }
 
-      Object.keys(routes).forEach(function (routePath) {
-        const data = routes[routePath]
+      // compute percentiles for each db spans if they exist
+      SPANS_DB.forEach(function (name) {
+        var histogram = process.meta.db_histograms[name]
+        if (!histogram) return
+        normalized[appName].data.meta.db_percentiles[name] = fclone(histogram.percentiles([0.5])[0.5])
+      })
+
+      Object.keys(routes).forEach(function (path) {
+        var data = routes[path]
 
         // hard check for invalid data
         if (!data.variances || data.variances.length === 0) return
 
         // get top 5 variances of the same route
-        const variances = data.variances.sort(function (a, b) {
+        var variances = data.variances.sort(function (a, b) {
           return b.count - a.count
         }).slice(0, 5)
 
         // create a copy without reference to stored one
-        const routeCopy = {
-          path: routePath === '/' ? '/' : '/' + routePath,
-          meta: fclone(data.meta),
+        var routeCopy = {
+          path: path === '/' ? '/' : '/' + path,
+          meta: fclone({
+            min: data.meta.histogram.getMin(),
+            max: data.meta.histogram.getMax(),
+            count: data.meta.histogram.getCount(),
+            meter: Math.round(data.meta.meter.rate(1000) * 100) / 100,
+            median: data.meta.histogram.percentiles([0.5])[0.5],
+            p95: data.meta.histogram.percentiles([0.95])[0.95]
+          }),
           variances: []
         }
 
@@ -481,15 +566,26 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
           if (!variance.spans || variance.spans.length === 0) return
 
           // deep copy of variances data
-          let tmp = fclone({
-            spans: variance.spans,
-            count: variance.count,
-            min: variance.min,
-            max: variance.max,
-            mean: variance.mean
+          var tmp = fclone({
+            spans: [],
+            count: variance.histogram.getCount(),
+            min: variance.histogram.getMin(),
+            max: variance.histogram.getMax(),
+            median: variance.histogram.percentiles([0.5])[0.5],
+            p95: variance.histogram.percentiles([0.95])[0.95]
           })
-          // replace meter object by his value
-          tmp.meter = Math.round(variance.meter.rate(1000) * 100) / 100
+
+          // get data for each span
+          variance.spans.forEach(function (span) {
+            tmp.spans.push(fclone({
+              name: span.name,
+              labels: span.labels,
+              kind: span.kind,
+              min: span.histogram.getMin(),
+              max: span.histogram.getMax(),
+              median: span.histogram.percentiles([0.5])[0.5]
+            }))
+          })
           // push serialized into normalized data
           routeCopy.variances.push(tmp)
         })
@@ -499,6 +595,62 @@ const TransactionAggregator = module.exports = function (pushInteractor) {
     })
 
     return normalized
+  }
+
+  /**
+   * Reset aggregation for target appName
+   */
+  this.resetAggregation = function (appName, meta) {
+    log('Reseting agg for app:%s meta:%j', appName, meta)
+
+    if (self.processes[appName].initialization_timeout) {
+      log('Reseting initialization timeout app:%s', appName)
+      clearTimeout(self.processes[appName].initialization_timeout)
+      clearInterval(self.processes[appName].notifier)
+      self.processes[appName].notifier = null
+    }
+
+    self.processes[appName] = initializeRouteMeta({
+      name: appName,
+      rev: meta.rev,
+      server: meta.server
+    })
+
+    var start = Date.now()
+    self.processes[appName].notifier = setInterval(function () {
+      var elapsed = Date.now() - start
+      // failsafe
+      if (elapsed / 1000 > cst.AGGREGATION_DURATION) {
+        clearInterval(self.processes[appName].notifier)
+        self.processes[appName].notifier = null
+      }
+
+      var msg = {
+        data: {
+          learning_duration: cst.AGGREGATION_DURATION,
+          elapsed: elapsed
+        },
+        process: self.processes[appName].process
+      }
+      pushInteractor && pushInteractor.bufferData('axm:transaction:learning', msg)
+    }, 5000)
+
+    self.processes[appName].initialization_timeout = setTimeout(function () {
+      log('Initialization timeout finished for app:%s', appName)
+      clearInterval(self.processes[appName].notifier)
+      self.processes[appName].notifier = null
+      self.processes[appName].initialization_timeout = null
+    }, cst.AGGREGATION_DURATION)
+  }
+
+  /**
+   * Clear aggregated data for all process
+   */
+  this.clearData = function () {
+    var self = this
+    Object.keys(this.processes).forEach(function (process) {
+      self.resetAggregation(process, self.processes[process].process)
+    })
   }
 
   this.launchWorker = () => {
