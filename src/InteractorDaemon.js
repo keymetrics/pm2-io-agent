@@ -11,7 +11,7 @@ const ReverseInteractor = require('./reverse/ReverseInteractor.js')
 const PushInteractor = require('./push/PushInteractor.js')
 const Utility = require('./Utility.js')
 const PM2Client = require('./PM2Client.js')
-const AxonTransport = require('./AxonTransport.js')
+const TransporterInterface = require('./TransporterInterface.js')
 // const WatchDog = require('./WatchDog')
 
 // use noop if not launched via IPC
@@ -24,7 +24,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   constructor () {
     this.opts = this.retrieveConf()
     this.DAEMON_ACTIVE = false
-    this.transport = new AxonTransport(this.opts, this)
+    this.transport = new TransporterInterface('axon', this.opts, this)
     this.transport.on('error', (err) => {
       return console.error('[NETWORK] Error : ' + err.message || err)
     })

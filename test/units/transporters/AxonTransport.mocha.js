@@ -10,15 +10,15 @@ process.env.PM2_SECRET_KEY = 'ydz2i1lbkccm7g2'
 process.env.KEYMETRICS_NODE = 'http://cl1.km.io:3400'
 
 const assert = require('assert')
-const AxonTransport = require('../../src/AxonTransport')
-const Utility = require('../../src/Utility')
+const AxonTransport = require('../../../src/transporters/AxonTransport')
+const Utility = require('../../../src/Utility')
 
 const opts = {
   PUBLIC_KEY: process.env.PM2_PUBLIC_KEY,
   SECRET_KEY: process.env.PM2_SECRET_KEY,
   MACHINE_NAME: process.env.PM2_MACHINE_NAME
 }
-const daemon = require('../../src/InteractorDaemon')
+const daemon = require('../../../src/InteractorDaemon')
 
 const nssocket = require('nssocket')
 const axon = require('pm2-axon')

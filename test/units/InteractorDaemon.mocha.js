@@ -47,7 +47,7 @@ describe('InteractorDaemon', () => {
       let daemon = new Daemon()
       Daemon.prototype.retrieveConf = tmp
       assert(daemon.opts === cst)
-      assert(daemon.transport instanceof require('../../src/AxonTransport'))
+      assert(daemon.transport instanceof require('../../src/transporters/AxonTransport'))
       clearInterval(daemon.transport._worker)
       assert(_httpInit === 1)
       utility.reset()
@@ -241,6 +241,8 @@ describe('InteractorDaemon', () => {
                   assert(methodsName.indexOf('kill') > -1)
                   assert(methodsName.indexOf('passwordSet') > -1)
                   assert(methodsName.indexOf('getInfos') > -1)
+                  axonMock.reset()
+                  axonRPCMock.reset()
                   cb()
                   done()
                 }
