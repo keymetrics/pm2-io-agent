@@ -149,4 +149,9 @@ describe('StackTrace Utility', function () {
       assert(stackParser.parse(error) === false)
     })
   })
+
+  after((done) => {
+    clearInterval(aggregator._worker)
+    done()
+  })
 })

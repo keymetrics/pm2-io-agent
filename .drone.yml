@@ -1,0 +1,35 @@
+pipeline:
+  build:
+    image: node:8
+    environment:
+      - NODE_ENV=test
+      - PM2_HOME=.
+    commands:
+      - node -v
+      - yarn -v
+      - uname -r
+      - yarn install 2> /dev/null
+      - export PATH=$PATH:./node_modules/.bin/
+      - mocha test/units/InteractorClient.mocha.js 
+      - mocha test/units/InteractorDaemon.mocha.js 
+      - mocha test/units/PM2Client.mocha.js 
+      - mocha test/units/Utility/stacktrace.mocha.js 
+      - mocha test/units/WatchDog.mocha.js 
+      - mocha test/units/push/PushInteractor.mocha.js 
+      - mocha test/units/push/TransactionAggregator.mocha.js 
+      - mocha test/units/reverse/ReverseInteractor.mocha.js 
+      - mocha test/units/transporters/AxonTransport.mocha.js
+    when:
+      event: push
+  slack:
+    image: plugins/slack
+    channel: ci 
+    status: [ success, failure ]
+    template: |
+      {{#success build.status}}
+        {{repo.name}} : {{build.event}} with commit {{truncate build.commit 8}} on branch "{{build.branch}}" done by {{build.author}} succeeded in {{since build.started}}
+      {{else}}
+        {{repo.name}} : {{build.event}} with commit {{truncate build.commit 8}} on branch "{{build.branch}}" done by {{build.author}} failed in {{since build.started}}
+      {{/success}}
+      see {{ build.link }}
+    secrets: [ slack_webhook ]

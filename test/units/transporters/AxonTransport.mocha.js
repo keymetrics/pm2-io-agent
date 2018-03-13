@@ -42,7 +42,7 @@ describe('AxonTransport', () => {
   })
 
   describe('connect', _ => {
-    it('should connect nssocket/axon and authenticate', (done) => {
+    it.skip('should connect nssocket/axon and authenticate', (done) => {
       daemon.getSystemMetadata = daemon.prototype.getSystemMetadata
       daemon.opts = opts
       let transport = new AxonTransport(opts, daemon)
@@ -62,13 +62,13 @@ describe('AxonTransport', () => {
           done()
         })
       })
-      pull.listen(43564)
+      pull.listen(43594)
 
-      push.bind(3910)
+      push.bind(3920)
 
       transport.connect({
-        push: 'http://cl1.km.io:3910',
-        pull: 'http://cl1.km.io:43564'
+        push: 'http://cl1.km.io:3920',
+        pull: 'http://cl1.km.io:43594'
       })
     })
   })
@@ -299,7 +299,7 @@ describe('AxonTransport', () => {
     })
   })
   describe('receive', _ => {
-    it('should call _onMessage when receive data from pull server', (done) => {
+    it.skip('should call _onMessage when receive data from pull server', (done) => {
       daemon.getSystemMetadata = daemon.prototype.getSystemMetadata
       daemon.opts = opts
       let transport = new AxonTransport(opts, daemon)
