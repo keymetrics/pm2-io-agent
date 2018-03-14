@@ -3,6 +3,7 @@
 'use strict'
 
 process.env.NODE_ENV = 'test'
+process.env.PM2_SILENT = true
 
 process.env.PM2_MACHINE_NAME = 'test'
 process.env.PM2_PUBLIC_KEY = 'g94c9opeq5i4f6j'
@@ -573,13 +574,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -610,7 +604,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()

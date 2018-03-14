@@ -13,8 +13,16 @@ const rpc = require('pm2-axon-rpc')
 const axon = require('pm2-axon')
 const chalk = require('chalk')
 const os = require('os')
-const Common = require('pm2/lib/Common')
-const UX = require('pm2/lib/API/CliUx.js')
+
+const printError = (msg) => {
+  if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
+  if (msg instanceof Error) return console.error(msg.message)
+  return console.error.apply(console, arguments)
+}
+const printOut = () => {
+  if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
+  return console.log.apply(console, arguments)
+}
 
 module.exports = class InteractorDaemonizer {
   /**
@@ -65,7 +73,7 @@ module.exports = class InteractorDaemonizer {
       log(`Interactor is ${!online || err ? 'offline' : 'online'}`)
 
       if (!online || err) {
-        return cb ? err ? cb(err) : cb(new Error('Interactor not launched')) : Common.printError('Interactor not launched')
+        return cb ? err ? cb(err) : cb(new Error('Interactor not launched')) : printError('Interactor not launched')
       }
 
       this.launchRPC(conf, (err, data) => {
@@ -76,7 +84,7 @@ module.exports = class InteractorDaemonizer {
           return false
         }
         this.rpc.kill((err) => {
-          if (err) Common.printError(err)
+          if (err) printError(err)
           setTimeout(_ => {
             this.disconnectRPC(cb)
           }, 100)
@@ -174,8 +182,6 @@ module.exports = class InteractorDaemonizer {
       stdio: ['ipc', out, err]
     })
 
-    UX.processing.start()
-
     fs.writeFileSync(conf.INTERACTOR_PID_PATH, child.pid)
 
     child.once('error', (err) => {
@@ -187,8 +193,6 @@ module.exports = class InteractorDaemonizer {
 
     child.once('message', (msg) => {
       log('Interactor daemon launched : %s', msg)
-
-      UX.processing.stop()
 
       if (msg.log) {
         return cb(null, msg, child)
@@ -264,14 +268,14 @@ module.exports = class InteractorDaemonizer {
   static update (conf, cb) {
     this.ping(conf, (err, online) => {
       if (err || !online) {
-        return cb ? cb(new Error('Interactor not launched')) : Common.printError('Interactor not launched')
+        return cb ? cb(new Error('Interactor not launched')) : printError('Interactor not launched')
       }
       this.launchRPC(conf, _ => {
         this.rpc.kill((err) => {
           if (err) {
-            return cb ? cb(err) : Common.printError(err)
+            return cb ? cb(err) : printError(err)
           }
-          Common.printOut('Interactor successfully killed')
+          printOut('Interactor successfully killed')
           setTimeout(_ => {
             this.launchAndInteract(conf, {}, _ => {
               return cb(null, { msg: 'Daemon launched' })

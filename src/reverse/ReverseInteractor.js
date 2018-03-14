@@ -25,8 +25,8 @@ const PM2_REMOTE_METHOD_ALLOWED = [
  * @param {WebsocketTransport} transport websocket transport used to receive data to KM
  */
 module.exports = class ReverseInteractor {
-  constructor (opts, pm2, transport) {
-    this.pm2 = pm2
+  constructor (opts, ipm2, transport) {
+    this.ipm2 = ipm2
     this.transport = transport
     this.opts = opts
   }
@@ -58,9 +58,10 @@ module.exports = class ReverseInteractor {
   _onCustomAction (data) {
     const type = data.uuid ? 'SCOPED' : 'REMOTE'
 
+    data.process_id = data.process_id !== undefined ? data.process_id : data.process.pm_id
     debug('New %s action %s triggered for process %s', type, data.action_name, data.process_id)
     // send the request to pmx via IPC
-    this.pm2.msgProcess({
+    this.ipm2.msgProcess({
       id: data.process_id,
       msg: data.action_name,
       opts: data.opts || data.options || null,
@@ -131,7 +132,7 @@ module.exports = class ReverseInteractor {
       return callback(null, 'Log streaming disabled')
     }
 
-    return this.pm2.remote(method, parameters, callback)
+    return this.ipm2.remote(method, parameters, callback)
   }
 
   /**

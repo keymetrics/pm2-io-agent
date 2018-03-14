@@ -106,7 +106,6 @@ describe('InteractorDaemon', () => {
         let _stopPush = 0
         let _disconnectTransport = 0
         let _disconnectIPM2 = 0
-        let _disconnectPM2 = 0
         let _unlinkCount = 0
         let _closeRPC = 0
         daemon._workerEndpoint = setInterval(_ => {}, 1000)
@@ -122,9 +121,6 @@ describe('InteractorDaemon', () => {
         }
         daemon._ipm2 = {
           disconnect: _ => _disconnectIPM2++
-        }
-        daemon.pm2 = {
-          disconnect: _ => _disconnectPM2++
         }
         let fsMock = new ModuleMocker('fs')
         fsMock.mock({
@@ -151,7 +147,6 @@ describe('InteractorDaemon', () => {
           assert(_stopReverse === 1)
           assert(_disconnectTransport === 1)
           assert(_disconnectIPM2 === 1)
-          assert(_disconnectPM2 === 1)
           assert(_unlinkCount === 2)
           assert(_closeRPC === 1)
           fsMock.reset()
@@ -168,7 +163,6 @@ describe('InteractorDaemon', () => {
         let _stopPush = 0
         let _disconnectTransport = 0
         let _disconnectIPM2 = 0
-        let _disconnectPM2 = 0
         let _unlinkCount = 0
         daemon._workerEndpoint = setInterval(_ => {}, 1000)
         daemon.reverse = {
@@ -183,9 +177,6 @@ describe('InteractorDaemon', () => {
         }
         daemon._ipm2 = {
           disconnect: _ => _disconnectIPM2++
-        }
-        daemon.pm2 = {
-          disconnect: _ => _disconnectPM2++
         }
         let fsMock = new ModuleMocker('fs')
         fsMock.mock({
@@ -205,7 +196,6 @@ describe('InteractorDaemon', () => {
           assert(_stopReverse === 1)
           assert(_disconnectTransport === 1)
           assert(_disconnectIPM2 === 1)
-          assert(_disconnectPM2 === 1)
           assert(_unlinkCount === 2)
           fsMock.reset()
           process.exit = tmpExit
@@ -267,7 +257,7 @@ describe('InteractorDaemon', () => {
         assert(metas.MACHINE_NAME === opts.MACHINE_NAME)
         assert(metas.PUBLIC_KEY === opts.PUBLIC_KEY)
         assert(metas.RECYCLE === opts.RECYCLE || false)
-        assert(metas.PM2_VERSION === require('pm2/package.json').version)
+        assert(metas.PM2_VERSION === process.env.PM2_VERSION)
         assert(metas.MEMORY === os.totalmem() / 1000 / 1000)
         assert(metas.HOSTNAME === os.hostname())
         cb()
@@ -510,7 +500,6 @@ describe('InteractorDaemon', () => {
       useDaemon((daemon, cb) => {
         let _startRPCCalled = 0
         let _processSendCalled = 0
-        let _connectCalled = 0
         daemon.startRPC = () => _startRPCCalled++
         let sendTmp = process.send
         process.send = (data) => {
@@ -528,18 +517,12 @@ describe('InteractorDaemon', () => {
             }
           }
         })
-        let pm2Mock = new ModuleMocker('pm2')
-        pm2Mock.mock({
-          connect: () => _connectCalled++
-        })
         daemon.exit = _ => {
           assert(_startRPCCalled === 1)
           assert(daemon.opts.ROOT_URL === cst.KEYMETRICS_ROOT_URL)
           assert(_processSendCalled === 1)
-          assert(_connectCalled === 1)
           process.send = sendTmp
           axonMock.reset()
-          pm2Mock.reset()
           cb()
           done()
         }
@@ -550,7 +533,6 @@ describe('InteractorDaemon', () => {
       useDaemon((daemon, cb) => {
         let _startRPCCalled = 0
         let _processSendCalled = 0
-        let _connectCalled = 0
         daemon.startRPC = () => _startRPCCalled++
         let sendTmp = process.send
         process.send = (data) => {
@@ -591,15 +573,10 @@ describe('InteractorDaemon', () => {
             }
           }
         })
-        let pm2Mock = new ModuleMocker('pm2')
-        pm2Mock.mock({
-          connect: () => _connectCalled++
-        })
         daemon.start(_ => {
           assert(_startRPCCalled === 1)
           assert(daemon.opts.ROOT_URL === cst.KEYMETRICS_ROOT_URL)
           assert(_processSendCalled === 1)
-          assert(_connectCalled === 1)
           assert(daemon.push instanceof require('../../src/push/PushInteractor.js'))
           assert(daemon.reverse instanceof require('../../src/reverse/ReverseInteractor.js'))
           clearInterval(daemon._workerEndpoint)
@@ -608,7 +585,6 @@ describe('InteractorDaemon', () => {
           daemon.reverse.stop()
           process.send = sendTmp
           axonMock.reset()
-          pm2Mock.reset()
           cb()
           done()
         })

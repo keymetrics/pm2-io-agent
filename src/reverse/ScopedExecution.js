@@ -7,6 +7,7 @@
 const pm2 = require('pm2')
 const domain = require('domain') // eslint-disable-line 
 const Utility = require('../Utility.js')
+const log = require('debug')('reverse:scoped')
 
 const d = domain.create()
 
@@ -16,7 +17,7 @@ d.once('error', function (err) {
 
 d.run(function () {
   const params = JSON.parse(process.env.fork_params)
-  console.log('Executing: pm2 %s %s', params.action, params.opts.args ? params.opts.args.join(' ') : '')
+  log('Executing: pm2 %s %s', params.action, params.opts.args ? params.opts.args.join(' ') : '')
 
   pm2.connect(function () {
     pm2.remoteV2(params.action, params.opts, function (err, dt) {
