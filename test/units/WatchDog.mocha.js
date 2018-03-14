@@ -69,11 +69,13 @@ describe('WatchDog', () => {
   })
   describe('resurrect', _ => {
     it('should exec pm2', (done) => {
-      let shellMock = new ModuleMocker('shelljs')
-      shellMock.mock({
-        exec: (params, cb) => {
-          assert(params === 'node ' + process.cwd() + '/bin/pm2 resurrect')
-          shellMock.reset()
+      let childMock = new ModuleMocker('child_process')
+      childMock.mock({
+        exec: (cmd, params, cb) => {
+          assert(cmd === 'node')
+          assert(params[0] === process.cwd() + '/bin/pm2')
+          assert(params[1] === 'resurrect')
+          childMock.reset()
           done()
         }
       })

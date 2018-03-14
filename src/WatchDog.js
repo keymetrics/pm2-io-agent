@@ -7,7 +7,7 @@
 'use strict'
 
 const debug = require('debug')('interface:watchdog')
-const shelljs = require('shelljs')
+const child = require('child_process')
 
 process.env.PM2_AGENT_ONLINE = true
 
@@ -44,7 +44,7 @@ module.exports = class WatchDog {
 
   static resurrect () {
     debug('Trying to launch PM2 #1')
-    shelljs.exec('node ' + process.cwd() + '/bin/pm2 resurrect', function () {
+    child.exec('node', [process.cwd() + '/bin/pm2', 'resurrect'], _ => {
       setTimeout(_ => {
         this.relaunching = false
       }, 2500)
