@@ -147,9 +147,8 @@ class EWMA {
     this._alpha = 1 - Math.exp(-this._tickInterval / this._timePeriod)
     this._count = 0
     this._rate = 0
-    const self = this
-    this._interval = setInterval(function () {
-      self.tick()
+    this._interval = setInterval(_ => {
+      this.tick()
     }, this._tickInterval)
     this._interval.unref()
   }

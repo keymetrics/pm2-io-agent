@@ -34,14 +34,14 @@ module.exports = class InteractorDaemonizer {
 
     log('[PING INTERACTOR] Trying to connect to Interactor daemon')
 
-    client.sock.once('reconnect attempt', function () {
+    client.sock.once('reconnect attempt', _ => {
       client.sock.close()
       log('Interactor Daemon not launched')
       return cb(null, false)
     })
 
-    client.sock.once('connect', function () {
-      client.sock.once('close', function () {
+    client.sock.once('connect', _ => {
+      client.sock.once('close', _ => {
         return cb(null, true)
       })
       client.sock.close()
@@ -58,28 +58,27 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err>
    */
   static killInteractorDaemon (conf, cb) {
-    const self = this
     process.env.PM2_INTERACTOR_PROCESSING = true
 
     log('Killing interactor #1 ping')
-    self.ping(conf, function (err, online) {
+    this.ping(conf, (err, online) => {
       log(`Interactor is ${!online || err ? 'offline' : 'online'}`)
 
       if (!online || err) {
         return cb ? err ? cb(err) : cb(new Error('Interactor not launched')) : Common.printError('Interactor not launched')
       }
 
-      self.launchRPC(conf, function (err, data) {
+      this.launchRPC(conf, (err, data) => {
         if (err) {
-          setTimeout(function () {
-            self.disconnectRPC(cb)
+          setTimeout(_ => {
+            this.disconnectRPC(cb)
           }, 100)
           return false
         }
-        self.rpc.kill(function (err) {
+        this.rpc.kill((err) => {
           if (err) Common.printError(err)
-          setTimeout(function () {
-            self.disconnectRPC(cb)
+          setTimeout(_ => {
+            this.disconnectRPC(cb)
           }, 100)
         })
         return false
@@ -94,7 +93,6 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err>
    */
   static launchRPC (conf, cb) {
-    const self = this
     const req = axon.socket('req')
     this.rpc = {}
     this.client = new rpc.Client(req)
@@ -102,14 +100,15 @@ module.exports = class InteractorDaemonizer {
     log('Generating Interactor methods of RPC client')
 
     // attach known methods to RPC client
-    const generateMethods = function (cb) {
-      self.client.methods(function (err, methods) {
+    const generateMethods = (cb) => {
+      this.client.methods((err, methods) => {
         if (err) return cb(err)
-        Object.keys(methods).forEach(function (key) {
+        Object.keys(methods).forEach((key) => {
           let method = methods[key]
           log('+ Adding %s method to interactor RPC client', method.name);
-          (function (name) {
-            self.rpc[name] = function () {
+          ((name) => {
+            let self = this
+            this.rpc[name] = function () {
               let args = Array.prototype.slice.call(arguments)
               args.unshift(name)
               self.client.call.apply(self.client, args)
@@ -120,19 +119,19 @@ module.exports = class InteractorDaemonizer {
       })
     }
 
-    this.client.sock.once('reconnect attempt', function (err) {
-      self.client.sock.removeAllListeners()
+    this.client.sock.once('reconnect attempt', (err) => {
+      this.client.sock.removeAllListeners()
       return cb(err, { success: false, msg: 'reconnect attempt' })
     })
 
-    this.client.sock.once('error', function (err) {
+    this.client.sock.once('error', (err) => {
       log('-- Error in error catch all on Interactor --', err)
       return cb(err, { success: false, msg: 'reconnect attempt' })
     })
 
-    this.client.sock.once('connect', function () {
-      self.client.sock.removeAllListeners()
-      generateMethods(function () {
+    this.client.sock.once('connect', () => {
+      this.client.sock.removeAllListeners()
+      generateMethods(_ => {
         log('Methods of RPC client for Interaction ready.')
         return cb(null, { success: true })
       })
@@ -179,14 +178,14 @@ module.exports = class InteractorDaemonizer {
 
     fs.writeFileSync(conf.INTERACTOR_PID_PATH, child.pid)
 
-    child.once('error', function (err) {
+    child.once('error', (err) => {
       log('Error when launching Interactor, please check the agent logs')
       return cb(err)
     })
 
     child.unref()
 
-    child.once('message', function (msg) {
+    child.once('message', (msg) => {
       log('Interactor daemon launched : %s', msg)
 
       UX.processing.stop()
@@ -200,23 +199,31 @@ module.exports = class InteractorDaemonizer {
 
       // Handle and show to user the different error message that can happen
       if (msg.error === true) {
-        console.log(chalk.red('[Keymetrics.io][ERROR]'), msg.msg)
-        console.log(chalk.cyan('[Keymetrics.io]') + ' Contact support contact@keymetrics.io and send us the error message')
+        if (!process.env.PM2_SILENT) {
+          console.log(chalk.red('[Keymetrics.io][ERROR]'), msg.msg)
+          console.log(chalk.cyan('[Keymetrics.io]') + ' Contact support contact@keymetrics.io and send us the error message')
+        }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.disabled === true) {
-        console.log(chalk.cyan('[Keymetrics.io]') + ' Server DISABLED BY ADMINISTRATION contact support contact@keymetrics.io with reference to your public and secret keys)')
+        if (!process.env.PM2_SILENT) {
+          console.log(chalk.cyan('[Keymetrics.io]') + ' Server DISABLED BY ADMINISTRATION contact support contact@keymetrics.io with reference to your public and secret keys)')
+        }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.error === true) {
-        console.log('%s %s (Public: %s) (Secret: %s) (Machine name: %s)', chalk.red('[Keymetrics.io][ERROR]'),
-          msg.km_data.msg, msg.public_key, msg.secret_key, msg.machine_name)
+        if (!process.env.PM2_SILENT) {
+          console.log('%s %s (Public: %s) (Secret: %s) (Machine name: %s)', chalk.red('[Keymetrics.io][ERROR]'),
+            msg.km_data.msg, msg.public_key, msg.secret_key, msg.machine_name)
+        }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.active === false && msg.km_data.pending === true) {
-        console.log('%s %s - Web Access: https://app.keymetrics.io/', chalk.red('[Keymetrics.io]'), chalk.bold.red('Agent PENDING'))
-        console.log('%s You must upgrade your bucket in order to monitor more servers.', chalk.red('[Keymetrics.io]'))
+        if (!process.env.PM2_SILENT) {
+          console.log('%s %s - Web Access: https://app.keymetrics.io/', chalk.red('[Keymetrics.io]'), chalk.bold.red('Agent PENDING'))
+          console.log('%s You must upgrade your bucket in order to monitor more servers.', chalk.red('[Keymetrics.io]'))
+        }
         return cb(msg)
       }
 
-      if (msg.km_data && msg.km_data.active === true) {
+      if (msg.km_data && msg.km_data.active === true && !process.env.PM2_SILENT) {
         console.log('%s [%s] Agent ACTIVE - Web Access: https://app.keymetrics.io/', chalk.cyan('[Keymetrics.io]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
       }
       return cb(null, msg, child)
@@ -234,18 +241,17 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg, process>
    */
   static launchOrAttach (conf, infos, cb) {
-    const self = this
-    self.ping(conf, function (err, online) {
+    this.ping(conf, (err, online) => {
       if (!err && online) {
         log('Interactor online, restarting it...')
-        self.launchRPC(conf, function () {
-          self.rpc.kill(function (ignoredErr) {
-            self.daemonize(conf, infos, cb)
+        this.launchRPC(conf, _ => {
+          this.rpc.kill((ignoredErr) => {
+            this.daemonize(conf, infos, cb)
           })
         })
       } else {
         log('Interactor offline, launching it...')
-        self.daemonize(conf, infos, cb)
+        this.daemonize(conf, infos, cb)
       }
     })
   }
@@ -256,19 +262,18 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg>
    */
   static update (conf, cb) {
-    const self = this
-    self.ping(conf, function (err, online) {
+    this.ping(conf, (err, online) => {
       if (err || !online) {
         return cb ? cb(new Error('Interactor not launched')) : Common.printError('Interactor not launched')
       }
-      self.launchRPC(conf, function () {
-        self.rpc.kill(function (err) {
+      this.launchRPC(conf, _ => {
+        this.rpc.kill((err) => {
           if (err) {
             return cb ? cb(err) : Common.printError(err)
           }
           Common.printOut('Interactor successfully killed')
-          setTimeout(function () {
-            self.launchAndInteract(conf, {}, function () {
+          setTimeout(_ => {
+            this.launchAndInteract(conf, {}, _ => {
               return cb(null, { msg: 'Daemon launched' })
             })
           }, 500)
@@ -329,7 +334,7 @@ module.exports = class InteractorDaemonizer {
       console.error('Error when writting configuration file %s', cst.INTERACTION_CONF)
       return cb(e)
     }
-    cb(null, configuration)
+    return cb(null, configuration)
   }
 
   /**
@@ -337,15 +342,14 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg>
    */
   static disconnectRPC (cb) {
-    const self = this
-    if (!self.client_sock || !self.client_sock.close) {
+    if (!this.client_sock || !this.client_sock.close) {
       return cb(null, {
         success: false,
         msg: 'RPC connection to Interactor Daemon is not launched'
       })
     }
 
-    if (self.client_sock.connected === false || self.client_sock.closing === true) {
+    if (this.client_sock.connected === false || this.client_sock.closing === true) {
       return cb(null, {
         success: false,
         msg: 'RPC closed'
@@ -357,20 +361,20 @@ module.exports = class InteractorDaemonizer {
 
       log('Closing RPC INTERACTOR')
 
-      self.client_sock.once('close', function () {
+      this.client_sock.once('close', _ => {
         log('RPC INTERACTOR cleanly closed')
         clearTimeout(timer)
         return cb ? cb(null, { success: true }) : false
       })
 
-      timer = setTimeout(function () {
-        if (self.client_sock.destroy) {
-          self.client_sock.destroy()
+      timer = setTimeout(_ => {
+        if (this.client_sock.destroy) {
+          this.client_sock.destroy()
         }
         return cb ? cb(null, { success: true }) : false
       }, 200)
 
-      self.client_sock.close()
+      this.client_sock.close()
     } catch (err) {
       log('Error while closing RPC INTERACTOR : %s', err.message || err)
       return cb ? cb(err) : false
@@ -387,7 +391,6 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg, process>
    */
   static launchAndInteract (cst, opts, cb) {
-    const self = this
     // For Watchdog
     if (process.env.PM2_AGENT_ONLINE) {
       return cb()
@@ -395,11 +398,11 @@ module.exports = class InteractorDaemonizer {
 
     process.env.PM2_INTERACTOR_PROCESSING = true
 
-    self.getOrSetConf(cst, opts, function (err, conf) {
+    this.getOrSetConf(cst, opts, (err, conf) => {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
       console.log(chalk.cyan('[Keymetrics.io]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
-      return self.launchOrAttach(cst, conf, cb)
+      return this.launchOrAttach(cst, conf, cb)
     })
   }
 
@@ -409,21 +412,20 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, data>
    */
   static getInteractInfo (cst, cb) {
-    const self = this
     log('Getting interaction info')
     if (process.env.PM2_NO_INTERACTION) return
 
-    self.ping(cst, function (err, online) {
+    this.ping(cst, (err, online) => {
       if (err || !online) return cb(new Error('Interactor is offline'))
 
-      self.launchRPC(cst, function () {
-        self.rpc.getInfos(function (err, infos) {
+      this.launchRPC(cst, _ => {
+        this.rpc.getInfos((err, infos) => {
           if (err) return cb(err)
 
           // Avoid general CLI to interfere with Keymetrics CLI commands
           if (process.env.PM2_INTERACTOR_PROCESSING) return cb(null, infos)
 
-          self.disconnectRPC(function () {
+          this.disconnectRPC(() => {
             return cb(null, infos)
           })
         })
