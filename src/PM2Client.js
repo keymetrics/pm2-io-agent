@@ -9,8 +9,9 @@
 const axon = require('pm2-axon')
 const cst = require('../constants.js')
 const rpc = require('pm2-axon-rpc')
-const log = require('debug')('pm2:interface')
+const log = require('debug')('pm2:client')
 const EventEmitter = require('events').EventEmitter
+const PM2Interface = require('./PM2Interface')
 
 /**
  * PM2 API Wrapper used to setup connection with the daemon
@@ -18,13 +19,11 @@ const EventEmitter = require('events').EventEmitter
  * @param {String} opts.sub_port socket file of the PM2 bus [optionnal]
  * @param {String} opts.rpc_port socket file of the PM2 RPC server [optionnal]
  */
-module.exports = class PM2Wrapper extends EventEmitter {
+module.exports = class PM2Client extends EventEmitter {
   constructor (opts) {
     super()
     const subSocket = (opts && opts.sub_port) || cst.DAEMON_PUB_PORT
     const rpcSocket = (opts && opts.rpc_port) || cst.DAEMON_RPC_PORT
-
-    EventEmitter.call(this)
 
     const sub = axon.socket('sub-emitter')
     this.sub_sock = sub.connect(subSocket)
@@ -40,6 +39,7 @@ module.exports = class PM2Wrapper extends EventEmitter {
       log('PM2 API Wrapper connected to PM2 Daemon via RPC')
       this.emit('rpc_sock:ready')
       this.generateMethods(_ => {
+        this.pm2Interface = new PM2Interface(this.rpc)
         this.emit('ready')
       })
     })
@@ -93,14 +93,27 @@ module.exports = class PM2Wrapper extends EventEmitter {
         log('+-- Creating %s method', method.name);
 
         ((name) => {
-          this.rpc[name] = _ => {
+          const self = this
+          this.rpc[name] = function () {
             let args = Array.prototype.slice.call(arguments)
             args.unshift(name)
-            this.rpc_client.call.apply(this.rpc_client, args)
+            self.rpc_client.call.apply(self.rpc_client, args)
           }
         })(method.name)
       })
       return cb()
     })
+  }
+
+  remote (method, parameters, cb) {
+    log('remote send %s', method, parameters)
+    if (this.pm2Interface[method] === 'undefined') {
+      return cb(new Error('Deprecated or invalid method'))
+    }
+    this.pm2Interface[method](parameters, cb)
+  }
+
+  msgProcess (data, cb) {
+    this.rpc.msgProcess(data, cb)
   }
 }

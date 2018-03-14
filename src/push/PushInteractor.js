@@ -67,6 +67,7 @@ module.exports = class PushInteractor {
    * @param {Object} packet data
    */
   _onPM2Event (event, packet) {
+    debug('New PM2 event %s', event)
     if (event === 'axm:action') return false
     if (!packet.process) return debug('No process field [%s]', event)
 
@@ -158,6 +159,7 @@ module.exports = class PushInteractor {
   _sendFile (packet) {
     const filePath = JSON.parse(JSON.stringify(packet.data.return.dump_file))
     const type = packet.data.return.heapdump ? 'heapdump' : 'cpuprofile'
+    debug('Send file for %s', type)
 
     packet = {
       pm_id: packet.process.pm_id,

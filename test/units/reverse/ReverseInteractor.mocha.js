@@ -20,10 +20,10 @@ const events = {
 describe('ReverseInteractor', () => {
   describe('new instance', _ => {
     it('should set data', (done) => {
-      let reverse = new ReverseInteractor('opts', 'pm2', 'transport')
+      let reverse = new ReverseInteractor('opts', 'ipm2', 'transport')
       assert(reverse.opts === 'opts')
       assert(reverse.transport === 'transport')
-      assert(reverse.pm2 === 'pm2')
+      assert(reverse.ipm2 === 'ipm2')
       done()
     })
   })
@@ -87,7 +87,9 @@ describe('ReverseInteractor', () => {
       reverse._onCustomAction({
         uuid: undefined,
         action_name: 'test',
-        process_id: 'test',
+        process: {
+          pm_id: 'test'
+        },
         options: {}
       })
     })
@@ -116,7 +118,9 @@ describe('ReverseInteractor', () => {
       reverse._onCustomAction({
         uuid: undefined,
         action_name: 'test',
-        process_id: 'test',
+        process: {
+          pm_id: 'test'
+        },
         options: {}
       })
     })

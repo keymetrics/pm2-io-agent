@@ -145,32 +145,41 @@ module.exports = class AxonTransport extends Transporter {
       }
       return this.queue.push({ channel: channel, data: data })
     }
+    let packet = null
 
     log('Sending packet over for channel %s', channel)
-    // Create packet
-    let packet = {
-      public_key: this.opts.PUBLIC_KEY,
-      data: {
-        server_name: this.opts.MACHINE_NAME
+    if (channel !== 'heapdump' && channel !== 'cpuprofile') {
+      // Create packet
+      packet = {
+        public_key: this.opts.PUBLIC_KEY,
+        data: {
+          server_name: this.opts.MACHINE_NAME
+        }
       }
+      if (channel === 'status') {
+        // Update last status
+        this.lastStatus = data
+      } else {
+        // Add event name as key
+        packet.data[channel] = [data]
+      }
+      // Add status to data
+      packet.data.status = this.lastStatus
+      // Cipher data
+      packet.data = Utility.Cipher.cipherMessage(packet.data, this.opts.SECRET_KEY)
     }
-    if (channel === 'status') {
-      // Update last status
-      this.lastStatus = data
-    } else {
-      // Add event name as key
-      packet.data[channel] = [data]
-    }
-    // Add status to data
-    packet.data.status = this.lastStatus
-    // Cipher data
-    packet.data = Utility.Cipher.cipherMessage(packet.data, this.opts.SECRET_KEY)
 
     // Send data to reverse server if is a result from a trigger otherwise send to interact server
     if (channel.indexOf('trigger:') !== -1) {
       this._socket.send(channel, data)
     } else {
-      this._axon.emit(JSON.stringify(packet))
+      if (channel !== 'heapdump' && channel !== 'cpuprofile') {
+        this._axon.emit(JSON.stringify(packet))
+      } else {
+        packet = Object.assign({}, data)
+        delete packet.data
+        this._axon.emit(JSON.stringify(packet), data.data)
+      }
     }
   }
 

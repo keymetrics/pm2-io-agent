@@ -150,6 +150,7 @@ module.exports = class TransactionAggregator {
    * @param {Object} packet.data     trace
    */
   aggregate (packet) {
+    log('Aggregate new packet')
     if (!this.validateData(packet)) return false
 
     var newTrace = packet.data
@@ -653,7 +654,7 @@ module.exports = class TransactionAggregator {
       const normalized = this.prepareAggregationforShipping()
 
       Object.keys(normalized).forEach((key) => {
-        this.pushInteractor.bufferData('axm:transaction', normalized[key])
+        this.pushInteractor.push('axm:transaction', normalized[key])
       })
     }, cst.TRANSACTION_FLUSH_INTERVAL)
   }

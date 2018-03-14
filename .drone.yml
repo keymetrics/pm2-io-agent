@@ -3,13 +3,14 @@ pipeline:
     image: node:8
     environment:
       - NODE_ENV=test
-      - PM2_HOME=.
+      - PM2_HOME=./tmp
     commands:
       - node -v
       - yarn -v
       - uname -r
       - yarn install 2> /dev/null
       - export PATH=$PATH:./node_modules/.bin/
+      - mkdir ./tmp
       - mocha test/units/InteractorClient.mocha.js 
       - mocha test/units/InteractorDaemon.mocha.js 
       - mocha test/units/PM2Client.mocha.js 

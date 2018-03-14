@@ -63,10 +63,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       log('Closed connection to PM2 bus and RPC server')
     })
 
-    this.pm2.disconnect(() => {
-      log('Closed connection to PM2 API')
-    })
-
     try {
       fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
       fs.unlinkSync(cst.INTERACTOR_PID_PATH)
@@ -91,26 +87,27 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     log('Launching Interactor RPC server (bind to %s)', cst.INTERACTOR_RPC_PORT)
     const rep = axon.socket('rep')
     const rpcServer = new rpc.Server(rep)
+    const self = this
     rep.bind(cst.INTERACTOR_RPC_PORT)
 
     rpcServer.expose({
-      kill: (cb) => {
+      kill: function (cb) {
         log('Shutdown request received via RPC')
         cb(null)
-        return this.exit()
+        return self.exit()
       },
-      passwordSet: (cb) => {
+      passwordSet: function (cb) {
         global._pm2_password_protected = true
         return cb(null)
       },
-      getInfos: (cb) => {
-        if (this.opts && this.DAEMON_ACTIVE === true) {
+      getInfos: function (cb) {
+        if (self.opts && self.DAEMON_ACTIVE === true) {
           return cb(null, {
-            machine_name: this.opts.MACHINE_NAME,
-            public_key: this.opts.PUBLIC_KEY,
-            secret_key: this.opts.SECRET_KEY,
-            remote_host: this.transport._host,
-            connected: this.transport.isConnected(),
+            machine_name: self.opts.MACHINE_NAME,
+            public_key: self.opts.PUBLIC_KEY,
+            secret_key: self.opts.SECRET_KEY,
+            remote_host: self.transport._host,
+            connected: self.transport.isConnected(),
             socket_path: cst.INTERACTOR_RPC_PORT,
             pm2_home_monitored: cst.PM2_HOME
           })
@@ -130,7 +127,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       MACHINE_NAME: this.opts.MACHINE_NAME,
       PUBLIC_KEY: this.opts.PUBLIC_KEY,
       RECYCLE: this.opts.RECYCLE || false,
-      PM2_VERSION: require('pm2/package.json').version,
+      PM2_VERSION: process.env.PM2_VERSION,
       MEMORY: os.totalmem() / 1000 / 1000,
       HOSTNAME: os.hostname(),
       CPUS: os.cpus()
@@ -201,7 +198,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.PUBLIC_KEY = process.env.PM2_PUBLIC_KEY
     opts.SECRET_KEY = process.env.PM2_SECRET_KEY
     opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
-    opts.PM2_VERSION = require('pm2/package.json').version
+    opts.PM2_VERSION = process.env.PM2_VERSION || '0.0.0'
 
     if (!opts.MACHINE_NAME) {
       console.error('You must provide a PM2_MACHINE_NAME environment variable')
@@ -223,12 +220,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    */
   start (cb) {
     this._ipm2 = new PM2Client()
-    this.pm2 = require('pm2')
-
-    this.pm2.connect(function (err) {
-      return err ? console.error(err) : log('Connected to PM2')
-    })
-
     this._rpc = this.startRPC()
 
     this.opts.ROOT_URL = cst.KEYMETRICS_ROOT_URL
@@ -257,16 +248,17 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
       // start interactors
       this.push = new PushInteractor(this.opts, this._ipm2, this.transport)
-      this.reverse = new ReverseInteractor(this.opts, this.pm2, this.transport)
+      this.reverse = new ReverseInteractor(this.opts, this._ipm2, this.transport)
       this.push.start()
       this.reverse.start()
       // WatchDog.start({
       //   conf: {
-      //     ipm2: this._ipm2,
-      //     pm2_instance: this.pm2
+      //     ipm2: this._ipm2
       //   }
       // })
-      setTimeout(cb, 20)
+      if (cb) {
+        setTimeout(cb, 20)
+      }
     })
   }
 }
@@ -275,7 +267,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // otherwise we just required it to use a function
 if (require.main === module) {
   process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')'
-  require('pm2/lib/Utility.js').overrideConsole()
   log('[Keymetrics.io] Launching agent')
   new InteractorDaemon().start()
 }
