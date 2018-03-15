@@ -542,7 +542,7 @@ describe('InteractorDaemon', () => {
           assert(data.machine_name === process.env.PM2_MACHINE_NAME)
           assert(data.public_key === process.env.PM2_PUBLIC_KEY)
           assert(data.secret_key === process.env.PM2_SECRET_KEY)
-          assert(data.reverse_interaction === true)
+          assert(data.reverse_interaction === undefined)
           assert(Number.isInteger(data.pid))
           _processSendCalled++
         }

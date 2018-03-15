@@ -31,7 +31,7 @@ describe('Transactions Aggregator', function () {
   })
 
   it('should instanciate aggregator', function () {
-    aggregator = new Aggregator({ stackParser: stackParser })
+    aggregator = new Aggregator({ _stackParser: stackParser, _ipm2: {bus: {on: _ => {}}} })
   })
 
   describe('.censorSpans', function () {
@@ -192,7 +192,7 @@ describe('Transactions Aggregator', function () {
       assert(agg['appname'].meta.histogram.percentiles([0.5])[0.5] !== undefined)
 
       // should pm_id not taken into account
-      assert(agg['appname'].process.pm_id !== undefined)
+      assert(agg['appname'].process.pm_id === undefined)
     })
   })
 

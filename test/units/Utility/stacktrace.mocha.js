@@ -31,7 +31,7 @@ describe('StackTrace Utility', function () {
   })
 
   it('should instanciate aggregator', function () {
-    aggregator = new Aggregator({ _stackParser: stackParser })
+    aggregator = new Aggregator({ _stackParser: stackParser, _ipm2: {bus: {on: _ => {}}} })
   })
 
   describe('.parse', function () {

@@ -234,16 +234,18 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       if (result === false) return this.exit()
 
       // send data over IPC for CLI feedback
-      process.send({
-        error: false,
-        km_data: this.km_data,
-        online: true,
-        pid: process.pid,
-        machine_name: this.opts.MACHINE_NAME,
-        public_key: this.opts.PUBLIC_KEY,
-        secret_key: this.opts.SECRET_KEY,
-        reverse_interaction: true
-      })
+      if (process.send) {
+        process.send({
+          error: false,
+          km_data: this.km_data,
+          online: true,
+          pid: process.pid,
+          machine_name: this.opts.MACHINE_NAME,
+          public_key: this.opts.PUBLIC_KEY,
+          secret_key: this.opts.SECRET_KEY,
+          reverse_interaction: this.opts.REVERSE_INTERACT
+        })
+      }
 
       // start workers
       this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)

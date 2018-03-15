@@ -38,6 +38,8 @@ module.exports = class DataRetriever {
 
           versioning: proc.pm2_env.versioning || null,
 
+          node_env: proc.pm2_env.NODE_ENV || null,
+
           axm_actions: proc.pm2_env.axm_actions || [],
           axm_monitor: proc.pm2_env.axm_monitor || {},
           axm_options: proc.pm2_env.axm_options || {},

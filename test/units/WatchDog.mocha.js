@@ -8,6 +8,7 @@ const assert = require('assert')
 const WatchDog = require('../../src/WatchDog')
 const EventEmitter = require('events').EventEmitter
 const ModuleMocker = require('../mock/module')
+const path = require('path')
 
 describe('WatchDog', () => {
   describe('start', _ => {
@@ -73,7 +74,7 @@ describe('WatchDog', () => {
       childMock.mock({
         exec: (cmd, params, cb) => {
           assert(cmd === 'node')
-          assert(params[0] === process.cwd() + '/bin/pm2')
+          assert(params[0] === path.resolve(__dirname, '../../bin/pm2'))
           assert(params[1] === 'resurrect')
           childMock.reset()
           done()
