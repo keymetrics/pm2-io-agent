@@ -310,8 +310,7 @@ module.exports = class InteractorDaemonizer {
     infos = infos || {}
     let configuration = {
       version_management: {
-        active: true,
-        password: null
+        active: true
       }
     }
     let confFS = {}
@@ -321,7 +320,6 @@ module.exports = class InteractorDaemonizer {
       confFS = JSON.parse(fs.readFileSync(cst.INTERACTION_CONF))
 
       if (confFS.version_management) {
-        configuration.version_management.password = confFS.version_management.password
         configuration.version_management.active = confFS.version_management.active
       }
     } catch (e) {

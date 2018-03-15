@@ -97,10 +97,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         cb(null)
         return self.exit()
       },
-      passwordSet: function (cb) {
-        global._pm2_password_protected = true
-        return cb(null)
-      },
       getInfos: function (cb) {
         if (self.opts && self.DAEMON_ACTIVE === true) {
           return cb(null, {
