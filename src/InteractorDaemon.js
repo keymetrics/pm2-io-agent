@@ -12,6 +12,7 @@ const PushInteractor = require('./push/PushInteractor.js')
 const Utility = require('./Utility.js')
 const PM2Client = require('./PM2Client.js')
 const TransporterInterface = require('./TransporterInterface.js')
+const domain = require('domain') // eslint-disable-line 
 // const WatchDog = require('./WatchDog')
 
 // use noop if not launched via IPC
@@ -266,7 +267,13 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // If its the entry file launch the daemon
 // otherwise we just required it to use a function
 if (require.main === module) {
-  process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')'
-  log('[Keymetrics.io] Launching agent')
-  new InteractorDaemon().start()
+  const d = domain.create()
+  d.on('error', function (err) {
+    console.error(err)
+  })
+  d.run(_ => {
+    process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')'
+    log('[Keymetrics.io] Launching agent')
+    new InteractorDaemon().start()
+  })
 }
