@@ -140,7 +140,7 @@ module.exports = class TransactionAggregator {
         },
         process: this.processes[appName].process
       }
-      this.pushInteractor && this.pushInteractor.bufferData('axm:transaction:learning', msg)
+      this.pushInteractor && this.pushInteractor.transport.send('axm:transaction:learning', msg)
     }, 5000)
 
     this.processes[appName].initialization_timeout = setTimeout(_ => {
@@ -368,7 +368,7 @@ module.exports = class TransactionAggregator {
             },
             process: process.process
           }
-          this.pushInteractor.bufferData('axm:transaction:outlier', data)
+          this.pushInteractor.transport.send('axm:transaction:outlier', data)
         }
 
         // letiance found, merge spans
@@ -477,7 +477,7 @@ module.exports = class TransactionAggregator {
     this._worker = setInterval(_ => {
       let normalized = this.prepareAggregationforShipping()
       Object.keys(normalized).forEach((key) => {
-        this.pushInteractor.bufferData('axm:transaction', normalized[key])
+        this.pushInteractor.transport.send('axm:transaction', normalized[key])
       })
     }, cst.TRACE_FLUSH_INTERVAL)
   }

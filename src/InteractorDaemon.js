@@ -50,6 +50,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Error} err if provided, the exit code will be set to cst.ERROR_EXIT
    */
   exit (err) {
+    log('Exiting Interactor')
     // clear workers
     if (this._workerEndpoint) clearInterval(this._workerEndpoint)
 
@@ -68,8 +69,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
       fs.unlinkSync(cst.INTERACTOR_PID_PATH)
     } catch (err) {}
-
-    log('Exiting Interactor')
 
     if (!this._rpc || !this._rpc.sock) {
       return process.exit(cst.ERROR_EXIT)
@@ -157,6 +156,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Boolean>
    */
   _verifyEndpoint (cb) {
+    log('Verifying endpoints')
     if (typeof cb !== 'function') cb = function () {}
 
     this._pingRoot((err, data) => {
@@ -165,7 +165,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       if (data.disabled === true || data.pending === true) {
         return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
       }
-      if (data.active === false) return cb(null, false)
+      if (data.active === false) {
+        log('Interactor not active: %s', data.msg || 'no message')
+        return cb(null, false)
+      }
 
       if (!this.transport.isConnected()) {
         this.transport.connect({
@@ -223,11 +226,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
     this._verifyEndpoint((err, result) => {
       if (err) {
-        console.error('Error while trying to retrieve endpoints : ' + (err.message || err))
+        log('Error while trying to retrieve endpoints : ' + (err.message || err))
         process.send({ error: true, msg: err.message || err })
         return this.exit()
       }
-      if (result === false) return this.exit()
+      if (result === false) {
+        log('False returned while trying to retrieve endpoints')
+        return this.exit()
+      }
 
       // send data over IPC for CLI feedback
       if (process.send) {
