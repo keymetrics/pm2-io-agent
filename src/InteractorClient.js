@@ -56,6 +56,17 @@ module.exports = class InteractorDaemonizer {
       log('Interactor Daemon alive')
     })
 
+    client.sock.once('error', (e) => {
+      if (e.code === 'EACCES') {
+        fs.stat(opts.INTERACTOR_RPC_PORT, (e, stats) => {
+          if (stats.uid === 0) {
+            log('Permission denied, activate current user:')
+            return process.exit(1)
+          }
+        })
+      }
+    })
+
     req.connect(opts.INTERACTOR_RPC_PORT)
   }
 

@@ -31,7 +31,8 @@ module.exports = class PushInteractor {
         } catch (err) {
           return debug('Error while trying to get file from FS : %s', err.message || err)
         }
-      }
+      },
+      ttl: 60 * 30
     })
     this._stackParser = new Utility.StackTraceParser({ cache: this._cacheFS, context: cst.CONTEXT_ON_ERROR })
     // // start transaction aggregator
@@ -59,6 +60,10 @@ module.exports = class PushInteractor {
       clearInterval(this._worker_executor)
       this._worker_executor = null
     }
+    if (this._cacheFS._worker !== undefined) {
+      clearInterval(this._cacheFS._worker)
+      this._cacheFS._worker = null
+    }
   }
 
   /**
@@ -77,15 +82,15 @@ module.exports = class PushInteractor {
 
     // bufferize logs
     if (event.match(/^log:/)) {
-      if (!this.log_buffer[packet.process.pm_id]) {
-        this.log_buffer[packet.process.pm_id] = []
+      if (!this.log_buffer[packet.process.name]) {
+        this.log_buffer[packet.process.name] = []
       }
       // delete the last one if too long
-      if (this.log_buffer[packet.process.pm_id].length >= cst.LOGS_BUFFER) {
-        this.log_buffer[packet.process.pm_id].pop()
+      if (this.log_buffer[packet.process.name].length >= cst.LOGS_BUFFER) {
+        this.log_buffer[packet.process.name].pop()
       }
       // push the log data
-      this.log_buffer[packet.process.pm_id].push(packet.data)
+      this.log_buffer[packet.process.name].push(packet.data)
 
       // don't send logs if not enabled
       if (!global._logs) return false
@@ -93,18 +98,8 @@ module.exports = class PushInteractor {
 
     // attach additional info for exception
     if (event === 'process:exception') {
-      packet.data.last_logs = this.log_buffer[packet.process.pm_id]
-
-      // try to parse stacktrace and attach callsite + context if available
-      if (typeof packet.data.stackframes === 'object') {
-        const result = this.stackParser.parse(packet.data.stackframes)
-        // no need to send it since there is already the stacktrace
-        delete packet.data.stackframes
-        if (result) {
-          packet.data.callsite = result.callsite || undefined
-          packet.data.context = result.context || undefined
-        }
-      }
+      packet.data.last_logs = this.log_buffer[packet.process.name]
+      packet.data = this._stackParser.attachContext(packet.data)
     }
 
     if (event === 'axm:reply' && packet.data && packet.data.return && (packet.data.return.heapdump || packet.data.return.cpuprofile)) {

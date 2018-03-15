@@ -16,9 +16,9 @@ describe('PushInteractor', () => {
   let push = null
   describe('new instance', _ => {
     it('should set data', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push.aggregator instanceof Aggregator)
-      assert(push._ipm2 === 'ipm2')
+      assert(typeof push._ipm2 === 'object')
       assert(push.transport === 'transport')
       assert(push.opts === 'opts')
       assert(typeof push.log_buffer === 'object')
@@ -31,7 +31,7 @@ describe('PushInteractor', () => {
   describe('start', _ => {
     it('should launch worker', (done) => {
       let _workerCalled = false
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       push._worker = _ => {
         _workerCalled = true
       }
@@ -52,7 +52,7 @@ describe('PushInteractor', () => {
     it('should relaunch worker', (done) => {
       let _workerCalled = false
       let _stopCalled = false
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       push._worker_executor = true
       push._worker = _ => {
         _workerCalled = true
@@ -78,7 +78,7 @@ describe('PushInteractor', () => {
   })
   describe('stop', _ => {
     it('should stop workers', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       push._worker_executor = setInterval(_ => {}, 10)
       push.stop()
       assert(push._worker_executor === null)
@@ -87,17 +87,17 @@ describe('PushInteractor', () => {
   })
   describe('_onPM2Event', _ => {
     it('should return with axm:action', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push._onPM2Event('axm:action', {}) === false)
       done()
     })
     it('should return without packet.process', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push._onPM2Event('event', {}) === undefined)
       done()
     })
     it('should return with old state process', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push._onPM2Event('event', {
         process: {
           pm_id: '1_old'
@@ -106,7 +106,7 @@ describe('PushInteractor', () => {
       done()
     })
     it('should return with logs not enabled', (done) => {
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push._onPM2Event('log:stream', {
         process: {
           pm_id: 1
@@ -116,50 +116,53 @@ describe('PushInteractor', () => {
     })
     describe('bufferize logs', _ => {
       it('should create buffer', (done) => {
-        push = new PushInteractor('opts', 'ipm2', 'transport')
+        push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
         push.log_buffer = {}
         assert(push._onPM2Event('log:stream', {
           process: {
+            name: 'process_name',
             pm_id: 'process_id'
           },
           data: 'Log line'
         }) === false)
-        assert(push.log_buffer.process_id[0] === 'Log line')
+        assert(push.log_buffer.process_name[0] === 'Log line')
         done()
       })
       it('should add to buffer', (done) => {
-        push = new PushInteractor('opts', 'ipm2', 'transport')
+        push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
         push.log_buffer = {
-          process_id: [
+          process_name: [
             'Log line 1'
           ]
         }
         assert(push._onPM2Event('log:stream', {
           process: {
+            name: 'process_name',
             pm_id: 'process_id'
           },
           data: 'Log line'
         }) === false)
-        assert(push.log_buffer.process_id[1] === 'Log line')
+        assert(push.log_buffer.process_name[1] === 'Log line')
         done()
       })
       it('should add to buffer and remove last', (done) => {
-        push = new PushInteractor('opts', 'ipm2', 'transport')
+        push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
         let buffer = []
         for (let i = 0; i < cst.LOGS_BUFFER; i++) {
           buffer.push('Log line ' + i)
         }
         push.log_buffer = {
-          process_id: buffer
+          process_name: buffer
         }
         assert(push._onPM2Event('log:stream', {
           process: {
-            pm_id: 'process_id'
+            pm_id: 'process_id',
+            name: 'process_name'
           },
           data: 'Log line'
         }) === false)
-        assert(push.log_buffer.process_id.length === cst.LOGS_BUFFER)
-        assert(push.log_buffer.process_id[cst.LOGS_BUFFER - 1] === 'Log line')
+        assert(push.log_buffer.process_name.length === cst.LOGS_BUFFER)
+        assert(push.log_buffer.process_name[cst.LOGS_BUFFER - 1] === 'Log line')
         done()
       })
     })
@@ -168,7 +171,7 @@ describe('PushInteractor', () => {
       let stackFrames = ['stack-frames']
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
-      }, 'ipm2', {
+      }, {bus: {on: _ => {}}}, {
         send: (event, packet) => {
           assert(event === 'process:exception')
           assert(packet.process.pm_id === 'process_id')
@@ -182,15 +185,14 @@ describe('PushInteractor', () => {
         }
       })
       push.log_buffer = {
-        process_id: lastLogs
+        process_name: lastLogs
       }
-      push.stackParser = {
-        parse: (stack) => {
-          assert(stack === stackFrames)
-          return {
-            callsite: 'callsite',
-            context: 'context'
-          }
+      push._stackParser = {
+        attachContext: (data) => {
+          assert(data.stackframes === stackFrames)
+          data.callsite = 'callsite'
+          data.context = 'context'
+          return data
         }
       }
       push._onPM2Event('process:exception', {
@@ -221,7 +223,7 @@ describe('PushInteractor', () => {
       }
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
-      }, 'ipm2', {})
+      }, {bus: {on: _ => {}}}, {})
       push._sendFile = (p) => {
         assert(p === packet)
         done()
@@ -231,7 +233,7 @@ describe('PushInteractor', () => {
     it('should packet.data.__name with human event', (done) => {
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
-      }, 'ipm2', {
+      }, {bus: {on: _ => {}}}, {
         send: (event, packet) => {
           assert(event === 'human:event')
           assert(packet.name === 'event_name')
@@ -257,7 +259,7 @@ describe('PushInteractor', () => {
     it('should return aggregator with axm:trace', (done) => {
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
-      }, 'ipm2', {})
+      }, {bus: {on: _ => {}}}, {})
       push.aggregator = {
         aggregate: (packet) => {
           assert(packet.process.pm_id === 'process_id')
@@ -283,7 +285,7 @@ describe('PushInteractor', () => {
     it('should set event name and event_type with log', (done) => {
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
-      }, 'ipm2', {
+      }, {bus: {on: _ => {}}}, {
         send: (event, packet) => {
           assert(event === 'logs')
           assert(packet.log_type === 'stream')
@@ -316,7 +318,8 @@ describe('PushInteractor', () => {
           getMonitorData: (data, cb) => {
             cb(new Error('Test'))
           }
-        }
+        },
+        bus: {on: _ => {}}
       }, 'transport')
       assert(push._worker() === undefined)
       done()
@@ -339,7 +342,8 @@ describe('PushInteractor', () => {
           getMonitorData: (data, cb) => {
             cb(null, 'processes')
           }
-        }
+        },
+        bus: {on: _ => {}}
       }, {
         send: (event, data) => {
           assert(event === 'status')
@@ -365,7 +369,7 @@ describe('PushInteractor', () => {
           setTimeout(done, 10)
         }
       })
-      push = new PushInteractor('opts', 'ipm2', 'transport')
+      push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       assert(push._sendFile({
         process: {
           pm_id: 1,
@@ -398,7 +402,7 @@ describe('PushInteractor', () => {
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name',
         PUBLIC_KEY: 'public_key'
-      }, 'ipm2', {
+      }, {bus: {on: _ => {}}}, {
         send: (type, data) => {
           assert(_readCalled === true)
           assert(_unlinkCalled === true)
@@ -427,6 +431,7 @@ describe('PushInteractor', () => {
   })
   afterEach((done) => {
     clearInterval(push.aggregator._worker)
+    clearInterval(push._cacheFS._worker)
     done()
   })
 })

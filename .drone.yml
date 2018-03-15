@@ -15,6 +15,7 @@ pipeline:
       - mocha test/units/InteractorDaemon.mocha.js 
       - mocha test/units/PM2Client.mocha.js 
       - mocha test/units/Utility/stacktrace.mocha.js 
+      - mocha test/units/Utility/cache.mocha.js 
       - mocha test/units/WatchDog.mocha.js 
       - mocha test/units/push/PushInteractor.mocha.js 
       - mocha test/units/push/TransactionAggregator.mocha.js 
