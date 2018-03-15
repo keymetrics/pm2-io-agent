@@ -229,7 +229,6 @@ describe('InteractorDaemon', () => {
                   assert(_bindCalled === 1)
                   let methodsName = Object.keys(methods)
                   assert(methodsName.indexOf('kill') > -1)
-                  assert(methodsName.indexOf('passwordSet') > -1)
                   assert(methodsName.indexOf('getInfos') > -1)
                   axonMock.reset()
                   axonRPCMock.reset()

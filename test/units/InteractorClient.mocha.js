@@ -56,20 +56,47 @@ describe('InteractorClient', () => {
       })
     })
     it('should try to ping but fail', (done) => {
+      let axonMock = new ModuleMocker('pm2-axon')
+      axonMock.mock({
+        socket: _ => {},
+        connect: _ => {}
+      })
+      let rpcMock = new ModuleMocker('pm2-axon-rpc')
+      rpcMock.mock({
+        Client: class Client {
+          constructor () {
+            return {
+              sock: {
+                once: (type, cb) => {
+                  if (type === 'reconnect attempt') {
+                    cb()
+                  }
+                },
+                close: _ => {}
+              }
+            }
+          }
+        }
+      })
       InteractorClient.ping(cst, (err, state) => {
         assert(err === null)
         assert(state === false)
+        axonMock.reset()
+        rpcMock.reset()
         done()
       })
     })
     it('should ping', (done) => {
       const rep = axon.socket('rep')
       const rpcServer = new rpc.Server(rep)
+      let tmp = cst.INTERACTOR_RPC_PORT
+      cst.INTERACTOR_RPC_PORT = 56000
       rep.bind(cst.INTERACTOR_RPC_PORT).on('bind', _ => {
         InteractorClient.ping(cst, (err, state) => {
           assert(err === null)
           assert(state === true)
           rpcServer.sock.close()
+          cst.INTERACTOR_RPC_PORT = tmp
           done()
         })
       })
@@ -266,7 +293,6 @@ describe('InteractorClient', () => {
       InteractorClient.getOrSetConf(cst, {}, (err, config) => {
         assert(err === null)
         assert(config.version_management.active === true)
-        assert(config.version_management.password === null)
         assert(config.public_key === process.env.PM2_PUBLIC_KEY)
         assert(config.secret_key === process.env.PM2_SECRET_KEY)
         assert(config.machine_name === process.env.PM2_MACHINE_NAME)
@@ -306,7 +332,6 @@ describe('InteractorClient', () => {
       InteractorClient.getOrSetConf(cst, {}, (err, config) => {
         assert(err === null)
         assert(config.version_management.active === true)
-        assert(config.version_management.password === null)
         assert(config.public_key === process.env.PM2_PUBLIC_KEY)
         assert(config.secret_key === process.env.PM2_SECRET_KEY)
         assert(config.machine_name === process.env.PM2_MACHINE_NAME)
@@ -336,7 +361,6 @@ describe('InteractorClient', () => {
       }, (err, config) => {
         assert(err === null)
         assert(config.version_management.active === true)
-        assert(config.version_management.password === null)
         assert(config.public_key === 'public')
         assert(config.secret_key === 'private')
         assert(config.machine_name === 'machine')
@@ -362,8 +386,7 @@ describe('InteractorClient', () => {
         info_node: 'info',
         reverse_interact: 'lol',
         version_management: {
-          active: false,
-          password: 'ok'
+          active: false
         }
       })
       module.exports = fs
@@ -372,7 +395,6 @@ describe('InteractorClient', () => {
       InteractorClient.getOrSetConf(cst, {}, (err, config) => {
         assert(err === null)
         assert(config.version_management.active === false)
-        assert(config.version_management.password === 'ok')
         assert(config.public_key === 'public')
         assert(config.secret_key === 'private')
         assert(config.machine_name === 'machine')
@@ -396,8 +418,7 @@ describe('InteractorClient', () => {
         info_node: 'info',
         reverse_interact: 'lol',
         version_management: {
-          active: false,
-          password: 'ok'
+          active: false
         }
       })
       module.exports = fs
@@ -425,8 +446,7 @@ describe('InteractorClient', () => {
         info_node: 'info',
         reverse_interact: 'lol',
         version_management: {
-          active: false,
-          password: 'ok'
+          active: false
         }
       })
       module.exports = fs

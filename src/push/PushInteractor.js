@@ -142,7 +142,6 @@ module.exports = class PushInteractor {
         data: DataRetriever.status(processes, this.opts),
         server_name: this.opts.MACHINE_NAME,
         internal_ip: this.opts.internal_ip,
-        protected: global._pm2_password_protected,
         rev_con: true
       })
     })
