@@ -32,6 +32,7 @@ let cst = {
   CONTEXT_ON_ERROR: 2,
   TRANSACTION_FLUSH_INTERVAL: process.env.NODE_ENV === 'local_test' || process.env.PM2_DEBUG ? 1000 : 30000,
   AGGREGATION_DURATION: process.env.PM2_DEBUG || process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development' ? 0 : 60 * 10,
+  TRACE_FLUSH_INTERVAL: process.env.PM2_DEBUG || process.env.NODE_ENV === 'local_test' ? 1000 : 60000,
 
   PM2_HOME: PM2_HOME,
   DAEMON_RPC_PORT: path.resolve(PM2_HOME, 'rpc.sock'),

@@ -162,6 +162,7 @@ module.exports = class PushInteractor {
       public_key: this.opts.PUBLIC_KEY,
       type: type
     }
+    packet[type] = true
 
     fs.readFile(filePath, 'base64', (err, data) => {
       if (err) return debug(err)
