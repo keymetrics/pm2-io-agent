@@ -188,7 +188,8 @@ module.exports = class InteractorDaemonizer {
         PM2_SECRET_KEY: infos.secret_key,
         PM2_PUBLIC_KEY: infos.public_key,
         PM2_REVERSE_INTERACT: infos.reverse_interact,
-        KEYMETRICS_NODE: infos.info_node
+        KEYMETRICS_NODE: infos.info_node,
+        PM2_VERSION: infos.pm2_version
       }, process.env),
       stdio: ['ipc', out, err]
     })
@@ -333,6 +334,7 @@ module.exports = class InteractorDaemonizer {
     configuration.public_key = process.env.PM2_PUBLIC_KEY || process.env.KEYMETRICS_PUBLIC || infos.public_key || confFS.public_key
     configuration.secret_key = process.env.PM2_SECRET_KEY || process.env.KEYMETRICS_SECRET || infos.secret_key || confFS.secret_key
     configuration.machine_name = process.env.PM2_MACHINE_NAME || infos.machine_name || confFS.machine_name || os.hostname()
+    configuration.pm2_version = process.env.PM2_VERSION || infos.pm2_version || confFS.pm2_version
     configuration.reverse_interact = confFS.reverse_interact || true
     // is setup empty ? use the one provided in env OR root OTHERWISE get the one on FS conf OR fallback on root
     configuration.info_node = process.env.KEYMETRICS_NODE || infos.info_node || confFS.info_node || cst.KEYMETRICS_ROOT_URL
