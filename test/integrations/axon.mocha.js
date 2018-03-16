@@ -82,8 +82,8 @@ describe('Integration test with axon transport', _ => {
       }))
       res.end()
     })
-    httpServer.on('error', done)
-    httpServer.listen(3800, _ => {
+    httpServer.listen(3800, err => {
+      if (err) return done(err)
       // Start daemon
       delete process.env.PM2_AGENT_ONLINE
       InteractorClient.launchAndInteract(cst, {
@@ -200,7 +200,7 @@ describe('Integration test with axon transport', _ => {
         sub.removeAllListeners()
         done()
       })
-      let heapDumpPath = path.join(__dirname, '../../tmp/heapdump')
+      let heapDumpPath = path.join('/tmp', 'heapdump')
       fs.writeFileSync(heapDumpPath, 'heapdump_content')
       // Send custom event into bus
       pm2PubEmitter.emit('axm:reply', {
