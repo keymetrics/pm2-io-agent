@@ -22,8 +22,7 @@
     "moment": "^2.21.0",
     "nssocket": "^0.6.0",
     "pm2-axon": "3.0.2",
-    "pm2-axon-rpc": "0.4.5",
-    "pmx": "^1.6.4"
+    "pm2-axon-rpc": "0.4.5"
   },
   "devDependencies": {
     "clone": "^2.1.1",

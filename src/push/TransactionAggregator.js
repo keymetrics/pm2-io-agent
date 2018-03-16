@@ -11,7 +11,7 @@ const cst = require('../../constants.js')
 const log = require('debug')('pm2:aggregator')
 const Utility = require('../Utility.js')
 const fclone = require('fclone')
-const Histogram = require('pmx/lib/utils/probes/Histogram.js')
+const Histogram = require('../utils/probes/Histogram')
 
 /**
  *
@@ -30,14 +30,14 @@ const Histogram = require('pmx/lib/utils/probes/Histogram.js')
  *            min: 50,       // min latency of this route
  *            mean: 120      // mean latency of this route
  *          }
- *          variances:  [{  // array of letiance order by count
+ *          variances:  [{  // array of variance order by count
  *           spans : [
  *              ...         // transactions
  *           ],
- *           count: 50,     // count of this letiance
- *           max: 300,      // max latency of this letiance
- *           min: 50,       // min latency of this letiance
- *           mean: 120      // mean latency of this letiance
+ *           count: 50,     // count of this variance
+ *           max: 300,      // max latency of this variance
+ *           min: 50,       // min latency of this variance
+ *           mean: 120      // mean latency of this variance
  *          }]
  *        }
  *      ],
@@ -317,9 +317,9 @@ module.exports = class TransactionAggregator {
     aggregated.meta.histogram.update(trace.spans[0].mean)
     aggregated.meta.meter.update()
 
-    const merge = (letiance) => {
-      // no letiance found so its a new one
-      if (letiance == null) {
+    const merge = (variance) => {
+      // no variance found so its a new one
+      if (variance == null) {
         delete trace.projectId
         delete trace.traceId
         trace.histogram = new Histogram({ measurement: 'median' })
@@ -336,46 +336,46 @@ module.exports = class TransactionAggregator {
         aggregated.variances.push(trace)
       } else {
         // check to see if request is anormally slow, if yes send it as inquisitor
-        if (trace.spans[0].mean > letiance.histogram.percentiles([0.95])[0.95] &&
+        if (trace.spans[0].mean > variance.histogram.percentiles([0.95])[0.95] &&
           typeof pushInteractor !== 'undefined' && !process.initialization_timeout) {
           // serialize and add metadata
           this.parseStacktrace(trace.spans)
           let data = {
             trace: fclone(trace.spans),
-            letiance: fclone(letiance.spans.map((span) => {
+            variance: fclone(variance.spans.map((span) => {
               return {
                 labels: span.labels,
                 kind: span.kind,
                 name: span.name,
                 startTime: span.startTime,
                 percentiles: {
-                  p5: letiance.histogram.percentiles([0.5])[0.5],
-                  p95: letiance.histogram.percentiles([0.95])[0.95]
+                  p5: variance.histogram.percentiles([0.5])[0.5],
+                  p95: variance.histogram.percentiles([0.95])[0.95]
                 }
               }
             })),
             meta: {
               value: trace.spans[0].mean,
               percentiles: {
-                p5: letiance.histogram.percentiles([0.5])[0.5],
-                p75: letiance.histogram.percentiles([0.75])[0.75],
-                p95: letiance.histogram.percentiles([0.95])[0.95],
-                p99: letiance.histogram.percentiles([0.99])[0.99]
+                p5: variance.histogram.percentiles([0.5])[0.5],
+                p75: variance.histogram.percentiles([0.75])[0.75],
+                p95: variance.histogram.percentiles([0.95])[0.95],
+                p99: variance.histogram.percentiles([0.99])[0.99]
               },
-              min: letiance.histogram.getMin(),
-              max: letiance.histogram.getMax(),
-              count: letiance.histogram.getCount()
+              min: variance.histogram.getMin(),
+              max: variance.histogram.getMax(),
+              count: variance.histogram.getCount()
             },
             process: process.process
           }
           this.pushInteractor.transport.send('axm:transaction:outlier', data)
         }
 
-        // letiance found, merge spans
-        letiance.histogram.update(trace.spans[0].mean)
+        // variance found, merge spans
+        variance.histogram.update(trace.spans[0].mean)
 
         // update duration of spans to be mean
-        this.updateSpanDuration(letiance.spans, trace.spans, letiance.count)
+        this.updateSpanDuration(variance.spans, trace.spans, variance.count)
 
         // delete stacktrace before merging
         trace.spans.forEach((span) => {
@@ -384,19 +384,19 @@ module.exports = class TransactionAggregator {
       }
     }
 
-    // for every letiance, check spans same letiance
+    // for every variance, check spans same variance
     for (let i = 0; i < aggregated.variances.length; i++) {
       if (this.compareList(aggregated.variances[i].spans, trace.spans)) {
         return merge(aggregated.variances[i])
       }
     }
-    // else its a new letiance
+    // else its a new variance
     return merge(null)
   }
 
   /**
    * Parkour simultaneously both spans list to update value of the first one using value of the second one
-   * The first should be letiance already aggregated for which we want to merge the second one
+   * The first should be variance already aggregated for which we want to merge the second one
    * The second one is a new trace, so we need to re-compute mean/min/max time for each spans
    */
   updateSpanDuration (spans, newSpans) {
@@ -548,22 +548,22 @@ module.exports = class TransactionAggregator {
           variances: []
         }
 
-        variances.forEach((letiance) => {
+        variances.forEach((variance) => {
           // hard check for invalid data
-          if (!letiance.spans || letiance.spans.length === 0) return
+          if (!variance.spans || variance.spans.length === 0) return
 
           // deep copy of variances data
           let tmp = fclone({
             spans: [],
-            count: letiance.histogram.getCount(),
-            min: letiance.histogram.getMin(),
-            max: letiance.histogram.getMax(),
-            median: letiance.histogram.percentiles([0.5])[0.5],
-            p95: letiance.histogram.percentiles([0.95])[0.95]
+            count: variance.histogram.getCount(),
+            min: variance.histogram.getMin(),
+            max: variance.histogram.getMax(),
+            median: variance.histogram.percentiles([0.5])[0.5],
+            p95: variance.histogram.percentiles([0.95])[0.95]
           })
 
           // get data for each span
-          letiance.spans.forEach((span) => {
+          variance.spans.forEach((span) => {
             tmp.spans.push(fclone({
               name: span.name,
               labels: span.labels,
