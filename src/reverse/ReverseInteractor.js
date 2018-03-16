@@ -32,6 +32,7 @@ module.exports = class ReverseInteractor {
   }
 
   start () {
+    debug('Reverse interactor is listening')
     // action that trigger custom actions inside the code
     this.transport.on('trigger:action', this._onCustomAction.bind(this))
     this.transport.on('trigger:scoped_action', this._onCustomAction.bind(this))
@@ -41,6 +42,7 @@ module.exports = class ReverseInteractor {
   }
 
   stop () {
+    debug('Reverse interactor is no longer listening')
     this.transport.removeAllListeners('trigger:action')
     this.transport.removeAllListeners('trigger:scoped_action')
     this.transport.removeAllListeners('trigger:pm2:action')

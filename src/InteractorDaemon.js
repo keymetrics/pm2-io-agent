@@ -136,6 +136,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Object> where Object is the response sended by the server
    */
   _pingRoot (cb) {
+    log('Ping root called %s', this.opts.ROOT_URL)
     let data = this.getSystemMetadata()
     data = Utility.Cipher.cipherMessage(JSON.stringify(data), this.opts.SECRET_KEY)
     if (!data) return cb(new Error('Failed to retrieve/cipher system metadata'))
@@ -160,9 +161,13 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     if (typeof cb !== 'function') cb = function () {}
 
     this._pingRoot((err, data) => {
-      if (err) return cb(err)
+      if (err) {
+        log('Got an a error on ping root')
+        return cb(err)
+      }
 
       if (data.disabled === true || data.pending === true) {
+        log('Interactor is disabled by admins')
         return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
       }
       if (data.active === false) {
@@ -170,6 +175,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(null, false)
       }
 
+      log('Connect transport with endpoints')
       if (!this.transport.isConnected()) {
         this.transport.connect({
           push: data.endpoints.push,
@@ -237,6 +243,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
       // send data over IPC for CLI feedback
       if (process.send) {
+        log('Send to process daemon is started')
         process.send({
           error: false,
           km_data: this.km_data,
@@ -261,6 +268,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       //     ipm2: this._ipm2
       //   }
       // })
+      log('Interactor daemon started')
       if (cb) {
         setTimeout(cb, 20)
       }

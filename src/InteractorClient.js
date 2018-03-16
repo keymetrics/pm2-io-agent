@@ -204,7 +204,7 @@ module.exports = class InteractorDaemonizer {
     child.unref()
 
     child.once('message', (msg) => {
-      log('Interactor daemon launched : %s', msg)
+      log('Interactor daemon launched :', msg)
 
       if (msg.log) {
         return cb(null, msg, child)
@@ -357,14 +357,17 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg>
    */
   static disconnectRPC (cb) {
+    log('Disconnect RPC')
     if (!this.client_sock || !this.client_sock.close) {
+      log('RPC not launched')
       return cb(null, {
         success: false,
         msg: 'RPC connection to Interactor Daemon is not launched'
       })
     }
 
-    if (this.client_sock.connected === false || this.client_sock.closing === true) {
+    if (this.client_sock.closing === true) {
+      log('RPC already closed')
       return cb(null, {
         success: false,
         msg: 'RPC closed'
@@ -416,7 +419,9 @@ module.exports = class InteractorDaemonizer {
     this.getOrSetConf(cst, opts, (err, conf) => {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
-      console.log(chalk.cyan('[Keymetrics.io]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
+      if (!process.env.PM2_SILENT) {
+        console.log(chalk.cyan('[Keymetrics.io]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
+      }
       return this.launchOrAttach(cst, conf, cb)
     })
   }
