@@ -178,7 +178,7 @@ module.exports = class InteractorDaemonizer {
     const out = testEnv ? 1 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
     const err = testEnv ? 2 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
 
-    const child = require('child_process').spawn('node', [InteractorJS], {
+    const child = require('child_process').spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
       silent: false,
       detached: true,
       cwd: process.cwd(),
@@ -333,7 +333,7 @@ module.exports = class InteractorDaemonizer {
     //    -> from configuration on FS
     configuration.public_key = process.env.PM2_PUBLIC_KEY || process.env.KEYMETRICS_PUBLIC || infos.public_key || confFS.public_key
     configuration.secret_key = process.env.PM2_SECRET_KEY || process.env.KEYMETRICS_SECRET || infos.secret_key || confFS.secret_key
-    configuration.machine_name = process.env.PM2_MACHINE_NAME || infos.machine_name || confFS.machine_name || os.hostname()
+    configuration.machine_name = process.env.PM2_MACHINE_NAME || process.env.INSTANCE_NAME || infos.machine_name || confFS.machine_name || os.hostname()
     configuration.pm2_version = process.env.PM2_VERSION || infos.pm2_version || confFS.pm2_version
     configuration.reverse_interact = confFS.reverse_interact || true
     // is setup empty ? use the one provided in env OR root OTHERWISE get the one on FS conf OR fallback on root
