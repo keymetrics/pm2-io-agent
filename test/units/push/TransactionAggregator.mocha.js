@@ -140,13 +140,13 @@ describe('Transactions Aggregator', function () {
       assert(ROUTES['yoloswag/swag'].variances[0].spans.length === 3)
     })
 
-    it('should merge with the first letiance', function () {
+    it('should merge with the first variance', function () {
       aggregator.mergeTrace(ROUTES['yoloswag/swag'], trace)
       assert(ROUTES['yoloswag/swag'].variances.length === 1)
       assert(ROUTES['yoloswag/swag'].variances[0].histogram.getCount() === 2)
     })
 
-    it('should merge as a new letiance with the same route', function () {
+    it('should merge as a new variance with the same route', function () {
       let trace2 = TraceFactory.generateTrace('yoloswag/swag', 3)
       trace2.spans.forEach(function (span) {
         span.min = span.max = span.mean = Math.round(new Date(span.endTime) - new Date(span.startTime))
