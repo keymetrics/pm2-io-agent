@@ -478,7 +478,7 @@ describe('InteractorClient', () => {
     })
     it('should fail with RPC closed', (done) => {
       mock({
-        client_sock: {close: _ => {}, connected: false}
+        client_sock: {close: _ => {}, connected: false, closing: true}
       })
       InteractorClient.disconnectRPC((err, result) => {
         assert(err === null)
