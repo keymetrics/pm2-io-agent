@@ -661,13 +661,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -698,7 +691,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 0)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()
@@ -741,13 +733,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -778,7 +763,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()
@@ -820,13 +804,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -857,7 +834,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()
@@ -899,13 +875,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -936,7 +905,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()
@@ -979,13 +947,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -1016,7 +977,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 1)
         assert(_killCalled === 1)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()
@@ -1054,13 +1014,6 @@ describe('InteractorClient', () => {
           }
         }
       })
-      let uxMock = new ModuleMocker('pm2/lib/API/CliUx.js')
-      uxMock.mock({
-        processing: {
-          start: _ => {},
-          stop: _ => {}
-        }
-      })
       let config = {public_key: process.env.PM2_PUBLIC_KEY, secret_key: process.env.PM2_SECRET_KEY}
       mock({
         getOrSetConf: (cst, opts, cb) => {
@@ -1091,7 +1044,6 @@ describe('InteractorClient', () => {
         assert(_launchRPCCalled === 0)
         assert(_killCalled === 0)
         assert(_disconnectCalled === 1)
-        uxMock.reset()
         childMock.reset()
         resetMock()
         done()

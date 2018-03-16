@@ -1,9 +1,7 @@
 
 'use strict'
 
-const path = require('path')
 const debug = require('debug')('reverse:interactor')
-const child = require('child_process')
 
 const PM2_REMOTE_METHOD_ALLOWED = [
   'restart',
@@ -11,8 +9,6 @@ const PM2_REMOTE_METHOD_ALLOWED = [
   'gracefulReload',
   'reset',
   'scale',
-  'set',
-  'multiset',
   'startLogging',
   'stopLogging',
   'ping'
@@ -38,7 +34,6 @@ module.exports = class ReverseInteractor {
     this.transport.on('trigger:scoped_action', this._onCustomAction.bind(this))
     // action that call pm2 api
     this.transport.on('trigger:pm2:action', this._onPM2Action.bind(this))
-    this.transport.on('trigger:pm2:scoped:action', this._onPM2ScopedAction.bind(this))
   }
 
   stop () {
@@ -46,7 +41,6 @@ module.exports = class ReverseInteractor {
     this.transport.removeAllListeners('trigger:action')
     this.transport.removeAllListeners('trigger:scoped_action')
     this.transport.removeAllListeners('trigger:pm2:action')
-    this.transport.removeAllListeners('trigger:pm2:scoped:action')
   }
 
   /**
@@ -135,91 +129,5 @@ module.exports = class ReverseInteractor {
     }
 
     return this.ipm2.remote(method, parameters, callback)
-  }
-
-  /**
-   * Listen for pm2 scoped action and run them
-   * @param {Object} data
-   * @param {Object} data.method_name the name of the pm2 method
-   * @param {Object} data.parameters optional parameters used to call the method
-   */
-  _onPM2ScopedAction (data) {
-    // callback when the action has been executed
-    let callback = (err, res) => {
-      debug('PM2 scoped action ended (id: %s): pm2 %s (%s)', data.uuid, data.action_name,
-        !err ? 'no error' : (err.message || err))
-      this.transport.send('pm2:scoped:' + (err ? 'error' : 'end'), {
-        at: Date.now(),
-        data: {
-          out: err ? err.message || err : res,
-          uuid: data.uuid,
-          action_name: data.action_name,
-          machine_name: this.opts.MACHINE_NAME,
-          public_key: this.opts.PUBLIC_KEY
-        }
-      })
-    }
-
-    debug('New PM2 scoped action triggered (id: %s) : pm2 %s ', data.uuid, data.action_name)
-
-    const actionName = data.action_name
-    let opts = data.options
-
-    if (!data.uuid) {
-      return callback(new Error('Missing parameters'))
-    }
-
-    if (!actionName || PM2_REMOTE_METHOD_ALLOWED.indexOf(actionName) === -1) {
-      return callback(new Error(actionName ? 'Method not allowed' : 'Invalid method'))
-    }
-
-    // send that the action has begun
-    this.transport.send('pm2:scoped:stream', {
-      at: Date.now(),
-      data: {
-        out: 'Action ' + actionName + ' started',
-        uuid: data.uuid
-      }
-    })
-
-    process.env.fork_params = JSON.stringify({ action: actionName, opts: opts })
-    const app = child.fork(path.resolve(__dirname, './ScopedExecution.js'), [], {
-      silent: true
-    })
-    app.once('error', callback)
-
-    app.stdout.on('data', (out) => {
-      debug(out.toString())
-      this.transport.send('pm2:scoped:stream', {
-        at: Date.now(),
-        data: {
-          type: 'out',
-          out: out instanceof Buffer ? out.toString() : out,
-          uuid: data.uuid
-        }
-      })
-    })
-
-    app.stderr.on('data', (err) => {
-      debug(err.toString())
-      this.transport.send('pm2:scoped:stream', {
-        at: Date.now(),
-        data: {
-          type: 'err',
-          out: err instanceof Buffer ? err.toString() : err,
-          uuid: data.uuid
-        }
-      })
-    })
-
-    app.on('exit', () => {
-      debug('exit : ' + JSON.stringify(arguments))
-    })
-
-    app.on('message', function (data) {
-      data = JSON.parse(data)
-      if (data.isFinished !== true) return false
-      return callback(data.err, data.dt)
-    })
   }
 }
