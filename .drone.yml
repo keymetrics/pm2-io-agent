@@ -3,14 +3,13 @@ pipeline:
     image: node:8
     environment:
       - NODE_ENV=test
-      - PM2_HOME=./tmp
+      - PM2_HOME=/tmp
     commands:
       - node -v
       - yarn -v
       - uname -r
       - yarn install 2> /dev/null
       - export PATH=$PATH:./node_modules/.bin/
-      - mkdir ./tmp
       - mocha test/units/InteractorClient.mocha.js
       - mocha test/units/InteractorDaemon.mocha.js
       - mocha test/units/PM2Client.mocha.js
@@ -21,7 +20,6 @@ pipeline:
       - mocha test/units/push/TransactionAggregator.mocha.js
       - mocha test/units/reverse/ReverseInteractor.mocha.js
       - mocha test/units/transporters/AxonTransport.mocha.js
-      - mocha test/integration/axon.mocha.js
     when:
       event: push
   slack:
