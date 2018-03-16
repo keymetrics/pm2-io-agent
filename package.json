@@ -17,10 +17,13 @@
   ],
   "dependencies": {
     "async": "^2.2",
+    "chalk": "^2.3.2",
     "handy-http": "^1.0.2",
-    "pm2": "^2.4.6",
+    "moment": "^2.21.0",
+    "nssocket": "^0.6.0",
     "pm2-axon": "3.0.2",
-    "pm2-axon-rpc": "0.4.5"
+    "pm2-axon-rpc": "0.4.5",
+    "pmx": "^1.6.4"
   },
   "devDependencies": {
     "clone": "^2.1.1",

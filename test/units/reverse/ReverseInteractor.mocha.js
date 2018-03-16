@@ -6,15 +6,11 @@ process.env.NODE_ENV = 'test'
 
 const assert = require('assert')
 const ReverseInteractor = require('../../../src/reverse/ReverseInteractor')
-const ModuleMocker = require('../../mock/module')
-const EventEmitter = require('events').EventEmitter
-const path = require('path')
 
 const events = {
   'trigger:action': '_onCustomAction',
   'trigger:scoped_action': '_onCustomAction',
-  'trigger:pm2:action': '_onPM2Action',
-  'trigger:pm2:scoped:action': '_onPM2ScopedAction'
+  'trigger:pm2:action': '_onPM2Action'
 }
 
 describe('ReverseInteractor', () => {
@@ -224,172 +220,6 @@ describe('ReverseInteractor', () => {
       })
       reverse._onPM2Action({
         method_name: 'restart',
-        parameters: {
-          name: 'param_name'
-        }
-      })
-    })
-  })
-  describe('_onPM2ScopedAction', _ => {
-    it('should fail with missing uuid', (done) => {
-      let reverse = new ReverseInteractor({
-        MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
-      }, 'pm2', {
-        send: (event, data) => {
-          assert(event === 'pm2:scoped:error')
-          assert(data.data.out === 'Missing parameters')
-          assert(data.data.machine_name === 'machine')
-          assert(data.data.public_key === 'public')
-          assert(data.data.action_name === 'fail')
-          assert(data.data.uuid === undefined)
-          done()
-        }
-      })
-      reverse._onPM2ScopedAction({
-        action_name: 'fail',
-        parameters: {
-          name: 'param_name'
-        }
-      })
-    })
-    it('should fail with invalid method', (done) => {
-      let reverse = new ReverseInteractor({
-        MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
-      }, 'pm2', {
-        send: (event, data) => {
-          assert(event === 'pm2:scoped:error')
-          assert(data.data.out === 'Method not allowed')
-          assert(data.data.machine_name === 'machine')
-          assert(data.data.public_key === 'public')
-          assert(data.data.action_name === 'fail')
-          assert(data.data.uuid === 'uuid')
-          done()
-        }
-      })
-      reverse._onPM2ScopedAction({
-        action_name: 'fail',
-        uuid: 'uuid',
-        parameters: {
-          name: 'param_name'
-        }
-      })
-    })
-    it('should send data to transport', (done) => {
-      let childMock = new ModuleMocker('child_process')
-      let forked = false
-      let _sendCount = 0
-      let stdoutEmitter = new EventEmitter()
-      let stderrEmitter = new EventEmitter()
-      childMock.mock({
-        fork: (p) => {
-          assert(p === path.resolve(__dirname, '../../../src/reverse/ScopedExecution.js'))
-          forked = true
-          setTimeout(_ => {
-            stderrEmitter.emit('data', 'streamed err content')
-          }, 10)
-          return {
-            once: _ => {},
-            on: _ => {},
-            stdout: stdoutEmitter,
-            stderr: stderrEmitter
-          }
-        }
-      })
-
-      let reverse = new ReverseInteractor({
-        MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
-      }, 'pm2', {
-        send: (event, data) => {
-          _sendCount++
-          if (_sendCount === 1) {
-            assert(event === 'pm2:scoped:stream')
-            assert(typeof data.at === 'number')
-            assert(data.data.out === 'Action restart started')
-            assert(data.data.uuid === 'uuid')
-          } else if (_sendCount === 2) {
-            assert(event === 'pm2:scoped:stream')
-            assert(typeof data.at === 'number')
-            assert(data.data.type === 'err')
-            assert(data.data.out === 'streamed err content')
-            assert(data.data.uuid === 'uuid')
-            stdoutEmitter.emit('data', 'streamed content')
-          } else {
-            assert(event === 'pm2:scoped:stream')
-            assert(typeof data.at === 'number')
-            assert(data.data.type === 'out')
-            assert(data.data.out === 'streamed content')
-            assert(data.data.uuid === 'uuid')
-            assert(forked === true)
-            childMock.reset()
-            done()
-          }
-        }
-      })
-      reverse._onPM2ScopedAction({
-        action_name: 'restart',
-        uuid: 'uuid',
-        parameters: {
-          name: 'param_name'
-        }
-      })
-    })
-    it('should return with message is finished', (done) => {
-      let childMock = new ModuleMocker('child_process')
-      let forked = false
-      let _sendCount = 0
-      let stdoutEmitter = new EventEmitter()
-      let stderrEmitter = new EventEmitter()
-      let _messageCb = null
-      childMock.mock({
-        fork: (p) => {
-          assert(p === path.resolve(__dirname, '../../../src/reverse/ScopedExecution.js'))
-          forked = true
-          setTimeout(_ => {
-            _messageCb(JSON.stringify({
-              isFinished: true
-            }))
-          }, 10)
-          return {
-            once: _ => {},
-            on: (event, cb) => {
-              if (event === 'message') {
-                _messageCb = cb
-              }
-            },
-            stdout: stdoutEmitter,
-            stderr: stderrEmitter
-          }
-        }
-      })
-
-      let reverse = new ReverseInteractor({
-        MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
-      }, 'pm2', {
-        send: (event, data) => {
-          _sendCount++
-          if (_sendCount === 1) {
-            assert(event === 'pm2:scoped:stream')
-            assert(typeof data.at === 'number')
-            assert(data.data.out === 'Action restart started')
-            assert(data.data.uuid === 'uuid')
-          } else {
-            assert(event === 'pm2:scoped:end')
-            assert(typeof data.at === 'number')
-            assert(data.data.out === undefined)
-            assert(data.data.uuid === 'uuid')
-            assert(forked === true)
-            childMock.reset()
-            done()
-          }
-        }
-      })
-      reverse._onPM2ScopedAction({
-        action_name: 'restart',
-        uuid: 'uuid',
         parameters: {
           name: 'param_name'
         }

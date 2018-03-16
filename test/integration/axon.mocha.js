@@ -371,7 +371,6 @@ describe('Integration test with axon transport', _ => {
       }, PM2_SECRET_KEY)
       reverseServerSocket.send('trigger:pm2:action', data)
     })
-    it.skip('should trigger pm2 scoped action')
   })
   after((done) => {
     // Stop daemon
