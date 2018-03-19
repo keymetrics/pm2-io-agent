@@ -196,7 +196,7 @@ module.exports = class AxonTransport extends Transporter {
 
     // ensure that all required field are present
     let eventName = event.event.join(':').substr('data:'.length)
-    log('Recevied event %s', eventName)
+    log('Received event %s from reverse server, emit it', eventName)
     this.emit(eventName, data)
   }
 }

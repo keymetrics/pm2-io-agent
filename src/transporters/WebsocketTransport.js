@@ -30,11 +30,11 @@ module.exports = class WebsocketTransport extends Transporter {
    * @param {Function} cb invoked with <err>
    */
   connect (url, cb) {
-    log('Connecting websocket transporter...')
     if (typeof url === 'function') {
       cb = url
       url = this.endpoint
     }
+    log('Connecting websocket transporter to %s...', url)
 
     // cipher metadata to prove that we have the secret key
     var data = this._daemon.getSystemMetadata()
@@ -52,6 +52,7 @@ module.exports = class WebsocketTransport extends Transporter {
     })
 
     let onError = (err) => {
+      log('Error on websocket connect', err)
       return cb(err)
     }
     this._ws.once('error', cb)

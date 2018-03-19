@@ -25,7 +25,9 @@ const useDaemon = (cb) => {
   let Daemon = getDaemon()
   let daemon = new Daemon()
   cb(daemon, _ => {
-    clearInterval(daemon.transport._worker)
+    daemon.transport.transporters.forEach(transport => {
+      clearInterval(transport._worker)
+    })
   })
 }
 
@@ -47,8 +49,10 @@ describe('InteractorDaemon', () => {
       let daemon = new Daemon()
       Daemon.prototype.retrieveConf = tmp
       assert(daemon.opts === cst)
-      assert(daemon.transport instanceof require('../../src/transporters/AxonTransport'))
-      clearInterval(daemon.transport._worker)
+      assert(daemon.transport instanceof require('../../src/TransporterInterface'))
+      daemon.transport.transporters.forEach(transport => {
+        clearInterval(transport._worker)
+      })
       assert(_httpInit === 1)
       utility.reset()
       done()
@@ -115,9 +119,9 @@ describe('InteractorDaemon', () => {
         daemon.push = {
           stop: _ => _stopPush++
         }
-        clearInterval(daemon.transport._worker)
         daemon.transport = {
-          disconnect: _ => _disconnectTransport++
+          disconnect: _ => _disconnectTransport++,
+          transporters: daemon.transport.transporters
         }
         daemon._ipm2 = {
           disconnect: _ => _disconnectIPM2++
@@ -171,9 +175,9 @@ describe('InteractorDaemon', () => {
         daemon.push = {
           stop: _ => _stopPush++
         }
-        clearInterval(daemon.transport._worker)
         daemon.transport = {
-          disconnect: _ => _disconnectTransport++
+          disconnect: _ => _disconnectTransport++,
+          transporters: daemon.transport.transporters
         }
         daemon._ipm2 = {
           disconnect: _ => _disconnectIPM2++
@@ -344,109 +348,18 @@ describe('InteractorDaemon', () => {
           }
         })
         let _connectCalled = 0
-        let _reconnectCalled = 0
-        clearInterval(daemon.transport._worker)
         daemon.transport = {
-          isConnected: _ => false,
           connect: (data, next) => {
             assert(data.push === 'push')
-            assert(data.pull === 'pull')
+            assert(data.reverse === 'pull')
             _connectCalled++
             next()
           },
-          reconnect: (data, next) => {
-            _reconnectCalled++
-            next()
-          }
+          transporters: daemon.transport.transporters
         }
         daemon._verifyEndpoint((err, status) => {
           assert(err === undefined)
           assert(_connectCalled === 1)
-          assert(_reconnectCalled === 0)
-          cb()
-          done()
-        })
-      })
-    })
-    it('should reconnect to transport if push server has changed', (done) => {
-      useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(null, {
-          disabled: false,
-          pending: false,
-          active: true,
-          endpoints: {
-            push: 'push2',
-            reverse: 'pull'
-          }
-        })
-        let _connectCalled = 0
-        let _reconnectCalled = 0
-        clearInterval(daemon.transport._worker)
-        daemon.km_data = {
-          endpoints: {
-            push: 'push',
-            reverse: 'pull'
-          }
-        }
-        daemon.transport = {
-          isConnected: _ => true,
-          connect: (data, next) => {
-            _connectCalled++
-            next()
-          },
-          reconnect: (data, next) => {
-            assert(data.push === 'push2')
-            assert(data.pull === 'pull')
-            _reconnectCalled++
-            next()
-          }
-        }
-        daemon._verifyEndpoint((err, status) => {
-          assert(err === undefined)
-          assert(_connectCalled === 0)
-          assert(_reconnectCalled === 1)
-          cb()
-          done()
-        })
-      })
-    })
-    it('should reconnect to transport if pull server has changed', (done) => {
-      useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(null, {
-          disabled: false,
-          pending: false,
-          active: true,
-          endpoints: {
-            push: 'push',
-            reverse: 'pull2'
-          }
-        })
-        let _connectCalled = 0
-        let _reconnectCalled = 0
-        clearInterval(daemon.transport._worker)
-        daemon.km_data = {
-          endpoints: {
-            push: 'push',
-            reverse: 'pull'
-          }
-        }
-        daemon.transport = {
-          isConnected: _ => true,
-          connect: (data, next) => {
-            _connectCalled++
-            next()
-          },
-          reconnect: (data, next) => {
-            assert(data.push === 'push')
-            assert(data.pull === 'pull2')
-            _reconnectCalled++
-            next()
-          }
-        }
-        daemon._verifyEndpoint((err, status) => {
-          assert(err === undefined)
-          assert(_connectCalled === 0)
-          assert(_reconnectCalled === 1)
           cb()
           done()
         })
