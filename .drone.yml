@@ -20,6 +20,8 @@ pipeline:
       - mocha test/units/push/TransactionAggregator.mocha.js
       - mocha test/units/reverse/ReverseInteractor.mocha.js
       - mocha test/units/transporters/AxonTransport.mocha.js
+      - mocha test/units/transporters/WebsocketTransport.mocha.js
+      - mocha test/integrations/websocket.mocha.js
     when:
       event: push
   slack:

@@ -25,7 +25,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   constructor () {
     this.opts = this.retrieveConf()
     this.DAEMON_ACTIVE = false
-    this.transport = new TransporterInterface('axon', this.opts, this)
+    this.transport = new TransporterInterface('websocket', this.opts, this)
     this.transport.on('error', (err) => {
       return console.error('[NETWORK] Error : ' + err.message || err)
     })
@@ -177,16 +177,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
       log('Connect transport with endpoints')
       if (!this.transport.isConnected()) {
-        this.transport.connect({
-          push: data.endpoints.push,
-          pull: data.endpoints.reverse
-        }, cb)
+        this.transport.connect(data.endpoints.websocket, cb)
         this.km_data = data
-      } else if (data.endpoints.push !== this.km_data.endpoints.push || data.endpoints.reverse !== this.km_data.endpoints.reverse) {
-        this.transport.reconnect({
-          push: data.endpoints.push,
-          pull: data.endpoints.reverse
-        }, cb)
+      } else if (data.endpoints.websocket !== this.km_data.endpoints.websocket) {
+        this.transport.reconnect(data.endpoints.websocket, cb)
         this.km_data = data
       } else {
         return cb(null, true)
