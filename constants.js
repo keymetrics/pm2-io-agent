@@ -40,7 +40,10 @@ let cst = {
   INTERACTOR_RPC_PORT: path.resolve(PM2_HOME, 'interactor.sock'),
   INTERACTOR_LOG_FILE_PATH: path.resolve(PM2_HOME, 'agent.log'),
   INTERACTOR_PID_PATH: path.resolve(PM2_HOME, 'agent.pid'),
-  INTERACTION_CONF: path.resolve(PM2_HOME, 'agent.json5')
+  INTERACTION_CONF: path.resolve(PM2_HOME, 'agent.json5'),
+
+  SUCCESS_EXIT: 0,
+  ERROR_EXIT: 1
 }
 
 // allow overide of file paths via environnement

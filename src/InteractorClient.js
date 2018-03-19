@@ -13,6 +13,7 @@ const rpc = require('pm2-axon-rpc')
 const axon = require('pm2-axon')
 const chalk = require('chalk')
 const os = require('os')
+const constants = require('../constants')
 
 const printError = (msg) => {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
@@ -195,6 +196,13 @@ module.exports = class InteractorDaemonizer {
     })
 
     fs.writeFileSync(conf.INTERACTOR_PID_PATH, child.pid)
+
+    child.on('close', (status) => {
+      if (status === constants.ERROR_EXIT) {
+        return cb(new Error())
+      }
+      return cb()
+    })
 
     child.once('error', (err) => {
       log('Error when launching Interactor, please check the agent logs')
@@ -416,7 +424,7 @@ module.exports = class InteractorDaemonizer {
 
     process.env.PM2_INTERACTOR_PROCESSING = true
 
-    this.getOrSetConf(cst, opts, (err, conf) => {
+    this.getOrSetConf(Object.assign(cst, constants), opts, (err, conf) => {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
       if (!process.env.PM2_SILENT) {

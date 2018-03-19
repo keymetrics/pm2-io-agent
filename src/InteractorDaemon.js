@@ -234,11 +234,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       if (err) {
         log('Error while trying to retrieve endpoints : ' + (err.message || err))
         process.send({ error: true, msg: err.message || err })
-        return this.exit()
+        return this.exit(new Error('Error retrieving endpoints'))
       }
       if (result === false) {
         log('False returned while trying to retrieve endpoints')
-        return this.exit()
+        return this.exit(new Error('Error retrieving endpoints'))
       }
 
       // send data over IPC for CLI feedback
