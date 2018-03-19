@@ -9,7 +9,7 @@ process.env.PM2_SILENT = true
 const PM2_MACHINE_NAME = 'test'
 const PM2_PUBLIC_KEY = 'g94c9opeq5i4f6j'
 const PM2_SECRET_KEY = 'ydz2i1lbkccm7g2'
-const KEYMETRICS_NODE = 'http://cl1.km.io:3800'
+const KEYMETRICS_NODE = 'http://localhost:3800'
 const PM2_VERSION = '2.10.0'
 
 let processes = require('../fixtures/processes.json')
@@ -70,9 +70,9 @@ describe('Integration test with axon transport', _ => {
       res.setHeader('Content-Type', 'application/json')
       res.write(JSON.stringify({
         endpoints: {
-          web: 'http://cl1.km.io:3500',
-          reverse: 'http://cl1.km.io:3700',
-          push: 'http://cl1.km.io:3600'
+          web: 'http://localhost:3500',
+          reverse: 'http://localhost:3700',
+          push: 'http://localhost:3600'
         },
         active: true,
         pending: false,

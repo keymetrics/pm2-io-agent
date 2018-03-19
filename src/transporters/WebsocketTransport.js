@@ -5,7 +5,6 @@ const log = require('debug')('interactor:websocket')
 const cst = require('../../constants.js')
 const Utility = require('../Utility.js')
 const Transporter = require('./Transporter')
-const Cipher = require('../Utility').Cipher
 
 /**
  * Websocket Transport used to communicate with KM
@@ -46,7 +45,7 @@ module.exports = class WebsocketTransport extends Transporter {
         'X-KM-PUBLIC': this.opts.PUBLIC_KEY,
         'X-KM-DATA': data,
         'X-KM-SERVER': this.opts.MACHINE_NAME,
-        'X-PM2-VERSION': this.opts.PM2_VERSION,
+        'X-PM2-VERSION': this.opts.PM2_VERSION || '0.0.0',
         'X-PROTOCOL-VERSION': cst.PROTOCOL_VERSION
       }
     })
@@ -113,7 +112,7 @@ module.exports = class WebsocketTransport extends Transporter {
 
     log('Sending packet over for channel %s', channel)
     var packet = {
-      payload: Cipher.cipherMessage(data, this.opts.SECRET_KEY),
+      payload: data,
       channel: channel
     }
     this._ws.send(JSON.stringify(packet), {
@@ -128,12 +127,11 @@ module.exports = class WebsocketTransport extends Transporter {
   }
 
   /**
-   * Broadcast the close event from websocket connection
+   * Message received from keymetrics
    * @private
-   * @param {Integer} code
-   * @param {String} reason
+   * @param {String} json packet
    */
-  _onMessage (event, data) {
+  _onMessage (data) {
     try {
       data = JSON.parse(data)
     } catch (err) {
