@@ -35,7 +35,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
   bind (name, opts = {}) {
     if (!this.config[name] || !this.config[name].enabled) return this
     log('Bind %s transport to transporter interface', name)
-    let Transport = require('./transporters/' + this._getTransportName(name))
+    let Transport = this._loadTransporter(name)
     this.transporters.set(name, new Transport(Object.assign(opts, this.opts), this.daemon))
     this.transportersEndpoints.set(name, this.config[name].endpoints || {})
     this._bindEvents(name)
@@ -66,7 +66,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
         transport.connect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // Endpoints have changed, reconnect
       } else if (JSON.stringify(endpoints) !== JSON.stringify(this.endpoints)) {
-        this.transport.reconnect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
+        transport.reconnect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // No changes
       } else {
         return next(null)
@@ -86,6 +86,15 @@ module.exports = class TransporterInterface extends EventEmitter2 {
     this.transporters.forEach(transporter => {
       transporter.send(channel, data)
     })
+  }
+
+  /**
+   * Require transporter
+   * @param {String} name of the transporter (in ./transporters/)
+   * @private
+   */
+  _loadTransporter (name) {
+    return require('./transporters/' + this._getTransportName(name))
   }
 
   /**

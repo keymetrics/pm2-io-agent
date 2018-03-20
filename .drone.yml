@@ -21,6 +21,7 @@ pipeline:
       - nyc -s --clean false mocha test/units/reverse/ReverseInteractor.mocha.js
       - nyc -s --clean false mocha test/units/transporters/AxonTransport.mocha.js
       - nyc -s --clean false mocha test/units/transporters/WebsocketTransport.mocha.js
+      - nyc -s --clean false mocha test/units/TransporterInterface.mocha.js
       - nyc -s --clean false mocha test/integrations/websocket.mocha.js
       - nyc -s --clean false mocha test/integrations/axon.mocha.js
       - yarn add codecov
