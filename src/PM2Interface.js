@@ -104,10 +104,7 @@ module.exports = class PM2Interface {
 
     this.rpc.getMonitorData({}, (err, list) => {
       if (err) {
-        if (cb) {
-          cb(err)
-        }
-        return false
+        return typeof cb === 'function' ? cb(err) : false
       }
 
       /**
@@ -122,28 +119,19 @@ module.exports = class PM2Interface {
           fs.writeFileSync(cst.DUMP_FILE_PATH, JSON.stringify(envArr, '', 2))
         } catch (e) {
           log('Dump error', e.stack || e)
-          try {
-            fs.unlinkSync(cst.DUMP_FILE_PATH)
-          } catch (e) {
-            log('Dump error', e.stack || e)
-            return cb(e)
-          }
           return cb(e)
         }
-        if (cb) return cb(null, {success: true})
-        return true
+        return (cb) ? cb(null, {success: true}) : true
       }
 
-      (function ex (apps) {
-        if (!apps[0]) return end()
-        delete apps[0].pm2_env.instances
-        delete apps[0].pm2_env.pm_id
-        if (!apps[0].pm2_env.pmx_module) {
-          envArr.push(apps[0].pm2_env)
+      async.each(list, (app, done) => {
+        delete app.pm2_env.instances
+        delete app.pm2_env.pm_id
+        if (!app.pm2_env.pmx_module) {
+          envArr.push(app.pm2_env)
         }
-        apps.shift()
-        return ex(apps)
-      })(list)
+        done()
+      }, end)
     })
   }
 

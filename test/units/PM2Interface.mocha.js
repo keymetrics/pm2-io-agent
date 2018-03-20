@@ -368,26 +368,6 @@ describe('PM2Interface', () => {
         done()
       })
     })
-    it('should fail on unlink', (done) => {
-      let pm2 = new PM2Interface()
-      let fsMock = new ModuleMocker('fs')
-      fsMock.mock({
-        writeFileSync: _ => {
-          throw new Error('Test')
-        },
-        unlinkSync: _ => {
-          throw new Error('Test2')
-        }
-      })
-      pm2.rpc = rpcMethods
-      pm2.rpc.getMonitorData = (d, cb) => cb(null, [])
-      pm2.dump((err) => {
-        assert(err instanceof Error)
-        assert(err.message === 'Test2')
-        fsMock.reset()
-        done()
-      })
-    })
     it('should work', (done) => {
       let pm2 = new PM2Interface()
       let _writeCalled = false
