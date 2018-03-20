@@ -131,11 +131,11 @@ module.exports = class TransporterInterface extends EventEmitter2 {
   _buildConnectParamsFromEndpoints (name, endpoints) {
     const opts = this.transportersEndpoints.get(name)
     if (typeof opts === 'string') {
-      return endpoints[opts]
+      return endpoints[opts] || opts
     }
     let params = {}
     for (let key in opts) {
-      params[key] = endpoints[opts[key]]
+      params[key] = endpoints[opts[key]] || opts[key]
     }
     return params
   }
