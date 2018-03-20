@@ -23,6 +23,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
     this.transporters = new Map()
     this.transportersEndpoints = new Map()
     this.endpoints = new Map()
+    this.config = config
     return this
   }
 
@@ -32,11 +33,11 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Object} opts [optionnal] custom options
    */
   bind (name, opts = {}) {
-    if (!config[name] || !config[name].enabled) return this
+    if (!this.config[name] || !this.config[name].enabled) return this
     log('Bind %s transport to transporter interface', name)
     let Transport = require('./transporters/' + this._getTransportName(name))
     this.transporters.set(name, new Transport(Object.assign(opts, this.opts), this.daemon))
-    this.transportersEndpoints.set(name, config[name].endpoints || {})
+    this.transportersEndpoints.set(name, this.config[name].endpoints || {})
     this._bindEvents(name)
     return this
   }
@@ -64,7 +65,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
       if (!transport.isConnected()) {
         transport.connect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // Endpoints have changed, reconnect
-      } else if (endpoints.push !== this.endpoints.push || this.endpoints.reverse !== endpoints.reverse) {
+      } else if (JSON.stringify(endpoints) !== JSON.stringify(this.endpoints)) {
         this.transport.reconnect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // No changes
       } else {

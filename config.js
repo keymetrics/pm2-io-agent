@@ -7,15 +7,15 @@
 module.exports = {
   transporters: {
     axon: {
-      enabled: true,
+      enabled: process.env.AGENT_TRANSPORT_AXON || true,
       endpoints: {
-        push: process.env.PM2_PUSH_ENDPOINT || 'push',
-        pull: process.env.PM2_REVERSE_ENDPOINT || 'reverse'
+        push: process.env.AGENT_PUSH_ENDPOINT || 'push',
+        pull: process.env.AGENT_REVERSE_ENDPOINT || 'reverse'
       }
     },
     websocket: {
-      enabled: false,
-      endpoints: process.env.PM2_WEBSOCKET_ENDPOINT || 'websocket'
+      enabled: process.env.AGENT_TRANSPORT_WEBSOCKET || false,
+      endpoints: process.env.AGENT_WEBSOCKET_ENDPOINT || 'websocket'
     }
   }
 }
