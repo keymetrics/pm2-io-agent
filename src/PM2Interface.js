@@ -32,8 +32,8 @@ module.exports = class PM2Interface {
    * @method scale
    */
   scale (opts, cb) {
-    let self = this
-    let appName = opts.name
+    const self = this
+    const appName = opts.name
     let number = opts.number
 
     function addProcs (proc, value, cb) {
@@ -45,7 +45,7 @@ module.exports = class PM2Interface {
     }
 
     function rmProcs (procs, value, cb) {
-      var i = 0;
+      let i = 0;
 
       (function ex (procs, number) {
         if (number++ === 0) return cb()
@@ -54,7 +54,7 @@ module.exports = class PM2Interface {
     }
 
     let end = () => {
-      return cb ? cb(null, {success: true}) : this.speedList()
+      return cb ? cb(null, {success: true}) : log('Successfuly scale')
     }
 
     this.getProcessByName(appName, (err, procs) => {
@@ -74,7 +74,7 @@ module.exports = class PM2Interface {
         return addProcs(procs[0], number, end)
       } else if (typeof (number) === 'string' && number.indexOf('-') >= 0) {
         number = parseInt(number, 10)
-        return rmProcs(procs[0], number, end)
+        return rmProcs(procs, number, end)
       } else {
         number = parseInt(number, 10)
         number = number - procNumber
