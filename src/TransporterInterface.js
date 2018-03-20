@@ -3,6 +3,8 @@
 const EventEmitter2 = require('eventemitter2').EventEmitter2
 const async = require('async')
 const log = require('debug')('transporter:interface')
+const path = require('path')
+const config = require(path.join(__dirname, '../config')).transporters
 
 module.exports = class TransporterInterface extends EventEmitter2 {
   /**
@@ -30,10 +32,11 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Object} opts [optionnal] custom options
    */
   bind (name, opts = {}) {
+    if (!config[name] || !config[name].enabled) return this
     log('Bind %s transport to transporter interface', name)
     let Transport = require('./transporters/' + this._getTransportName(name))
     this.transporters.set(name, new Transport(Object.assign(opts, this.opts), this.daemon))
-    this.transportersEndpoints.set(name, opts.endpointsKeys || {})
+    this.transportersEndpoints.set(name, config[name].endpoints || {})
     this._bindEvents(name)
     return this
   }

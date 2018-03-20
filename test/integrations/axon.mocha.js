@@ -34,10 +34,16 @@ let pm2Rpc = null
 let reverseServer = null
 let reverseServerSocket = null
 let httpServer = null
+let configJS = null
+const configJSPath = path.join(__dirname, '../../config.js')
+const configAxonPath = path.join(__dirname, '../misc/config.axon.js')
 let msgProcessData = {}
 
 describe('Integration test with axon transport', _ => {
   before(done => {
+    // Config
+    configJS = fs.readFileSync(configJSPath)
+    fs.writeFileSync(configJSPath, fs.readFileSync(configAxonPath))
     // Start pm2
     pm2PubEmitter.bind(cst.DAEMON_PUB_PORT)
     pm2Rep.bind(cst.DAEMON_RPC_PORT)
@@ -382,5 +388,7 @@ describe('Integration test with axon transport', _ => {
     // Stop pm2
     pm2PubEmitter.close()
     pm2Rpc.sock.close()
+    // Set config
+    fs.writeFileSync(configJSPath, configJS)
   })
 })

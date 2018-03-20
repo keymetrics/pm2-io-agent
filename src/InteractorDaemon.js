@@ -26,19 +26,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     this.opts = this.retrieveConf()
     this.DAEMON_ACTIVE = false
     this.transport = new TransporterInterface(this.opts, this)
-    if (!process.env.PM2_DISABLE_AXON) {
-      this.transport.bind('axon', {
-        endpointsKeys: {
-          push: 'push',
-          pull: 'reverse'
-        }
-      })
-    }
-    if (process.env.NODE_ENV === 'test' && process.env.PM2_ENABLE_WEBSOCKET) {
-      this.transport.bind('websocket', {
-        endpointsKeys: 'websocket'
-      })
-    }
+      .bind('axon')
+      .bind('websocket')
     this.transport.on('error', (err) => {
       return console.error('[NETWORK] Error : ' + err.message || err)
     })

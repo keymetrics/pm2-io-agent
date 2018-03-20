@@ -12,9 +12,6 @@ const PM2_SECRET_KEY = 'ydz2i1lbkccm7g2'
 const KEYMETRICS_NODE = 'http://localhost:3800'
 const PM2_VERSION = '2.10.0'
 
-process.env.PM2_DISABLE_AXON = true
-process.env.PM2_ENABLE_WEBSOCKET = true
-
 let processes = require('../fixtures/processes.json')
 const TraceFactory = require('../misc/trace_factory')
 
@@ -35,10 +32,16 @@ let pm2Rpc = null
 let httpServer = null
 let wsServer = null
 let wsClient = null
+let configJS = null
+const configJSPath = path.join(__dirname, '../../config.js')
+const configWebsocketPath = path.join(__dirname, '../misc/config.websocket.js')
 let msgProcessData = {}
 
 describe('Integration test with websocket transport', _ => {
   before(done => {
+    // Config
+    configJS = fs.readFileSync(configJSPath)
+    fs.writeFileSync(configJSPath, fs.readFileSync(configWebsocketPath))
     // Start pm2
     pm2PubEmitter.bind(cst.DAEMON_PUB_PORT)
     pm2Rep.bind(cst.DAEMON_RPC_PORT)
@@ -371,5 +374,7 @@ describe('Integration test with websocket transport', _ => {
     // Stop pm2
     pm2PubEmitter.close()
     pm2Rpc.sock.close()
+    // Set config
+    fs.writeFileSync(configJSPath, configJS)
   })
 })

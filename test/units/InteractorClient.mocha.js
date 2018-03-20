@@ -590,6 +590,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -657,6 +658,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -729,6 +731,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -800,6 +803,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -871,6 +875,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -943,6 +948,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
@@ -1010,6 +1016,7 @@ describe('InteractorClient', () => {
             once: (event, listener) => {
               events[event] = listener
             },
+            on: _ => {},
             removeAllListeners: _ => {}
           }
         }
