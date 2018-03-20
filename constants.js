@@ -42,6 +42,8 @@ let cst = {
   INTERACTOR_PID_PATH: path.resolve(PM2_HOME, 'agent.pid'),
   INTERACTION_CONF: path.resolve(PM2_HOME, 'agent.json5'),
 
+  DUMP_FILE_PATH: path.resolve(PM2_HOME, 'dump.pm2'),
+
   SUCCESS_EXIT: 0,
   ERROR_EXIT: 1
 }

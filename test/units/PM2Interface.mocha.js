@@ -7,6 +7,8 @@ process.env.NODE_ENV = 'test'
 const PM2Interface = require('../../src/PM2Interface')
 const assert = require('assert')
 const path = require('path')
+const ModuleMocker = require('../mock/module')
+const cst = require('../../constants')
 const rpcMethods = {
   restartProcessId: _ => {},
   reloadProcessId: _ => {},
@@ -335,6 +337,98 @@ describe('PM2Interface', () => {
         done()
       }
       pm2.ping('params', 'cb')
+    })
+  })
+  describe('dump', _ => {
+    it('should return an error', (done) => {
+      let pm2 = new PM2Interface()
+      pm2.rpc = rpcMethods
+      pm2.rpc.getMonitorData = (d, cb) => cb(new Error('Test'))
+      assert(pm2.dump((err) => {
+        assert(err instanceof Error)
+        assert(err.message === 'Test')
+        done()
+      }) === false)
+    })
+    it('should fail on write', (done) => {
+      let pm2 = new PM2Interface()
+      let fsMock = new ModuleMocker('fs')
+      fsMock.mock({
+        writeFileSync: _ => {
+          throw new Error('Test')
+        },
+        unlinkSync: _ => {}
+      })
+      pm2.rpc = rpcMethods
+      pm2.rpc.getMonitorData = (d, cb) => cb(null, [])
+      pm2.dump((err) => {
+        assert(err instanceof Error)
+        assert(err.message === 'Test')
+        fsMock.reset()
+        done()
+      })
+    })
+    it('should fail on unlink', (done) => {
+      let pm2 = new PM2Interface()
+      let fsMock = new ModuleMocker('fs')
+      fsMock.mock({
+        writeFileSync: _ => {
+          throw new Error('Test')
+        },
+        unlinkSync: _ => {
+          throw new Error('Test2')
+        }
+      })
+      pm2.rpc = rpcMethods
+      pm2.rpc.getMonitorData = (d, cb) => cb(null, [])
+      pm2.dump((err) => {
+        assert(err instanceof Error)
+        assert(err.message === 'Test2')
+        fsMock.reset()
+        done()
+      })
+    })
+    it('should work', (done) => {
+      let pm2 = new PM2Interface()
+      let _writeCalled = false
+      let fsMock = new ModuleMocker('fs')
+      fsMock.mock({
+        writeFileSync: (file, content) => {
+          assert(file === cst.DUMP_FILE_PATH)
+          assert(content === JSON.stringify([
+            {
+              name: 'process-test'
+            }
+          ], '', 2))
+          _writeCalled = true
+          return true
+        }
+      })
+      pm2.rpc = rpcMethods
+      pm2.rpc.getMonitorData = (d, cb) => cb(null, [
+        {
+          pm2_env: {
+            instances: [],
+            pm_id: 1,
+            name: 'process-test'
+          }
+        },
+        {
+          pm2_env: {
+            instances: [],
+            pm_id: 2,
+            name: 'logrotate',
+            pmx_module: true
+          }
+        }
+      ])
+      pm2.dump((err, data) => {
+        assert(err === null)
+        assert(data.success === true)
+        assert(_writeCalled === true)
+        fsMock.reset()
+        done()
+      })
     })
   })
 })

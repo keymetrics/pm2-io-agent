@@ -26,8 +26,7 @@ describe('WatchDog', () => {
                 done()
               }
             }
-          },
-          pm2_instance: {}
+          }
         }
       })
     })
@@ -42,8 +41,7 @@ describe('WatchDog', () => {
       WatchDog.relaunching = true
       WatchDog.start({
         conf: {
-          ipm2: emitter,
-          pm2_instance: {}
+          ipm2: emitter
         }
       })
       emitter.emit('ready')
@@ -61,8 +59,7 @@ describe('WatchDog', () => {
       WatchDog.relaunching = false
       WatchDog.start({
         conf: {
-          ipm2: emitter,
-          pm2_instance: {}
+          ipm2: emitter
         }
       })
       emitter.emit('reconnecting')
@@ -86,7 +83,7 @@ describe('WatchDog', () => {
   describe('autoDump', _ => {
     it('should dump pm2 instance', (done) => {
       WatchDog.relaunching = false
-      WatchDog.pm2_instance = {
+      WatchDog.ipm2 = {
         dump: _ => {
           clearInterval(WatchDog.dump_interval)
           done()

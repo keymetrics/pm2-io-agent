@@ -13,7 +13,7 @@ const Utility = require('./Utility.js')
 const PM2Client = require('./PM2Client.js')
 const TransporterInterface = require('./TransporterInterface.js')
 const domain = require('domain') // eslint-disable-line 
-// const WatchDog = require('./WatchDog')
+const WatchDog = require('./WatchDog')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -252,11 +252,12 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this.reverse = new ReverseInteractor(this.opts, this._ipm2, this.transport)
       this.push.start()
       this.reverse.start()
-      // WatchDog.start({
-      //   conf: {
-      //     ipm2: this._ipm2
-      //   }
-      // })
+      this.watchDog = WatchDog
+      this.watchDog.start({
+        conf: {
+          ipm2: this._ipm2
+        }
+      })
       log('Interactor daemon started')
       if (cb) {
         setTimeout(cb, 20)

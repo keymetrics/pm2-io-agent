@@ -16,7 +16,6 @@ module.exports = class WatchDog {
   static start (p) {
     this.ipm2 = p.conf.ipm2
     this.relaunching = false
-    this.pm2_instance = p.conf.pm2_instance
 
     /**
      * Handle PM2 connection state changes
@@ -56,7 +55,7 @@ module.exports = class WatchDog {
     this.dump_interval = setInterval(_ => {
       if (this.relaunching === true) return
 
-      this.pm2_instance.dump(function (err) {
+      this.ipm2.dump(function (err) {
         return err ? debug('Error when dumping', err) : debug('PM2 process list dumped')
       })
     }, process.env.NODE_ENV === 'test' ? 1 : 5 * 60 * 1000)

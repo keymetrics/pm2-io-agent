@@ -1,6 +1,8 @@
 const log = require('debug')('pm2:interface')
 const path = require('path')
 const async = require('async')
+const fs = require('fs')
+const cst = require('../constants')
 
 module.exports = class PM2Interface {
   constructor (rpc) {
@@ -88,6 +90,60 @@ module.exports = class PM2Interface {
           return cb ? cb(new Error('Same process number')) : log('Same process number')
         }
       }
+    })
+  }
+
+  /**
+   * Dump current processes managed by pm2 into DUMP_FILE_PATH file
+   * @method dump
+   * @param {} cb
+   * @return
+   */
+  dump (cb) {
+    var envArr = []
+
+    this.rpc.getMonitorData({}, (err, list) => {
+      if (err) {
+        if (cb) {
+          cb(err)
+        }
+        return false
+      }
+
+      /**
+       * Description
+       * @method end
+       * @param {} err
+       * @return
+       */
+      const end = () => {
+        // Overwrite dump file, delete if broken and exit
+        try {
+          fs.writeFileSync(cst.DUMP_FILE_PATH, JSON.stringify(envArr, '', 2))
+        } catch (e) {
+          log('Dump error', e.stack || e)
+          try {
+            fs.unlinkSync(cst.DUMP_FILE_PATH)
+          } catch (e) {
+            log('Dump error', e.stack || e)
+            return cb(e)
+          }
+          return cb(e)
+        }
+        if (cb) return cb(null, {success: true})
+        return true
+      }
+
+      (function ex (apps) {
+        if (!apps[0]) return end()
+        delete apps[0].pm2_env.instances
+        delete apps[0].pm2_env.pm_id
+        if (!apps[0].pm2_env.pmx_module) {
+          envArr.push(apps[0].pm2_env)
+        }
+        apps.shift()
+        return ex(apps)
+      })(list)
     })
   }
 

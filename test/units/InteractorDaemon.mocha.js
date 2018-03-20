@@ -471,7 +471,9 @@ describe('InteractorDaemon', () => {
             },
             bus: {
               on: _ => {}
-            }
+            },
+            on: _ => {},
+            dump: _ => {}
           }
           cb(null, {})
         }
@@ -494,6 +496,7 @@ describe('InteractorDaemon', () => {
           clearInterval(daemon._workerEndpoint)
           daemon.push.stop()
           clearInterval(daemon.push.aggregator._worker)
+          assert(daemon.watchDog !== undefined)
           daemon.reverse.stop()
           process.send = sendTmp
           axonMock.reset()
