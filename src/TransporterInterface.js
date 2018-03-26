@@ -128,7 +128,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Object} endpoints
    * @private
    */
-  _buildConnectParamsFromEndpoints (name, endpoints) {
+  _buildConnectParamsFromEndpoints (name, endpoints = {}) {
     const opts = this.transportersEndpoints.get(name)
     if (typeof opts === 'string') {
       return endpoints[opts] || opts
