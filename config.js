@@ -1,3 +1,19 @@
+'use strict'
+
+/**
+ * Convert value to boolean but false if undefined
+ * @param {String} value
+ * @param {String} fallback default value
+ * @return {Boolean}
+ */
+const useIfDefined = (value, fallback) => {
+  if (typeof value === 'undefined') {
+    return fallback
+  } else {
+    return value === 'true'
+  }
+}
+
 /**
  * Configuration for transporters
  * Configuration by transporter :
@@ -7,14 +23,14 @@
 module.exports = {
   transporters: {
     axon: {
-      enabled: process.env.AGENT_TRANSPORT_AXON || true,
+      enabled: useIfDefined(process.env.AGENT_TRANSPORT_AXON, true),
       endpoints: {
         push: process.env.AGENT_PUSH_ENDPOINT || 'push',
         pull: process.env.AGENT_REVERSE_ENDPOINT || 'reverse'
       }
     },
     websocket: {
-      enabled: process.env.AGENT_TRANSPORT_WEBSOCKET || false,
+      enabled: useIfDefined(process.env.AGENT_TRANSPORT_WEBSOCKET, false),
       endpoints: process.env.AGENT_WEBSOCKET_ENDPOINT || 'websocket'
     }
   }
