@@ -5,7 +5,7 @@ const nssocket = require('nssocket')
 const log = require('debug')('interactor:axon')
 const cst = require('../../constants.js')
 const Utility = require('../Utility.js')
-const URL = require('url').URL
+const url = require('url')
 const async = require('async')
 const Transporter = require('./Transporter')
 
@@ -41,10 +41,10 @@ module.exports = class AxonTransport extends Transporter {
       urls = this.urls
     }
     this.urls = urls
-    let pullUrl = new URL(urls.pull)
+    let pullUrl = url.parse(urls.pull)
     let pullHost = pullUrl.hostname
     let pullPort = pullUrl.port
-    let pushUrl = new URL(urls.push)
+    let pushUrl = url.parse(urls.push)
     let pushHost = pushUrl.hostname
     let pushPort = pushUrl.port
 
