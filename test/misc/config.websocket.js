@@ -1,3 +1,5 @@
+'use strict'
+
 /**
  * Configuration for transporters
  * Configuration by transporter :

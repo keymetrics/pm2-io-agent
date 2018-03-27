@@ -1,12 +1,5 @@
-/**
- * Copyright 2013 the PM2 project authors. All rights reserved.
- * Use of this source code is governed by a license that
- * can be found in the LICENSE file.
- */
+'use strict'
 
-/**
- * Dependencies
- */
 const cst = require('../../constants.js')
 const log = require('debug')('pm2:aggregator')
 const Utility = require('../Utility.js')

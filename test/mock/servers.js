@@ -1,3 +1,5 @@
+'use strict'
+
 const nock = require('nock')
 const nssocket = require('nssocket')
 const axon = require('pm2-axon')

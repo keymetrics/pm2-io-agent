@@ -1,3 +1,4 @@
+'use strict'
 
 // Hacked from https://github.com/felixge/node-measured
 

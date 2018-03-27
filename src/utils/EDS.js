@@ -1,4 +1,4 @@
-
+'use strict'
 // Hacked https://github.com/felixge/node-measured
 
 var BinaryHeap = require('./BinaryHeap')
