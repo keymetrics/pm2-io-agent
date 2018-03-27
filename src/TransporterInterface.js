@@ -12,13 +12,14 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Object} opts [optionnal] Default options
    * @param {InteractorDaemon} Daemon needed by transports
    */
-  constructor (opts = {}, daemon) {
+  constructor (opts, daemon) {
     log('New transporter interface')
+
     super({
       delimiter: ':',
       wildcard: true
     })
-    this.opts = opts
+    this.opts = opts || {}
     this.daemon = daemon
     this.transporters = new Map()
     this.transportersEndpoints = new Map()
@@ -32,7 +33,8 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {String} name of the transporter (in ./transporters/)
    * @param {Object} opts [optionnal] custom options
    */
-  bind (name, opts = {}) {
+  bind (name, opts) {
+    if (!opts) opts = {}
     if (!this.config[name] || !this.config[name].enabled) return this
     log('Bind %s transport to transporter interface', name)
     let Transport = this._loadTransporter(name)
@@ -128,7 +130,8 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Object} endpoints
    * @private
    */
-  _buildConnectParamsFromEndpoints (name, endpoints = {}) {
+  _buildConnectParamsFromEndpoints (name, endpoints) {
+    if (!endpoints) endpoints = {}
     const opts = this.transportersEndpoints.get(name)
     if (typeof opts === 'string') {
       return endpoints[opts] || opts
