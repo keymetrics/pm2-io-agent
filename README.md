@@ -64,3 +64,32 @@ The `enabled` key is using to disable or enable transporter.
 The `endpoints` key can be a string or an object. It depends on what the connect method of the transporter needs. 
 If you set a string, the connect method will be called with endpoint's value or raw value if no endpoint is matched.
 For objects, the connect method will be called with this object, and value of the keys will be replaced by endpoint's value or raw value if no endpoint is matched.
+
+## Release
+
+To release a new version, first install [gren](https://github.com/github-tools/github-release-notes) :
+```bash
+yarn global add github-release-notes
+```
+
+Push a commit in github with the new version you want to release : 
+```
+git commit -am "version: major|minor|patch bump to X.X.X"
+```
+
+Care for the **versionning**, we use the [semver versioning](https://semver.org/) currently. Please be careful about the version when pushing a new package.
+
+Then tag a version with git : 
+```bash
+git tag -s vX.X.X
+```
+
+Push the tag into github (this will trigger the publish to npm) : 
+```
+git push origin vX.X.X
+```
+
+To finish update the changelog of the release on github with `gren` (be sure that gren has selected the right tags):
+```
+gren release -o -D commits
+```
