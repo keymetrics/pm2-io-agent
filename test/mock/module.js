@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = class ModuleMocker {
   constructor (module) {
     this.module = module

@@ -1,3 +1,5 @@
+'use strict'
+
 const log = require('debug')('pm2:interface')
 const path = require('path')
 const async = require('async')

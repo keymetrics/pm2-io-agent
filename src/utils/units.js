@@ -1,3 +1,4 @@
+'use strict'
 // Time units, as found in Java:
 // see: http://download.oracle.com/javase/6/docs/api/java/util/concurrent/TimeUnit.html
 exports.NANOSECONDS = 1 / (1000 * 1000)
