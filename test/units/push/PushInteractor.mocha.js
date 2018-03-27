@@ -11,6 +11,8 @@ const Utility = require('../../../src/Utility')
 const Aggregator = require('../../../src/push/TransactionAggregator.js')
 const path = require('path')
 const cst = require('../../../constants')
+const semver = require('semver')
+const isNode4 = semver.lt(process.versions.node, '5.0.0')
 
 describe('PushInteractor', () => {
   let push = null
@@ -39,7 +41,9 @@ describe('PushInteractor', () => {
         bus: {
           on: (event, method) => {
             assert(event === '*')
-            assert(method.name === 'bound _onPM2Event')
+            if (!isNode4) { // method.name doesnt exist in node 4
+              assert(method.name === 'bound _onPM2Event')
+            }
             assert(typeof push._worker_executor === 'object')
             clearInterval(push._worker_executor)
             assert(_workerCalled === true)
@@ -64,7 +68,9 @@ describe('PushInteractor', () => {
         bus: {
           on: (event, method) => {
             assert(event === '*')
-            assert(method.name === 'bound _onPM2Event')
+            if (!isNode4) { // method.name doesnt exist in node 4
+              assert(method.name === 'bound _onPM2Event')
+            }
             assert(typeof push._worker_executor === 'object')
             clearInterval(push._worker_executor)
             assert(_workerCalled === true)

@@ -9,6 +9,10 @@ const assert = require('assert')
 const path = require('path')
 const ModuleMocker = require('../mock/module')
 const cst = require('../../constants')
+
+const semver = require('semver')
+const isNode4 = semver.lt(process.versions.node, '5.0.0')
+
 const rpcMethods = {
   restartProcessId: _ => {},
   reloadProcessId: _ => {},
@@ -268,6 +272,7 @@ describe('PM2Interface', () => {
   })
   describe('restart', _ => {
     it('should call _callWithProcessId with right method', (done) => {
+      if (isNode4) return done() // method.name doesnt exist in node 4
       let pm2 = new PM2Interface('rpc')
       pm2.rpc = rpcMethods
       pm2._callWithProcessId = (method, params, cb) => {
@@ -282,6 +287,7 @@ describe('PM2Interface', () => {
   })
   describe('reload', _ => {
     it('should call _callWithProcessId with right method', (done) => {
+      if (isNode4) return done() // method.name doesnt exist in node 4
       let pm2 = new PM2Interface('rpc')
       pm2.rpc = rpcMethods
       pm2._callWithProcessId = (method, params, cb) => {
@@ -296,6 +302,7 @@ describe('PM2Interface', () => {
   })
   describe('reset', _ => {
     it('should reset process id', (done) => {
+      if (isNode4) return done() // method.name doesnt exist in node 4
       let pm2 = new PM2Interface('rpc')
       pm2.rpc = rpcMethods
       pm2.rpc.resetMetaProcessId = (params, cb) => {
@@ -327,6 +334,7 @@ describe('PM2Interface', () => {
   })
   describe('ping', _ => {
     it('should call _callWithProcessId with right method', (done) => {
+      if (isNode4) return done() // method.name doesnt exist in node 4
       let pm2 = new PM2Interface('rpc')
       pm2.rpc = rpcMethods
       pm2._callWithProcessId = (method, params, cb) => {
