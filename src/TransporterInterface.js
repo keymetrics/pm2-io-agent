@@ -62,7 +62,8 @@ module.exports = class TransporterInterface extends EventEmitter2 {
   connect (endpoints, cb) {
     log('Connect transporters with new endpoints')
     async.each(this.transporters, (data, next) => {
-      let [ name, transport ] = data
+      let name = data[0]
+      let transport = data[1]
       // Isn't connected, connect it
       if (!transport.isConnected()) {
         transport.connect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
