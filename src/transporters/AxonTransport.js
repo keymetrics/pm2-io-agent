@@ -5,7 +5,7 @@ const nssocket = require('nssocket')
 const log = require('debug')('interactor:axon')
 const cst = require('../../constants.js')
 const Utility = require('../Utility.js')
-const { URL } = require('url')
+const URL = require('url').URL
 const async = require('async')
 const Transporter = require('./Transporter')
 
