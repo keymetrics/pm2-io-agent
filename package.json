@@ -1,6 +1,6 @@
 {
   "name": "keymetrics-agent",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Keymetrics Agent Daemon",
   "main": "index.js",
   "directories": {
