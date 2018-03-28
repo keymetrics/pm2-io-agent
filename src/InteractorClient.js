@@ -8,6 +8,7 @@ const axon = require('pm2-axon')
 const chalk = require('chalk')
 const os = require('os')
 const constants = require('../constants')
+const child_process = require('child_process')
 
 const printError = (msg) => {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
@@ -170,10 +171,10 @@ module.exports = class InteractorDaemonizer {
     // Redirect PM2 internal err and out
     // to STDERR STDOUT when running with Travis
     const testEnv = process.env.TRAVIS || (process.env.NODE_ENV && process.env.NODE_ENV.match(/test/))
-    const out = testEnv ? 1 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
-    const err = testEnv ? 2 : fs.openSync(conf.INTERACTOR_LOG_FILE_PATH, 'a')
+    const out = testEnv ? 1 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
+    const err = testEnv ? 2 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
 
-    const child = require('child_process').spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
+    const child = child_process.spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
       silent: false,
       detached: true,
       cwd: process.cwd(),
@@ -184,7 +185,8 @@ module.exports = class InteractorDaemonizer {
         PM2_PUBLIC_KEY: infos.public_key,
         PM2_REVERSE_INTERACT: infos.reverse_interact,
         KEYMETRICS_NODE: infos.info_node,
-        PM2_VERSION: infos.pm2_version
+        PM2_VERSION: infos.pm2_version,
+        DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket'
       }, process.env),
       stdio: ['ipc', out, err]
     })
@@ -193,7 +195,7 @@ module.exports = class InteractorDaemonizer {
 
     child.on('close', (status) => {
       if (status === constants.ERROR_EXIT) {
-        return cb(new Error())
+        return cb(new Error('Agent has shutdown for unknown reason'))
       }
       return cb()
     })

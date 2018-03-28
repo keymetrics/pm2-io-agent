@@ -167,6 +167,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(err)
       }
 
+      if (data.error === true) {
+        return cb(new Error(data.msg))
+      }
+
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
         return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
