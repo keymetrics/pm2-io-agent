@@ -148,7 +148,7 @@ module.exports = class AxonTransport extends Transporter {
     let packet = null
 
     log('Sending packet over for channel %s', channel)
-    if (channel !== 'heapdump' && channel !== 'cpuprofile') {
+    if (channel !== 'profiling') {
       // Create packet
       packet = {
         public_key: this.opts.PUBLIC_KEY,
@@ -172,14 +172,12 @@ module.exports = class AxonTransport extends Transporter {
     // Send data to reverse server if is a result from a trigger otherwise send to interact server
     if (channel.indexOf('trigger:') !== -1) {
       this._socket.send(channel, data)
+    } else if (channel === 'profiling') {
+      packet = Object.assign({}, data)
+      delete packet.data
+      this._axon.emit(JSON.stringify(packet), data.data)
     } else {
-      if (channel !== 'heapdump' && channel !== 'cpuprofile') {
-        this._axon.emit(JSON.stringify(packet))
-      } else {
-        packet = Object.assign({}, data)
-        delete packet.data
-        this._axon.emit(JSON.stringify(packet), data.data)
-      }
+      this._axon.emit(JSON.stringify(packet))
     }
   }
 

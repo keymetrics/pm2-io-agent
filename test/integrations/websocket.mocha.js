@@ -178,7 +178,7 @@ describe('Integration test with websocket transport', _ => {
       wsClient.on('message', (data) => {
         data = JSON.parse(data)
         if (data.channel === 'status') return
-        assert(data.channel === 'heapdump')
+        assert(data.channel === 'profiling')
         assert(data.payload.type === 'heapdump')
         assert(data.payload.pm_id === 0)
         assert(data.payload.name === 'test')

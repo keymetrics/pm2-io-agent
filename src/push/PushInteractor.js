@@ -168,7 +168,7 @@ module.exports = class PushInteractor {
       if (err) return debug(err)
       fs.unlink(filePath, debug)
       packet.data = data
-      return this.transport.send(type, packet)
+      return this.transport.send('profiling', packet)
     })
   }
 }
