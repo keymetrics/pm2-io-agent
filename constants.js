@@ -19,6 +19,18 @@ if (process.env.PM2_HOME) {
   PM2_HOME = path.resolve('/etc', '.pm2')
 }
 
+const getUniqueId = () => {
+  var s = []
+  var hexDigits = '0123456789abcdef'
+  for (var i = 0; i < 36; i++) {
+    s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1)
+  }
+  s[14] = '4'
+  s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1)
+  s[8] = s[13] = s[18] = s[23] = '-'
+  return s.join('')
+}
+
 let cst = {
   DEBUG: process.env.PM2_DEBUG || false,
   KEYMETRICS_ROOT_URL: process.env.KEYMETRICS_NODE || 'https://root.keymetrics.io',
@@ -43,6 +55,8 @@ let cst = {
   INTERACTION_CONF: path.resolve(PM2_HOME, 'agent.json5'),
 
   DUMP_FILE_PATH: path.resolve(PM2_HOME, 'dump.pm2'),
+
+  UNIQUE_SERVER_ID: getUniqueId(),
 
   SUCCESS_EXIT: 0,
   ERROR_EXIT: 1

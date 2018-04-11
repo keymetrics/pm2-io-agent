@@ -1,6 +1,7 @@
 'use strict'
 
 const os = require('os')
+const constants = require('../../constants')
 const cpuMeta = {
   number: os.cpus().length,
   info: os.cpus().length > 0 ? os.cpus()[0].model : 'no-data'
@@ -28,6 +29,7 @@ module.exports = class DataRetriever {
           pm_uptime: proc.pm2_env.pm_uptime,
           status: proc.pm2_env.status,
           pm_id: proc.pm2_env.pm_id,
+          unique_id: proc.pm2_env.unique_id,
 
           cpu: Math.floor(proc.monit.cpu) || 0,
           memory: Math.floor(proc.monit.memory) || 0,
@@ -62,7 +64,8 @@ module.exports = class DataRetriever {
         arch: os.arch(),
         interaction: conf.REVERSE_INTERACT,
         pm2_version: conf.PM2_VERSION,
-        node_version: nodeVersion
+        node_version: nodeVersion,
+        unique_id: constants.UNIQUE_SERVER_ID
       }
     }
   }
