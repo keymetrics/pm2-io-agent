@@ -94,6 +94,7 @@ describe('Integration test with websocket transport', _ => {
   describe('PushInteractor', _ => {
     it('should send status', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         assert(data.channel === 'status')
         let sended = data.payload
@@ -126,6 +127,7 @@ describe('Integration test with websocket transport', _ => {
     it('should send an other status', (done) => {
       processes[0].pm2_env.name = 'test_process_1_name'
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         assert(data.channel === 'status')
         let sended = data.payload
@@ -158,6 +160,7 @@ describe('Integration test with websocket transport', _ => {
     })
     it('should send custom event', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'custom:event')
@@ -176,6 +179,7 @@ describe('Integration test with websocket transport', _ => {
     })
     it('should send file with heapdump', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'profiling')
@@ -221,6 +225,7 @@ describe('Integration test with websocket transport', _ => {
         data: 'A log line 2'
       })
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'process:exception')
@@ -265,6 +270,7 @@ describe('Integration test with websocket transport', _ => {
   describe('ReverseInteractor', _ => {
     it('should send logs', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'trigger:pm2:result')
@@ -301,6 +307,7 @@ describe('Integration test with websocket transport', _ => {
     })
     it('should trigger an action', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'trigger:action:success')
@@ -323,6 +330,7 @@ describe('Integration test with websocket transport', _ => {
     })
     it('should trigger a scoped action', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'trigger:action:success')
@@ -346,6 +354,7 @@ describe('Integration test with websocket transport', _ => {
     })
     it('should trigger pm2 action', (done) => {
       wsClient.on('message', (data) => {
+        if (data === 'heartbeat_in') return
         data = JSON.parse(data)
         if (data.channel === 'status') return
         assert(data.channel === 'trigger:pm2:result')
@@ -363,6 +372,56 @@ describe('Integration test with websocket transport', _ => {
         }
       }
       wsClient.send(JSON.stringify({channel: 'trigger:pm2:action', payload: data}))
+    })
+  })
+  describe('Network', _ => {
+    it('should send heartbeat', function (done) {
+      this.timeout(15000)
+      let _heartBeatCount = 0
+      wsClient.on('message', (data) => {
+        if (data !== 'heartbeat_in') return
+        wsClient.send('heartbeat_out')
+        _heartBeatCount++
+        if (_heartBeatCount === 2) {
+          wsClient.removeAllListeners()
+          done()
+        }
+      })
+    })
+    it('should try to reconnect', function (done) {
+      this.timeout(10000)
+      wsClient.close()
+      assert(wsClient.readyState > 1)
+      setTimeout(_ => {
+        assert(wsClient.readyState === 1)
+        done()
+      }, 2500)
+    })
+    it('should buffer data and send again', function (done) {
+      wsServer.close()
+      setTimeout(_ => {
+        // Send custom event into bus
+        pm2PubEmitter.emit('custom:event', {process: {
+          pm_id: 0,
+          name: 'test',
+          rev: true
+        }})
+      }, 1000)
+      setTimeout(_ => {
+        wsServer = new WebSocket.Server({ port: 3900 })
+        wsServer.on('connection', (ws, req) => {
+          wsClient = ws
+          wsClient.on('message', (data) => {
+            if (data === 'heartbeat_in') return
+            data = JSON.parse(data)
+            if (data.channel === 'status') return
+            assert(data.channel === 'custom:event')
+            assert(data.payload.process.pm_id === 0)
+            assert(data.payload.process.name === 'test')
+            done()
+          })
+        })
+      }, 3000)
     })
   })
   after((done) => {

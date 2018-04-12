@@ -70,6 +70,7 @@ module.exports = class AxonTransport extends Transporter {
       data = Utility.Cipher.cipherMessage(JSON.stringify(data), this.opts.SECRET_KEY)
 
       // Send response
+      if (!this._socket) return false // disconnected before
       this._socket.send('ask:rep', {
         data: data,
         public_key: this.opts.PUBLIC_KEY

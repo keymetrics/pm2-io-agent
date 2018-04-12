@@ -31,7 +31,7 @@ module.exports = class Transporter extends EventEmitter2 {
    * @param {String} reason
    */
   _onClose (code, reason) {
-    log('Close transporter')
+    log('Closed transporter')
     this.disconnect()
     this.emit('close', code, reason)
   }
@@ -43,7 +43,7 @@ module.exports = class Transporter extends EventEmitter2 {
    * @param {Error} err
    */
   _onError (err) {
-    log('Error with transporter')
+    log(`Error with transporter: ${err.message}`)
     // close connection if needed
     this.disconnect()
     this.emit('error', err)
@@ -57,7 +57,7 @@ module.exports = class Transporter extends EventEmitter2 {
     if (this.queue.length === 0) return
     if (!this.isConnected()) return
 
-    console.log('[NETWORK] Emptying queue (size : %d)', this.queue.length)
+    log('Emptying queue (size : %d)', this.queue.length)
 
     // re-send all of the data
     while (this.queue.length > 0) {
@@ -76,12 +76,12 @@ module.exports = class Transporter extends EventEmitter2 {
     dns.lookup('google.com', (err) => {
       if (err && (err.code === 'ENOTFOUND' || err.code === 'EAI_AGAIN')) {
         if (this._online) {
-          log('[NETWORK] Internet is unreachable (DNS)')
+          log('Internet is unreachable (DNS)')
         }
         this._online = false
       } else {
         if (!this._online) {
-          log('[NETWORK] Internet is reachable again')
+          log('Internet is reachable again')
         }
         this._online = true
       }
@@ -97,20 +97,20 @@ module.exports = class Transporter extends EventEmitter2 {
   _reconnect () {
     this._reconnecting = true
 
-    log('[NETWORK] Trying to reconnect to remote endpoint')
+    log('Trying to reconnect to remote endpoint')
     this._checkInternet((online) => {
       if (!online && !cst.PM2_DEBUG) {
-        log('[NETWORK] Retrying in 2 seconds ..')
+        log('Internet down, retry in 2 seconds ..')
         return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 2000)
       }
 
       this.connect((err) => {
         if (err) {
-          log('[NETWORK] Endpoint down in 5 seconds ..')
+          log('Endpoint down, retry in 5 seconds ...')
           return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 5000)
         }
 
-        log('[NETWORK] Connection etablished with remote endpoint')
+        log('Connection etablished with remote endpoint')
         this._reconnecting = false
         this._emptyQueue()
       })

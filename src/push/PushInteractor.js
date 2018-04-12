@@ -23,6 +23,7 @@ module.exports = class PushInteractor {
     this.log_buffer = {}
     this.broadcast_logs = false
 
+    debug('Push interactor constructed')
     this._cacheFS = new Utility.Cache({
       miss: function (key) {
         try {
@@ -47,6 +48,7 @@ module.exports = class PushInteractor {
     if (this._worker_executor !== undefined) {
       this.stop()
     }
+    debug('Push interactor started')
     this._worker()
     this._worker_executor = setInterval(this._worker.bind(this), cst.STATUS_INTERVAL)
     this._ipm2.bus.on('*', this._onPM2Event.bind(this))
@@ -56,6 +58,7 @@ module.exports = class PushInteractor {
    * Stop the interactor by removing all running worker and listeners
    */
   stop () {
+    debug('Push interactor stopped')
     if (this._worker_executor !== undefined) {
       clearInterval(this._worker_executor)
       this._worker_executor = null

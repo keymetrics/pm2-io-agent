@@ -21,6 +21,15 @@ module.exports = class WebsocketTransport extends Transporter {
     this.queue = []
 
     this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
+    this._heartbeater = setInterval(this._heartbeat.bind(this), 5000)
+  }
+
+  /**
+   * Send heartbeat to websocket server (every 1 sec)
+   */
+  _heartbeat () {
+    if (!this.isConnected()) return false
+    return this._ws.send('heartbeat_in')
   }
 
   /**
@@ -58,6 +67,7 @@ module.exports = class WebsocketTransport extends Transporter {
     this._ws.once('open', () => {
       this.endpoint = url
       log(`Connected to ${url}`)
+      if (!this._ws) return false // an error occurred
       this._ws.removeListener('error', onError)
       return cb()
     })
@@ -132,6 +142,7 @@ module.exports = class WebsocketTransport extends Transporter {
    * @param {String} json packet
    */
   _onMessage (data) {
+    if (data === 'heartbeat_out') return
     try {
       data = JSON.parse(data)
     } catch (err) {
