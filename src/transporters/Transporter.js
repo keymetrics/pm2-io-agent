@@ -33,6 +33,7 @@ module.exports = class Transporter extends EventEmitter2 {
   _onClose (code, reason) {
     log('Closed transporter')
     this.disconnect()
+    this._reconnect()
     this.emit('close', code, reason)
   }
 
@@ -46,6 +47,7 @@ module.exports = class Transporter extends EventEmitter2 {
     log(`Error with transporter: ${err.message}`)
     // close connection if needed
     this.disconnect()
+    this._reconnect()
     this.emit('error', err)
   }
 
@@ -95,18 +97,20 @@ module.exports = class Transporter extends EventEmitter2 {
    *  -> try to connect to endpoint (if fail retry in 5 sec)
    */
   _reconnect () {
+    if (this._reconnecting === true) return
     this._reconnecting = true
 
     log('Trying to reconnect to remote endpoint')
     this._checkInternet((online) => {
       if (!online && !cst.PM2_DEBUG) {
         log('Internet down, retry in 2 seconds ..')
+        this._reconnecting = false
         return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 2000)
       }
-
       this.connect((err) => {
-        if (err) {
+        if (err || !this.isConnected()) {
           log('Endpoint down, retry in 5 seconds ...')
+          this._reconnecting = false
           return setTimeout(this._reconnect.bind(this), process.env.NODE_ENV === 'test' ? 1 : 5000)
         }
 

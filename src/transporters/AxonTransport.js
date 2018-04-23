@@ -58,7 +58,6 @@ module.exports = class AxonTransport extends Transporter {
       max: Infinity,
       maxListeners: 50
     })
-
     // Authenticate request on reverse server
     this._socket.data('ask', () => {
       log('Authenticate axon transporter')
@@ -78,18 +77,18 @@ module.exports = class AxonTransport extends Transporter {
       return false
     })
 
+    // Errors / close
+    this._socket.on('close', _ => {})
+    this._socket.on('error', _ => {})
+    this._axon.sock.on('close', _ => {})
+    this._axon.sock.on('error', _ => {})
+
     // Setup listener
     this._socket.data('*', function (data) {
       // Call _onMessage() with event and data as params
       // Apply self to use this as transport
       return self._onMessage.apply(self, [ this, data ]) // eslint-disable-line 
     })
-
-    // Errors / close
-    this._socket.on('close', this._onClose.bind(this))
-    this._socket.on('error', this._onError.bind(this))
-    this._axon.sock.on('close', this._onClose.bind(this))
-    this._axon.sock.on('error', this._onError.bind(this))
 
     // Connect to interaction/reverse server
     async.parallel([
@@ -103,11 +102,11 @@ module.exports = class AxonTransport extends Transporter {
    */
   disconnect () {
     log('Disconnect axon transporter')
-    if (this._socket && this._socket.connected) {
+    if (this._socket) {
       log('Destroy pull socket on axon transporter')
       this._socket.destroy()
     }
-    if (this._axon && this._axon.sock.connected) {
+    if (this._axon) {
       log('Destroy push axon on axon transporter')
       this._axon.close()
     }
@@ -133,8 +132,6 @@ module.exports = class AxonTransport extends Transporter {
       return log('Trying to send message without all necessary fields')
     }
     if (!this.isConnected()) {
-      if (!this._reconnecting) this._reconnect()
-
       // do not buffer status/monitoring packet
       if (channel === 'status' || channel === 'monitoring') return
 
