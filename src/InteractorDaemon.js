@@ -197,6 +197,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.SECRET_KEY = process.env.PM2_SECRET_KEY
     opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
     opts.PM2_VERSION = process.env.PM2_VERSION || '0.0.0'
+    opts.internal_ip = Utility.network.v4
 
     if (!opts.MACHINE_NAME) {
       console.error('You must provide a PM2_MACHINE_NAME environment variable')
