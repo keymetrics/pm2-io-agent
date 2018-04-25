@@ -25,11 +25,11 @@ module.exports = class WebsocketTransport extends Transporter {
   }
 
   /**
-   * Send heartbeat to websocket server (every 1 sec)
+   * Send heartbeat to websocket server (every 5 sec)
    */
   _heartbeat () {
     if (!this.isConnected()) return false
-    return this._ws.send('heartbeat_in')
+    return this._ws.ping()
   }
 
   /**
@@ -75,6 +75,10 @@ module.exports = class WebsocketTransport extends Transporter {
     this._ws.on('close', this._onClose.bind(this))
     this._ws.on('error', this._onError.bind(this))
     this._ws.on('message', this._onMessage.bind(this))
+    this._ws.on('ping', (data) => {
+      this._ws.pong()
+    })
+    this._ws.on('pong', (data) => {})
   }
 
   /**
@@ -142,7 +146,6 @@ module.exports = class WebsocketTransport extends Transporter {
    * @param {String} json packet
    */
   _onMessage (data) {
-    if (data === 'heartbeat_out') return
     try {
       data = JSON.parse(data)
     } catch (err) {
