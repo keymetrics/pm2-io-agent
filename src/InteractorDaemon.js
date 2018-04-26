@@ -11,7 +11,7 @@ const PushInteractor = require('./push/PushInteractor.js')
 const Utility = require('./Utility.js')
 const PM2Client = require('./PM2Client.js')
 const TransporterInterface = require('./TransporterInterface.js')
-const domain = require('domain') // eslint-disable-line 
+const domain = require('domain') // eslint-disable-line
 const WatchDog = require('./WatchDog')
 
 // use noop if not launched via IPC
@@ -181,6 +181,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
 
       log('Connect transport with endpoints')
+      this.DAEMON_ACTIVE = true
       this.km_data = data
       this.transport.connect(data.endpoints, cb)
     })

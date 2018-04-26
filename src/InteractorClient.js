@@ -437,7 +437,7 @@ module.exports = class InteractorDaemonizer {
    */
   static getInteractInfo (cst, cb) {
     log('Getting interaction info')
-    if (process.env.PM2_NO_INTERACTION) return
+    if (process.env.PM2_NO_INTERACTION) return cb(new Error('PM2_NO_INTERACTION set'))
 
     this.ping(cst, (err, online) => {
       if (err || !online) return cb(new Error('Interactor is offline'))
