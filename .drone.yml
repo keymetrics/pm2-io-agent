@@ -30,7 +30,7 @@ pipeline:
       event: push
   slack:
     image: plugins/slack
-    channel: ci 
+    channel: ci
     status: [ success, failure ]
     template: |
       {{#success build.status}}
@@ -54,3 +54,4 @@ matrix:
     - 7
     - 8
     - 9
+    - 10
