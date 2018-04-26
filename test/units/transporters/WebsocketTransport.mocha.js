@@ -395,7 +395,7 @@ describe('WebsocketTransport', () => {
         cb(false) // eslint-disable-line
       }
       transport._reconnect()
-      assert(transport._reconnecting === true)
+      assert(transport._reconnecting === false)
       assert(_checkInternetCalls === 1)
       setTimeout(_ => {
         clearInterval(transport._worker)
@@ -415,6 +415,7 @@ describe('WebsocketTransport', () => {
         connectCount++
         cb()
       }
+      transport.isConnected = _ => true
       transport._emptyQueue = _ => {
         emptyQueue++
       }
@@ -438,7 +439,7 @@ describe('WebsocketTransport', () => {
         cb(new Error('Test'))
       }
       transport._reconnect()
-      assert(transport._reconnecting === true)
+      assert(transport._reconnecting === false)
       assert(_checkInternetCalls === 1)
       assert(_connectCalls === 1)
       setTimeout(_ => {

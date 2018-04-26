@@ -56,6 +56,7 @@ describe('AxonTransport', () => {
           assert(typeof content.data === 'object')
           assert(content.public_key === opts.PUBLIC_KEY)
 
+          transport.disconnect()
           _socket.destroy()
           pull.close()
           push.close()
@@ -171,50 +172,29 @@ describe('AxonTransport', () => {
       done()
     })
     describe('not connected', _ => {
-      it('should call reconnect', (done) => {
-        let transport = new AxonTransport(opts, daemon)
-        let _connectCalls = 0
-        let _reconnectCalls = 0
-        clearInterval(transport._worker)
-        transport.isConnected = _ => {
-          _connectCalls++
-          return false
-        }
-        transport._reconnect = _ => _reconnectCalls++
-        transport.send('channel', 'data')
-        assert(_connectCalls === 1)
-        assert(_reconnectCalls === 1)
-        done()
-      })
       it('should bypass queue for status and monitoring', (done) => {
         let transport = new AxonTransport(opts, daemon)
         let _connectCalls = 0
-        let _reconnectCalls = 0
         clearInterval(transport._worker)
         transport.isConnected = _ => {
           _connectCalls++
           return false
         }
-        transport._reconnect = _ => _reconnectCalls++
         assert(transport.send('status', 'data') === undefined)
         assert(_connectCalls === 1)
-        assert(_reconnectCalls === 1)
         assert(transport.queue.length === 0)
         done()
       })
       it('should add to queue', (done) => {
         let transport = new AxonTransport(opts, daemon)
         let _connectCalls = 0
-        let _reconnectCalls = 0
         clearInterval(transport._worker)
         transport.isConnected = _ => {
           _connectCalls++
           return false
         }
-        transport._reconnect = _ => _reconnectCalls++
         assert(transport.send('channel', 'data') === 1)
         assert(_connectCalls === 1)
-        assert(_reconnectCalls === 1)
         assert(transport.queue.length === 1)
         assert(transport.queue[0].channel === 'channel')
         assert(transport.queue[0].data === 'data')
@@ -313,6 +293,7 @@ describe('AxonTransport', () => {
         socket.destroy()
         pull.close()
         push.close()
+        transport.disconnect()
         done()
       }
 
@@ -511,7 +492,7 @@ describe('AxonTransport', () => {
         cb(false) // eslint-disable-line
       }
       axon._reconnect()
-      assert(axon._reconnecting === true)
+      assert(axon._reconnecting === false)
       assert(_checkInternetCalls === 1)
       setTimeout(_ => {
         clearInterval(axon._worker)
@@ -534,6 +515,7 @@ describe('AxonTransport', () => {
       axon._emptyQueue = _ => {
         emptyQueue++
       }
+      axon.isConnected = _ => true
       axon._reconnect()
       assert(connectCount === 1, 'connect called')
       assert(emptyQueue === 1, 'empty queue called')
@@ -554,7 +536,7 @@ describe('AxonTransport', () => {
         cb(new Error('Test'))
       }
       axon._reconnect()
-      assert(axon._reconnecting === true)
+      assert(axon._reconnecting === false)
       assert(_checkInternetCalls === 1)
       assert(_connectCalls === 1)
       setTimeout(_ => {

@@ -376,6 +376,7 @@ describe('Integration test with websocket transport', _ => {
       }, 2500)
     })
     it('should buffer data and send again', function (done) {
+      this.timeout(10000)
       wsServer.close()
       setTimeout(_ => {
         // Send custom event into bus
@@ -387,6 +388,8 @@ describe('Integration test with websocket transport', _ => {
       }, 1000)
       setTimeout(_ => {
         wsServer = new WebSocket.Server({ port: 3900 })
+        wsServer.on('error', console.error)
+        wsServer.on('listen', _ => console.log('=== WEBSOCKET SERVER BINDED ==='))
         wsServer.on('connection', (ws, req) => {
           wsClient = ws
           wsClient.on('message', (data) => {
