@@ -202,7 +202,7 @@ describe('Integration test with axon transport', _ => {
         assert(data.name === 'test')
         assert(data.server_name === 'test')
         assert(typeof file === 'string')
-        assert(file === Buffer.from('heapdump_content').toString('base64'))
+        assert(file === 'heapdump_content')
         sub.removeAllListeners()
         done()
       })

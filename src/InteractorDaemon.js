@@ -103,8 +103,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
             machine_name: self.opts.MACHINE_NAME,
             public_key: self.opts.PUBLIC_KEY,
             secret_key: self.opts.SECRET_KEY,
-            remote_host: self.transport._host,
+            remote_host: self.km_data.endpoints.web,
             connected: self.transport.isConnected(),
+            transporters: self.transport.getActiveTransporters(),
             socket_path: cst.INTERACTOR_RPC_PORT,
             pm2_home_monitored: cst.PM2_HOME
           })

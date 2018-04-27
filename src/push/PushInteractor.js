@@ -170,7 +170,7 @@ module.exports = class PushInteractor {
     fs.readFile(filePath, (err, data) => {
       if (err) return debug(err)
       fs.unlink(filePath, debug)
-      packet.data = data
+      packet.data = data.toString('utf-8')
       return this.transport.send('profiling', packet)
     })
   }

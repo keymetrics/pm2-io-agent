@@ -143,4 +143,29 @@ module.exports = class TransporterInterface extends EventEmitter2 {
     }
     return params
   }
+
+  /**
+   * Is at least one transporter connected
+   * @return {Boolean}
+   */
+  isConnected () {
+    for (let transporter of this.transporters.values()) {
+      if (transporter.isConnected()) return true
+    }
+    return false
+  }
+
+  /**
+   * Get active transporters that are pushing data
+   * @return {String[]}
+   */
+  getActiveTransporters () {
+    let connected = []
+    for (let entry of this.transporters) {
+      if (entry.transporter.isConnected()) {
+        connected.push(entry.name)
+      }
+    }
+    return connected
+  }
 }

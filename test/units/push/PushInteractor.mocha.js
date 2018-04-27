@@ -368,9 +368,8 @@ describe('PushInteractor', () => {
     it('should fail at read', (done) => {
       let fsMock = new ModuleMocker('fs')
       fsMock.mock({
-        readFile: (path, type, cb) => {
+        readFile: (path, cb) => {
           assert(path === 'file.txt')
-          assert(type === 'base64')
           cb(new Error('Test'))
           setTimeout(done, 10)
         }
@@ -394,9 +393,8 @@ describe('PushInteractor', () => {
       let _unlinkCalled = false
       let fsMock = new ModuleMocker('fs')
       fsMock.mock({
-        readFile: (path, type, cb) => {
+        readFile: (path, cb) => {
           assert(path === 'file.txt')
-          assert(type === 'base64')
           _readCalled = true
           cb(null, 'content')
         },

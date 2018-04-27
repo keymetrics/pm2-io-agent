@@ -185,7 +185,7 @@ describe('Integration test with websocket transport', _ => {
         assert(data.payload.server_name === 'test')
         let file = data.payload.data
         assert(typeof file === 'string')
-        assert(file === Buffer.from('heapdump_content').toString('base64'))
+        assert(file === 'heapdump_content')
         wsClient.removeAllListeners()
         done()
       })
