@@ -31,7 +31,7 @@ module.exports = {
     },
     websocket: {
       enabled: useIfDefined(process.env.AGENT_TRANSPORT_WEBSOCKET, false),
-      endpoints: process.env.AGENT_WEBSOCKET_ENDPOINT || 'websocket'
+      endpoints: process.env.AGENT_WEBSOCKET_ENDPOINT || 'ws'
     }
   }
 }
