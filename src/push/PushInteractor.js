@@ -167,7 +167,7 @@ module.exports = class PushInteractor {
     }
     packet[type] = true
 
-    fs.readFile(filePath, 'base64', (err, data) => {
+    fs.readFile(filePath, (err, data) => {
       if (err) return debug(err)
       fs.unlink(filePath, debug)
       packet.data = data
