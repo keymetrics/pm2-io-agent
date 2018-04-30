@@ -24,7 +24,7 @@ describe('PushInteractor', () => {
       assert(push.transport === 'transport')
       assert(push.opts === 'opts')
       assert(typeof push.log_buffer === 'object')
-      assert(push.broadcast_logs === false)
+      assert(push.broadcast_logs instanceof Map)
       assert(push._cacheFS instanceof Utility.Cache)
       assert(push._stackParser instanceof Utility.StackTraceParser)
       done()
@@ -288,7 +288,7 @@ describe('PushInteractor', () => {
         }
       })
     })
-    it('should set event name and event_type with log', (done) => {
+    it('should set event name and event_type with log (realtime)', (done) => {
       push = new PushInteractor({
         MACHINE_NAME: 'machine_name'
       }, {bus: {on: _ => {}}}, {
@@ -305,6 +305,34 @@ describe('PushInteractor', () => {
         }
       })
       global._logs = true
+      push._onPM2Event('log:stream', {
+        process: {
+          pm_id: 'process_id',
+          name: 'process_name',
+          rev: true
+        },
+        data: {
+          custom_data: 'custom'
+        }
+      })
+    })
+    it('should set event name and event_type with log (log-storage)', (done) => {
+      push = new PushInteractor({
+        MACHINE_NAME: 'machine_name'
+      }, {bus: {on: _ => {}}}, {
+        send: (event, packet) => {
+          assert(event === 'logs')
+          assert(packet.log_type === 'stream')
+          assert(packet.process.pm_id === 'process_id')
+          assert(packet.process.name === 'process_name')
+          assert(packet.process.server === 'machine_name')
+          assert(packet.process.rev === true)
+          assert(packet.data.custom_data === 'custom')
+          push.broadcast_logs.set('process_name', false)
+          done()
+        }
+      })
+      push.broadcast_logs.set('process_name', true)
       push._onPM2Event('log:stream', {
         process: {
           pm_id: 'process_id',
@@ -334,7 +362,7 @@ describe('PushInteractor', () => {
       let DataRetrieverMock = new ModuleMocker(path.resolve(__dirname, '../../../src/push/DataRetriever'))
       DataRetrieverMock.mock({
         status: (processes, opts) => {
-          assert(processes === 'processes')
+          assert(processes[0].name === 'name')
           assert(opts.MACHINE_NAME === 'server_name')
           assert(opts.internal_ip === 'internal_ip')
           return 'data-retriever'
@@ -346,7 +374,7 @@ describe('PushInteractor', () => {
       }, {
         rpc: {
           getMonitorData: (data, cb) => {
-            cb(null, 'processes')
+            cb(null, [{pm2_env: {}, name: 'name'}])
           }
         },
         bus: {on: _ => {}}

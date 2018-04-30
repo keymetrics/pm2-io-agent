@@ -5,6 +5,8 @@
 process.env.NODE_ENV = 'test'
 
 process.env.PM2_SILENT = true
+process.env.AGENT_TRANSPORT_AXON = false
+process.env.AGENT_TRANSPORT_WEBSOCKET = true
 
 const PM2_MACHINE_NAME = 'test'
 const PM2_PUBLIC_KEY = 'g94c9opeq5i4f6j'
@@ -32,16 +34,10 @@ let pm2Rpc = null
 let httpServer = null
 let wsServer = null
 let wsClient = null
-let configJS = null
-const configJSPath = path.join(__dirname, '../../config.js')
-const configWebsocketPath = path.join(__dirname, '../misc/config.websocket.js')
 let msgProcessData = {}
 
 describe('Integration test with websocket transport', _ => {
   before(done => {
-    // Config
-    configJS = fs.readFileSync(configJSPath)
-    fs.writeFileSync(configJSPath, fs.readFileSync(configWebsocketPath))
     // Start pm2
     pm2PubEmitter.bind(cst.DAEMON_PUB_PORT)
     pm2Rep.bind(cst.DAEMON_RPC_PORT)
@@ -68,7 +64,7 @@ describe('Integration test with websocket transport', _ => {
       res.setHeader('Content-Type', 'application/json')
       res.write(JSON.stringify({
         endpoints: {
-          websocket: 'http://localhost:3900'
+          ws: 'http://localhost:3900'
         },
         active: true,
         pending: false,
@@ -413,7 +409,5 @@ describe('Integration test with websocket transport', _ => {
     // Stop pm2
     pm2PubEmitter.close()
     pm2Rpc.sock.close()
-    // Set config
-    fs.writeFileSync(configJSPath, configJS)
   })
 })
