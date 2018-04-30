@@ -21,7 +21,7 @@ module.exports = class PushInteractor {
     this.transport = transport
     this.opts = opts
     this.log_buffer = {}
-    this.broadcast_logs = false
+    this.broadcast_logs = new Map() // key is process name, value is true or false
 
     debug('Push interactor constructed')
     this._cacheFS = new Utility.Cache({
@@ -96,7 +96,7 @@ module.exports = class PushInteractor {
       this.log_buffer[packet.process.name].push(packet.data)
 
       // don't send logs if not enabled
-      if (!global._logs) return false
+      if (!global._logs && !this.broadcast_logs.get(packet.process.name)) return false
     }
 
     // attach additional info for exception
@@ -141,6 +141,11 @@ module.exports = class PushInteractor {
       if (err) {
         return debug(err || 'Cant access to getMonitorData RPC PM2 method')
       }
+      // set broadcast logs
+      processes.forEach((process) => {
+        this.broadcast_logs.set(process.name, process.pm2_env.broadcast_logs == 1 || process.pm2_env.broadcast_logs == 'true') // eslint-disable-line
+      })
+      // send data
       this.transport.send('status', {
         data: DataRetriever.status(processes, this.opts),
         server_name: this.opts.MACHINE_NAME,

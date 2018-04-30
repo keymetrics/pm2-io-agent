@@ -5,6 +5,8 @@
 process.env.NODE_ENV = 'test'
 
 process.env.PM2_SILENT = true
+process.env.AGENT_TRANSPORT_AXON = true
+process.env.AGENT_TRANSPORT_WEBSOCKET = false
 
 const PM2_MACHINE_NAME = 'test'
 const PM2_PUBLIC_KEY = 'g94c9opeq5i4f6j'
@@ -34,16 +36,10 @@ let pm2Rpc = null
 let reverseServer = null
 let reverseServerSocket = null
 let httpServer = null
-let configJS = null
-const configJSPath = path.join(__dirname, '../../config.js')
-const configAxonPath = path.join(__dirname, '../misc/config.axon.js')
 let msgProcessData = {}
 
 describe('Integration test with axon transport', _ => {
   before(done => {
-    // Config
-    configJS = fs.readFileSync(configJSPath)
-    fs.writeFileSync(configJSPath, fs.readFileSync(configAxonPath))
     // Start pm2
     pm2PubEmitter.bind(cst.DAEMON_PUB_PORT)
     pm2Rep.bind(cst.DAEMON_RPC_PORT)
@@ -388,7 +384,5 @@ describe('Integration test with axon transport', _ => {
     // Stop pm2
     pm2PubEmitter.close()
     pm2Rpc.sock.close()
-    // Set config
-    fs.writeFileSync(configJSPath, configJS)
   })
 })
