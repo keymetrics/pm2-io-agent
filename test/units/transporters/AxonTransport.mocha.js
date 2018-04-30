@@ -122,32 +122,32 @@ describe('AxonTransport', () => {
     it('should return true with nssocket and axon connected', (done) => {
       let axon = new AxonTransport(opts, daemon)
       clearInterval(axon._worker)
-      axon._socket = {connected: true}
-      axon._axon = {sock: {connected: true}}
+      axon._socket = {connected: true, retry: {waiting: false}}
+      axon._axon = {sock: {connected: true, socks: [{bufferSize: 0}]}}
       assert(axon.isConnected() === true)
       done()
     })
     it('should return false with nssocket not connected and axon connected', (done) => {
       let axon = new AxonTransport(opts, daemon)
       clearInterval(axon._worker)
-      axon._socket = {connected: false}
-      axon._axon = {sock: {connected: true}}
+      axon._socket = {connected: false, retry: {waiting: true}}
+      axon._axon = {sock: {connected: true, socks: [{bufferSize: 0}]}}
       assert(axon.isConnected() === false)
       done()
     })
     it('should return false with nssocket connected and axon not connected', (done) => {
       let axon = new AxonTransport(opts, daemon)
       clearInterval(axon._worker)
-      axon._socket = {connected: true}
-      axon._axon = {sock: {connected: false}}
+      axon._socket = {connected: true, retry: {waiting: false}}
+      axon._axon = {sock: {connected: false, socks: [{bufferSize: 0}]}}
       assert(axon.isConnected() === false)
       done()
     })
     it('should return false with nssocket not connected and axon not connected', (done) => {
       let axon = new AxonTransport(opts, daemon)
       clearInterval(axon._worker)
-      axon._socket = {connected: false}
-      axon._axon = {sock: {connected: false}}
+      axon._socket = {connected: false, retry: {waiting: true}}
+      axon._axon = {sock: {connected: false, socks: [{bufferSize: 0}]}}
       assert(axon.isConnected() === false)
       done()
     })

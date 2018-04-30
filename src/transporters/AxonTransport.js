@@ -119,7 +119,8 @@ module.exports = class AxonTransport extends Transporter {
    * @return {Boolean}
    */
   isConnected () {
-    return this._socket && this._socket.connected && this._axon && this._axon.sock.connected // !this._socket.retry.waiting
+    return this._socket && this._socket.connected && !this._socket.retry.waiting &&
+           this._axon && this._axon.sock.connected && this._axon.sock.socks[0].bufferSize < 290000
   }
 
   /**
