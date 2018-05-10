@@ -13,6 +13,7 @@ const PM2Client = require('./PM2Client.js')
 const TransporterInterface = require('./TransporterInterface.js')
 const domain = require('domain') // eslint-disable-line
 const WatchDog = require('./WatchDog')
+const InteractorClient = require('./InteractorClient')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -276,12 +277,37 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // otherwise we just required it to use a function
 if (require.main === module) {
   const d = domain.create()
+
   d.on('error', function (err) {
-    console.error(err)
+    console.error('-- FATAL EXCEPTION happened --')
+    console.error(new Date())
+    console.error(err.stack)
+    console.log('Re-initiating Agent')
+
+    InteractorClient.getOrSetConf(cst, null, (err, infos) => {
+      if (err || !infos) {
+        if (err) {
+          console.error('[PM2 Agent] Failed to rescue agent :')
+          console.error(err || new Error(`Cannot find configuration to connect to backend`))
+          return process.exit(1)
+        }
+      }
+      console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
+      InteractorClient.daemonize(cst, infos, (err) => {
+        if (err) {
+          console.error('[PM2 Agent] Failed to rescue agent :')
+          console.error(err)
+          return process.exit(1)
+        }
+        console.log(`Succesfully launched new agent`)
+        process.exit(0)
+      })
+    })
   })
   d.run(_ => {
-    process.title = 'PM2: KM Agent (' + process.env.PM2_HOME + ')'
-    log('[Keymetrics.io] Launching agent')
+    process.title = 'PM2 Agent (' + process.env.PM2_HOME + ')'
+
+    console.log('[PM2 Agent] Launching agent')
     new InteractorDaemon().start()
   })
 }

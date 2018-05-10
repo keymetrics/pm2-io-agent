@@ -1,2 +1,2 @@
 
-module.exports = require('./src/InteractorClient.js');
+module.exports = require('./src/InteractorClient.js')

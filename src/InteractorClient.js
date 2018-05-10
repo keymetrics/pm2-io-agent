@@ -8,7 +8,7 @@ const axon = require('pm2-axon')
 const chalk = require('chalk')
 const os = require('os')
 const constants = require('../constants')
-const child_process = require('child_process')
+const childProcess = require('child_process')
 
 const printError = (msg) => {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
@@ -174,7 +174,7 @@ module.exports = class InteractorDaemonizer {
     const out = testEnv ? 1 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
     const err = testEnv ? 2 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
 
-    const child = child_process.spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
+    const child = childProcess.spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
       silent: false,
       detached: true,
       cwd: process.cwd(),
@@ -220,31 +220,31 @@ module.exports = class InteractorDaemonizer {
       // Handle and show to user the different error message that can happen
       if (msg.error === true) {
         if (!process.env.PM2_SILENT) {
-          console.log(chalk.red('[Keymetrics.io][ERROR]'), msg.msg)
-          console.log(chalk.cyan('[Keymetrics.io]') + ' Contact support contact@keymetrics.io and send us the error message')
+          console.log(chalk.red('[PM2.IO][ERROR]'), msg.msg)
+          console.log(chalk.cyan('[PM2.IO]') + ' Contact support contact@keymetrics.io and send us the error message')
         }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.disabled === true) {
         if (!process.env.PM2_SILENT) {
-          console.log(chalk.cyan('[Keymetrics.io]') + ' Server DISABLED BY ADMINISTRATION contact support contact@keymetrics.io with reference to your public and secret keys)')
+          console.log(chalk.cyan('[PM2.IO]') + ' Server DISABLED BY ADMINISTRATION contact support contact@keymetrics.io with reference to your public and secret keys)')
         }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.error === true) {
         if (!process.env.PM2_SILENT) {
-          console.log('%s %s (Public: %s) (Secret: %s) (Machine name: %s)', chalk.red('[Keymetrics.io][ERROR]'),
+          console.log('%s %s (Public: %s) (Secret: %s) (Machine name: %s)', chalk.red('[PM2.IO][ERROR]'),
             msg.km_data.msg, msg.public_key, msg.secret_key, msg.machine_name)
         }
         return cb(msg)
       } else if (msg.km_data && msg.km_data.active === false && msg.km_data.pending === true) {
         if (!process.env.PM2_SILENT) {
-          console.log('%s %s - Web Access: https://app.keymetrics.io/', chalk.red('[Keymetrics.io]'), chalk.bold.red('Agent PENDING'))
-          console.log('%s You must upgrade your bucket in order to monitor more servers.', chalk.red('[Keymetrics.io]'))
+          console.log('%s %s - Web Access: https://app.keymetrics.io/', chalk.red('[PM2.IO]'), chalk.bold.red('Agent PENDING'))
+          console.log('%s You must upgrade your bucket in order to monitor more servers.', chalk.red('[PM2.IO]'))
         }
         return cb(msg)
       }
 
       if (msg.km_data && msg.km_data.active === true && !process.env.PM2_SILENT) {
-        console.log('%s [%s] Agent ACTIVE - Web Access: https://app.keymetrics.io/', chalk.cyan('[Keymetrics.io]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
+        console.log('%s [%s] Agent ACTIVE - Web Access: https://app.keymetrics.io/', chalk.cyan('[PM2.IO]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
       }
       return cb(null, msg, child)
     })
@@ -424,7 +424,7 @@ module.exports = class InteractorDaemonizer {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
       if (!process.env.PM2_SILENT) {
-        console.log(chalk.cyan('[Keymetrics.io]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
+        console.log(chalk.cyan('[PM2.IO]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
       }
       return this.launchOrAttach(cst, conf, cb)
     })
