@@ -87,7 +87,7 @@ module.exports = class AxonTransport extends Transporter {
     this._socket.data('*', function (data) {
       // Call _onMessage() with event and data as params
       // Apply self to use this as transport
-      return self._onMessage.apply(self, [ this, data ]) // eslint-disable-line 
+      return self._onMessage.apply(self, [ this, data ]) // eslint-disable-line
     })
 
     // Connect to interaction/reverse server
@@ -120,7 +120,7 @@ module.exports = class AxonTransport extends Transporter {
    */
   isConnected () {
     return this._socket && this._socket.connected && !this._socket.retry.waiting &&
-           this._axon && this._axon.sock.connected && this._axon.sock.socks[0].bufferSize < 290000
+      this._axon && this._axon.sock.connected && this._axon.sock.socks && this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
   }
 
   /**
