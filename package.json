@@ -1,7 +1,7 @@
 {
-  "name": "keymetrics-agent",
+  "name": "@pm2/agent",
   "version": "0.4.1",
-  "description": "Keymetrics Agent Daemon",
+  "description": "PM2.io Agent Daemon",
   "main": "index.js",
   "directories": {
     "test": "test"
