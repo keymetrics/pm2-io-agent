@@ -1,6 +1,6 @@
-# Keymetrics agent
+# pm2-io-agent
 
-This module is used in [PM2](https://github.com/Unitech/pm2) to communicate with [Keymetrics](https://keymetrics.io)'s servers.
+This module is used by [PM2](https://github.com/Unitech/pm2) to communicate with [PM2.io](https://pm2.io/plus)'s servers.
 
 ## Transporters
 
@@ -19,7 +19,7 @@ To launch using daemon you need to run :
 `node src/InteractorDaemon.js`
 
 
-Before, you need to set this environements' vars
+Before, you need to set these environment vars
 
 | Key              | Value                                     |
 |------------------|-------------------------------------------|
@@ -91,5 +91,5 @@ git push origin vX.X.X
 
 To finish update the changelog of the release on github with `gren` (be sure that gren has selected the right tags):
 ```
-gren release -o -D commits
+gren release -o -D commits -u keymetrics -r pm2-io-agent
 ```
