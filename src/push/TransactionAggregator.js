@@ -561,6 +561,7 @@ module.exports = class TransactionAggregator {
               name: span.name,
               labels: span.labels,
               kind: span.kind,
+              startTime: span.startTime,
               min: span.histogram.getMin(),
               max: span.histogram.getMax(),
               median: span.histogram.percentiles([0.5])[0.5]
