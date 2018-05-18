@@ -1,7 +1,7 @@
 
 'use strict'
 
-const debug = require('debug')('interactor:push-interactor')
+const debug = require('debug')('interactor:push')
 const fs = require('fs')
 const path = require('path')
 const cst = require('../../constants.js')
