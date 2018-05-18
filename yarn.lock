@@ -489,12 +489,6 @@ debug-log@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/debug-log/-/debug-log-1.0.1.tgz#2307632d4c04382b8df8a32f70b895046d52745f"
 
-debug@*, debug@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
-  dependencies:
-    ms "2.0.0"
-
 debug@2.6.8:
   version "2.6.8"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.8.tgz#e731531ca2ede27d188222427da17821d68ff4fc"
@@ -507,11 +501,11 @@ debug@^2.2.0, debug@^2.3.3, debug@^2.6.8:
   dependencies:
     ms "2.0.0"
 
-debug@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
+debug@^3.0, debug@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   dependencies:
-    ms "0.7.1"
+    ms "2.0.0"
 
 decamelize@^1.0.0, decamelize@^1.1.1:
   version "1.2.0"
@@ -681,10 +675,6 @@ extsprintf@1.3.0:
 extsprintf@^1.2.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
-
-fclone@1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/fclone/-/fclone-1.0.8.tgz#a0d4a73d983249978c0e0671a161520b996467eb"
 
 fclone@^1.0.11:
   version "1.0.11"
@@ -1479,10 +1469,6 @@ moment@^2.21.0:
   version "2.21.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.21.0.tgz#2a114b51d2a6ec9e6d83cf803f838a878d8a023a"
 
-ms@0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.1.tgz#9cd13c03adbff25b65effde7ce864ee952017098"
-
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -1739,20 +1725,19 @@ pkg-dir@^1.0.0:
   dependencies:
     find-up "^1.0.0"
 
-pm2-axon-rpc@0.4.5:
-  version "0.4.5"
-  resolved "https://registry.yarnpkg.com/pm2-axon-rpc/-/pm2-axon-rpc-0.4.5.tgz#fb62e9a53f3e2b7bed1afe16e3b0d1b06fe8ba69"
+pm2-axon-rpc@^0.5.0:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/pm2-axon-rpc/-/pm2-axon-rpc-0.5.1.tgz#ad3c43c43811c71f13e5eee2821194d03ceb03fe"
   dependencies:
-    debug "*"
-    fclone "1.0.8"
+    debug "^3.0"
 
-pm2-axon@3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/pm2-axon/-/pm2-axon-3.0.2.tgz#53de1d34edbf266d58f6b1dea2d8244c71ad24b9"
+pm2-axon@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/pm2-axon/-/pm2-axon-3.2.0.tgz#570262c1607f22a1d42b080a725029f977d6cdc3"
   dependencies:
     amp "~0.3.1"
     amp-message "~0.1.1"
-    debug "~2.2.0"
+    debug "^3.0"
     escape-regexp "0.0.1"
 
 posix-character-classes@^0.1.0:

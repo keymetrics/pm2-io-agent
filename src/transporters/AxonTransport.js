@@ -49,13 +49,12 @@ module.exports = class AxonTransport extends Transporter {
     let pushPort = pushUrl.port
 
     this._axon = axon.socket('pub-emitter')
+    this._axon.sock.set('retry timeout', 0)
 
     // Create connection to reverse interaction server
     this._socket = new nssocket.NsSocket({
       type: 'tcp4',
-      reconnect: true,
-      retryInterval: 2000,
-      max: Infinity,
+      reconnect: false,
       maxListeners: 50
     })
     // Authenticate request on reverse server
@@ -78,10 +77,10 @@ module.exports = class AxonTransport extends Transporter {
     })
 
     // Errors / close
-    this._socket.on('close', _ => {})
-    this._socket.on('error', _ => {})
-    this._axon.sock.on('close', _ => {})
-    this._axon.sock.on('error', _ => {})
+    this._socket.on('close', this._onClose.bind(this))
+    this._socket.on('error', this._onError.bind(this))
+    this._axon.sock.on('close', this._onClose.bind(this))
+    this._axon.sock.on('error', this._onError.bind(this))
 
     // Setup listener
     this._socket.data('*', function (data) {
@@ -119,8 +118,10 @@ module.exports = class AxonTransport extends Transporter {
    * @return {Boolean}
    */
   isConnected () {
-    return this._socket && this._socket.connected && !this._socket.retry.waiting &&
-      this._axon && this._axon.sock.connected && this._axon.sock.socks && this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
+    const isNsSocketConnected = this._socket && this._socket.connected
+    const isAxonConnected = this._axon && this._axon.sock.connected && this._axon.sock.socks &&
+      this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
+    return isNsSocketConnected && isAxonConnected
   }
 
   /**
