@@ -1,7 +1,7 @@
 
 'use strict'
 
-const debug = require('debug')('reverse:interactor')
+const debug = require('debug')('interactor:reverse')
 
 const PM2_REMOTE_METHOD_ALLOWED = [
   'restart',
