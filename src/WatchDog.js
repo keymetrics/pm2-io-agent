@@ -1,6 +1,6 @@
 'use strict'
 
-const debug = require('debug')('interface:watchdog')
+const debug = require('debug')('interactor:watchdog')
 const child = require('child_process')
 const path = require('path')
 

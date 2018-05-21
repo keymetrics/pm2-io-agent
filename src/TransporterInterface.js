@@ -36,7 +36,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
   bind (name, opts) {
     if (!opts) opts = {}
     if (!this.config[name] || !this.config[name].enabled) return this
-    log('>>>> Bind [%s] transport to transporter interface', name)
+    log('Bind [%s] transport to transporter interface', name)
     let Transport = this._loadTransporter(name)
     this.transporters.set(name, new Transport(Object.assign(opts, this.opts), this.daemon))
     this.transportersEndpoints.set(name, this.config[name].endpoints || {})

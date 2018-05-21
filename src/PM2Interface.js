@@ -1,6 +1,6 @@
 'use strict'
 
-const log = require('debug')('pm2:interface')
+const log = require('debug')('interactor:pm2:interface')
 const path = require('path')
 const async = require('async')
 const fs = require('fs')

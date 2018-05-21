@@ -1,7 +1,7 @@
 'use strict'
 
 const cst = require('../../constants.js')
-const log = require('debug')('pm2:aggregator')
+const log = require('debug')('interactor:aggregator')
 const Utility = require('../Utility.js')
 const fclone = require('fclone')
 const Histogram = require('../utils/probes/Histogram')

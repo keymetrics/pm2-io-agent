@@ -25,11 +25,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   constructor () {
     this.opts = this.retrieveConf()
 
-    console.log(`Machine name=${this.opts.MACHINE_NAME}`)
-    console.log(`Bucket public id=${this.opts.PUBLIC_KEY}`)
-    console.log(`Websocket=${process.env.AGENT_TRANSPORT_WEBSOCKET}`)
-    console.log(`Axon=${process.env.AGENT_TRANSPORT_AXON}`)
-    console.log(`Info Node=${cst.KEYMETRICS_ROOT_URL}`)
+    log(`MACHINE_NAME=${this.opts.MACHINE_NAME}`)
+    log(`PUBLIC_KEY=${this.opts.PUBLIC_KEY}`)
+    log(`WEBSOCKET_ENABLED=${process.env.AGENT_TRANSPORT_WEBSOCKET}`)
+    log(`AXON_ENABLED=${process.env.AGENT_TRANSPORT_AXON}`)
+    log(`ROOT_URL=${cst.KEYMETRICS_ROOT_URL}`)
 
     this.DAEMON_ACTIVE = false
     this.transport = new TransporterInterface(this.opts, this)
