@@ -3,7 +3,7 @@
 const axon = require('pm2-axon')
 const cst = require('../constants.js')
 const rpc = require('pm2-axon-rpc')
-const log = require('debug')('pm2:client')
+const log = require('debug')('interactor:pm2:client')
 const EventEmitter = require('events').EventEmitter
 const PM2Interface = require('./PM2Interface')
 
