@@ -24,6 +24,13 @@ global._logs = false
 const InteractorDaemon = module.exports = class InteractorDaemon {
   constructor () {
     this.opts = this.retrieveConf()
+
+    console.log(`Machine name=${this.opts.MACHINE_NAME}`)
+    console.log(`Bucket public id=${this.opts.PUBLIC_KEY}`)
+    console.log(`Websocket=${process.env.AGENT_TRANSPORT_WEBSOCKET}`)
+    console.log(`Axon=${process.env.AGENT_TRANSPORT_AXON}`)
+    console.log(`Info Node=${cst.KEYMETRICS_ROOT_URL}`)
+
     this.DAEMON_ACTIVE = false
     this.transport = new TransporterInterface(this.opts, this)
       .bind('axon')
@@ -200,6 +207,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.SECRET_KEY = process.env.PM2_SECRET_KEY
     opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
     opts.PM2_VERSION = process.env.PM2_VERSION || '0.0.0'
+    opts.AGENT_TRANSPORT_AXON = process.env.AGENT_TRANSPORT_AXON
+    opts.AGENT_TRANSPORT_WEBSOCKET = process.env.AGENT_TRANSPORT_WEBSOCKET
     opts.internal_ip = Utility.network.v4
 
     if (!opts.MACHINE_NAME) {

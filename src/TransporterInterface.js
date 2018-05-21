@@ -2,7 +2,7 @@
 
 const EventEmitter2 = require('eventemitter2').EventEmitter2
 const async = require('async')
-const log = require('debug')('transporter:interface')
+const log = require('debug')('interactor:interface')
 const path = require('path')
 const config = require(path.join(__dirname, '../config')).transporters
 
@@ -36,7 +36,7 @@ module.exports = class TransporterInterface extends EventEmitter2 {
   bind (name, opts) {
     if (!opts) opts = {}
     if (!this.config[name] || !this.config[name].enabled) return this
-    log('Bind %s transport to transporter interface', name)
+    log('>>>> Bind [%s] transport to transporter interface', name)
     let Transport = this._loadTransporter(name)
     this.transporters.set(name, new Transport(Object.assign(opts, this.opts), this.daemon))
     this.transportersEndpoints.set(name, this.config[name].endpoints || {})
@@ -85,7 +85,6 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * Send to each transporters
    */
   send (channel, data) {
-    log('Send data to transporters')
     this.transporters.forEach(transporter => {
       transporter.send(channel, data)
     })

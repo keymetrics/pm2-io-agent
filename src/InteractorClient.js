@@ -165,7 +165,7 @@ module.exports = class InteractorDaemonizer {
    * @param {String} infos.machine_name [optional] override name of the machine
    * @param {Function} cb invoked with <err, msg, process>
    */
-  static daemonize (conf, infos, cb) {
+  static daemonize (cst, conf, cb) {
     const InteractorJS = path.resolve(path.dirname(module.filename), 'InteractorDaemon.js')
 
     // Redirect PM2 internal err and out
@@ -179,19 +179,21 @@ module.exports = class InteractorDaemonizer {
       detached: true,
       cwd: process.cwd(),
       env: Object.assign({
-        PM2_HOME: conf.PM2_HOME,
-        PM2_MACHINE_NAME: infos.machine_name,
-        PM2_SECRET_KEY: infos.secret_key,
-        PM2_PUBLIC_KEY: infos.public_key,
-        PM2_REVERSE_INTERACT: infos.reverse_interact,
-        KEYMETRICS_NODE: infos.info_node,
-        PM2_VERSION: infos.pm2_version,
+        PM2_HOME: cst.PM2_HOME,
+        PM2_MACHINE_NAME: conf.machine_name,
+        PM2_SECRET_KEY: conf.secret_key,
+        PM2_PUBLIC_KEY: conf.public_key,
+        PM2_REVERSE_INTERACT: conf.reverse_interact,
+        KEYMETRICS_NODE: conf.info_node,
+        AGENT_TRANSPORT_AXON: conf.agent_transport_axon,
+        AGENT_TRANSPORT_WEBSOCKET: conf.agent_transport_websocket,
+        PM2_VERSION: conf.pm2_version,
         DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket'
       }, process.env),
       stdio: ['ipc', out, err]
     })
 
-    fs.writeFileSync(conf.INTERACTOR_PID_PATH, child.pid)
+    fs.writeFileSync(cst.INTERACTOR_PID_PATH, child.pid)
 
     child.on('close', (status) => {
       if (status === constants.ERROR_EXIT) {
@@ -342,8 +344,10 @@ module.exports = class InteractorDaemonizer {
     configuration.reverse_interact = confFS.reverse_interact || true
     // is setup empty ? use the one provided in env OR root OTHERWISE get the one on FS conf OR fallback on root
     configuration.info_node = process.env.KEYMETRICS_NODE || infos.info_node || confFS.info_node || cst.KEYMETRICS_ROOT_URL
-    if (!configuration.secret_key) return cb(new Error('secret key is not defined'))
+    configuration.agent_transport_websocket = process.env.AGENT_TRANSPORT_WEBSOCKET || infos.agent_transport_websocket || confFS.agent_transport_websocket || 'false'
+    configuration.agent_transport_axon = process.env.AGENT_TRANSPORT_AXON || infos.agent_transport_axon || confFS.agent_transport_axon || 'true'
 
+    if (!configuration.secret_key) return cb(new Error('secret key is not defined'))
     if (!configuration.public_key) return cb(new Error('public key is not defined'))
 
     // write configuration on FS
