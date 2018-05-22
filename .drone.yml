@@ -10,22 +10,28 @@ pipeline:
       - uname -r
       - yarn install 2> /dev/null
       - export PATH=$PATH:./node_modules/.bin/
-      - mocha test/units/InteractorClient.mocha.js
-      - mocha test/units/InteractorDaemon.mocha.js
-      - mocha test/units/PM2Client.mocha.js
-      - mocha test/units/Utility/stacktrace.mocha.js
-      - mocha test/units/Utility/cache.mocha.js
-      - mocha test/units/WatchDog.mocha.js
-      - mocha test/units/push/PushInteractor.mocha.js
-      - mocha test/units/push/TransactionAggregator.mocha.js
-      - mocha test/units/reverse/ReverseInteractor.mocha.js
-      - mocha test/units/transporters/AxonTransport.mocha.js
-      - mocha test/units/transporters/WebsocketTransport.mocha.js
-      - mocha test/units/TransporterInterface.mocha.js
-      - mocha test/units/PM2Interface.mocha.js
-      - mocha test/integrations/websocket.mocha.js
-      - mocha test/integrations/axon.mocha.js
-    secrets: [ codecov_token ]
+      - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+      - chmod +x ./cc-test-reporter
+      - ./cc-test-reporter before-build
+      - cov8 clear
+      - cov8 mocha test/units/InteractorClient.mocha.js
+      - cov8 mocha test/units/InteractorDaemon.mocha.js
+      - cov8 mocha test/units/PM2Client.mocha.js
+      - cov8 mocha test/units/Utility/stacktrace.mocha.js
+      - cov8 mocha test/units/Utility/cache.mocha.js
+      - cov8 mocha test/units/WatchDog.mocha.js
+      - cov8 mocha test/units/push/PushInteractor.mocha.js
+      - cov8 mocha test/units/push/TransactionAggregator.mocha.js
+      - cov8 mocha test/units/reverse/ReverseInteractor.mocha.js
+      - cov8 mocha test/units/transporters/AxonTransport.mocha.js
+      - cov8 mocha test/units/transporters/WebsocketTransport.mocha.js
+      - cov8 mocha test/units/TransporterInterface.mocha.js
+      - cov8 mocha test/units/PM2Interface.mocha.js
+      - cov8 mocha test/integrations/websocket.mocha.js
+      - cov8 mocha test/integrations/axon.mocha.js
+      - cov8 report lcov
+      - ./cc-test-reporter after-build --exit-code 0 || echo “Skipping CC coverage upload” or upload-coverage || echo “Skipping CC coverage upload”
+    secrets: [ cc_test_reporter_id ]
     when:
       event: push
   slack:
