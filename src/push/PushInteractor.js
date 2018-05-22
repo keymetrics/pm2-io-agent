@@ -90,7 +90,7 @@ module.exports = class PushInteractor {
       }
       // delete the last one if too long
       if (this.log_buffer[packet.process.name].length >= cst.LOGS_BUFFER) {
-        this.log_buffer[packet.process.name].pop()
+        this.log_buffer[packet.process.name].shift()
       }
       // push the log data
       this.log_buffer[packet.process.name].push(packet.data)
