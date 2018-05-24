@@ -118,8 +118,8 @@ module.exports = class WebsocketTransport extends Transporter {
       log('Trying to send data while not connected, buffering ...')
 
       // remove last element if the queue is full
-      if (this.queue.size >= cst.PACKET_QUEUE_SIZE) {
-        this.queue.pop()
+      if (this.queue.length >= cst.PACKET_QUEUE_SIZE) {
+        this.queue.shift()
       }
       return this.queue.push({ channel: channel, data: data })
     }
