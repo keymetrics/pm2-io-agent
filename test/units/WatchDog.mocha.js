@@ -69,10 +69,8 @@ describe('WatchDog', () => {
     it('should exec pm2', (done) => {
       let childMock = new ModuleMocker('child_process')
       childMock.mock({
-        exec: (cmd, params, cb) => {
-          assert(cmd === 'node')
-          assert(params[0] === path.resolve(__dirname, '../../bin/pm2'))
-          assert(params[1] === 'resurrect')
+        exec: (cmd, cb) => {
+          assert(cmd === `node ${path.resolve(__dirname, '../../../../../bin/pm2')} resurrect`)
           childMock.reset()
           done()
         }
@@ -83,10 +81,13 @@ describe('WatchDog', () => {
   describe('autoDump', _ => {
     it('should dump pm2 instance', (done) => {
       WatchDog.relaunching = false
+      WatchDog.autoDumpTime = 1
       WatchDog.ipm2 = {
-        dump: _ => {
-          clearInterval(WatchDog.dump_interval)
-          done()
+        pm2Interface: {
+          dump: _ => {
+            clearInterval(WatchDog.dump_interval)
+            done()
+          }
         }
       }
       WatchDog.autoDump()

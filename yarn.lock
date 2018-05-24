@@ -1467,9 +1467,9 @@ use@^3.1.0:
   dependencies:
     kind-of "^6.0.2"
 
-v8-coverage@1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/v8-coverage/-/v8-coverage-1.0.3.tgz#1de7c809ae6ba0d5fc77018d5622c7b8fcd398ee"
+v8-coverage@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/v8-coverage/-/v8-coverage-1.0.4.tgz#c5659debdbd82bd85b7727f84dde3b6cc1597cf7"
   dependencies:
     debug "^3.1.0"
     foreground-child "^1.5.6"

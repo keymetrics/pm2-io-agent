@@ -24,7 +24,7 @@
     "nssocket": "^0.6.0",
     "pm2-axon": "^3.2.0",
     "pm2-axon-rpc": "^0.5.0",
-    "v8-coverage": "^1.0.3",
+    "v8-coverage": "^1.0.4",
     "ws": "^5.1.0"
   },
   "devDependencies": {

@@ -31,7 +31,6 @@ module.exports = class PM2Client extends EventEmitter {
 
     this.rpc_sock.on('connect', _ => {
       log('PM2 API Wrapper connected to PM2 Daemon via RPC')
-      this.emit('rpc_sock:ready')
       this.generateMethods(_ => {
         this.pm2Interface = new PM2Interface(this.rpc)
         this.emit('ready')
@@ -39,28 +38,28 @@ module.exports = class PM2Client extends EventEmitter {
     })
 
     this.rpc_sock.on('close', _ => {
-      log('rpc_sock:closed')
-      this.emit('rpc_sock:closed')
+      log('pm2 rpc closed')
+      this.emit('closed')
     })
 
     this.rpc_sock.on('reconnect attempt', _ => {
-      log('rpc_sock:reconnecting')
-      this.emit('rpc_sock:reconnecting')
+      log('pm2 rpc reconnecting')
+      this.emit('reconnecting')
     })
 
     this.sub_sock.on('connect', _ => {
-      log('sub_sock ready')
-      this.emit('sub_sock:ready')
+      log('bus ready')
+      this.emit('bus:ready')
     })
 
     this.sub_sock.on('close', _ => {
-      log('sub_sock:closed')
-      this.emit('sub_sock:closed')
+      log('bus closed')
+      this.emit('bus:closed')
     })
 
     this.sub_sock.on('reconnect attempt', _ => {
-      log('sub_sock:reconnecting')
-      this.emit('sub_sock:reconnecting')
+      log('bus reconnecting')
+      this.emit('bus:reconnecting')
     })
   }
 

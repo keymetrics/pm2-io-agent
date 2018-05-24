@@ -70,7 +70,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     // stop transport
     if (this.transport) this.transport.disconnect()
 
-    this._ipm2.disconnect(() => {
+    this.getPM2Client().disconnect(() => {
       log('Closed connection to PM2 bus and RPC server')
     })
 
@@ -230,7 +230,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error> [optional]
    */
   start (cb) {
-    this._ipm2 = new PM2Client()
     this._rpc = this.startRPC()
 
     this.opts.ROOT_URL = cst.KEYMETRICS_ROOT_URL
@@ -264,16 +263,16 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       // start workers
       this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
       // start interactors
-      this.push = new PushInteractor(this.opts, this._ipm2, this.transport)
-      this.reverse = new ReverseInteractor(this.opts, this._ipm2, this.transport)
-      this.push.start()
-      this.reverse.start()
       this.watchDog = WatchDog
       this.watchDog.start({
         conf: {
-          ipm2: this._ipm2
+          ipm2: this.getPM2Client()
         }
       })
+      this.push = new PushInteractor(this.opts, this.getPM2Client(), this.transport)
+      this.reverse = new ReverseInteractor(this.opts, this.getPM2Client(), this.transport)
+      this.push.start()
+      this.reverse.start()
       log('Interactor daemon started')
       if (cb) {
         setTimeout(cb, 20)
@@ -314,7 +313,7 @@ if (require.main === module) {
     })
   })
   d.run(_ => {
-    process.title = 'PM2 Agent (' + process.env.PM2_HOME + ')'
+    process.title = 'PM2 Agent (' + cst.PM2_HOME + ')'
 
     console.log('[PM2 Agent] Launching agent')
     new InteractorDaemon().start()

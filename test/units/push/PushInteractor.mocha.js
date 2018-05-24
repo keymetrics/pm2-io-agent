@@ -32,11 +32,7 @@ describe('PushInteractor', () => {
   })
   describe('start', _ => {
     it('should launch worker', (done) => {
-      let _workerCalled = false
       push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
-      push._worker = _ => {
-        _workerCalled = true
-      }
       push._ipm2 = {
         bus: {
           on: (event, method) => {
@@ -46,7 +42,6 @@ describe('PushInteractor', () => {
             }
             assert(typeof push._worker_executor === 'object')
             clearInterval(push._worker_executor)
-            assert(_workerCalled === true)
             done()
           }
         }
@@ -54,13 +49,9 @@ describe('PushInteractor', () => {
       push.start()
     })
     it('should relaunch worker', (done) => {
-      let _workerCalled = false
       let _stopCalled = false
       push = new PushInteractor('opts', {bus: {on: _ => {}}}, 'transport')
       push._worker_executor = true
-      push._worker = _ => {
-        _workerCalled = true
-      }
       push.stop = _ => {
         _stopCalled = true
       }
@@ -73,7 +64,6 @@ describe('PushInteractor', () => {
             }
             assert(typeof push._worker_executor === 'object')
             clearInterval(push._worker_executor)
-            assert(_workerCalled === true)
             assert(_stopCalled === true)
             done()
           }

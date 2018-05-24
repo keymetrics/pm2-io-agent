@@ -67,17 +67,12 @@ describe('PM2Client', _ => {
     it('should emit connect', (done) => {
       let client = new PM2Client()
       let _generateMethodsCalled = false
-      let _connectCalled = false
       let tmp = client.__proto__.generateMethods // eslint-disable-line
       client.__proto__.generateMethods = (cb) => { // eslint-disable-line
         _generateMethodsCalled = true
         cb()
       }
-      client.on('rpc_sock:ready', _ => {
-        _connectCalled = true
-      })
       client.on('ready', _ => {
-        assert(_connectCalled === true)
         assert(_generateMethodsCalled === true)
         client.__proto__.generateMethods = tmp // eslint-disable-line
         done()
@@ -86,14 +81,14 @@ describe('PM2Client', _ => {
     })
     it('should emit close', (done) => {
       let client = new PM2Client()
-      client.on('rpc_sock:closed', _ => {
+      client.on('closed', _ => {
         done()
       })
       EventEmitter.emit('close')
     })
     it('should emit reconnect attempt', (done) => {
       let client = new PM2Client()
-      client.on('rpc_sock:reconnecting', _ => {
+      client.on('reconnecting', _ => {
         done()
       })
       EventEmitter.emit('reconnect attempt')
@@ -102,21 +97,21 @@ describe('PM2Client', _ => {
   describe('events sub', _ => {
     it('should emit connect', (done) => {
       let client = new PM2Client()
-      client.on('sub_sock:ready', _ => {
+      client.on('bus:ready', _ => {
         done()
       })
       EventEmitterSub.emit('connect')
     })
     it('should emit close', (done) => {
       let client = new PM2Client()
-      client.on('sub_sock:closed', _ => {
+      client.on('bus:closed', _ => {
         done()
       })
       EventEmitterSub.emit('close')
     })
     it('should emit reconnect attempt', (done) => {
       let client = new PM2Client()
-      client.on('sub_sock:reconnecting', _ => {
+      client.on('bus:reconnecting', _ => {
         done()
       })
       EventEmitterSub.emit('reconnect attempt')
