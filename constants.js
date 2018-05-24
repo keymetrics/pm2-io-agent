@@ -55,7 +55,7 @@ let cst = {
   PACKET_QUEUE_SIZE: 200,
 
   LOGS_BUFFER: 8,
-  CONTEXT_ON_ERROR: 2,
+  CONTEXT_ON_ERROR: 4,
   TRANSACTION_FLUSH_INTERVAL: useIfDefined(process.env.PM2_DEBUG, process.env.NODE_ENV === 'local_test') ? 1000 : 30000,
   AGGREGATION_DURATION: useIfDefined(process.env.PM2_DEBUG, process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') ? 0 : 60 * 10,
   TRACE_FLUSH_INTERVAL: useIfDefined(process.env.PM2_DEBUG, process.env.NODE_ENV === 'local_test') ? 1000 : 60000,
