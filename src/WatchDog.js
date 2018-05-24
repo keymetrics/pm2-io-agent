@@ -10,6 +10,7 @@ module.exports = class WatchDog {
   static start (p) {
     this.ipm2 = p.conf.ipm2
     this.relaunching = false
+    this.autoDumpTime = 5 * 60 * 1000
 
     /**
      * Handle PM2 connection state changes
@@ -32,13 +33,13 @@ module.exports = class WatchDog {
         clearInterval(this.dump_interval)
       }
 
-      return WatchDog.resurrect()
+      return this.resurrect()
     })
   }
 
   static resurrect () {
-    debug('Trying to launch PM2 #1')
-    child.exec('node', [path.resolve(__dirname, '../bin/pm2'), 'resurrect'], _ => {
+    debug(`Trying to launch PM2: ${path.resolve(__dirname, '../../../../bin/pm2')}`)
+    child.exec(`node ${path.resolve(__dirname, '../../../../bin/pm2')} resurrect`, _ => {
       setTimeout(_ => {
         this.relaunching = false
       }, 2500)
@@ -49,9 +50,9 @@ module.exports = class WatchDog {
     this.dump_interval = setInterval(_ => {
       if (this.relaunching === true) return
 
-      this.ipm2.dump(function (err) {
+      this.ipm2.pm2Interface.dump(function (err) {
         return err ? debug('Error when dumping', err) : debug('PM2 process list dumped')
       })
-    }, process.env.NODE_ENV === 'test' ? 1 : 5 * 60 * 1000)
+    }, this.autoDumpTime)
   }
 }

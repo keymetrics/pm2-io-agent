@@ -49,7 +49,6 @@ module.exports = class PushInteractor {
       this.stop()
     }
     debug('Push interactor started')
-    this._worker()
     this._worker_executor = setInterval(this._worker.bind(this), cst.STATUS_INTERVAL)
     this._ipm2.bus.on('*', this._onPM2Event.bind(this))
   }
@@ -137,6 +136,7 @@ module.exports = class PushInteractor {
    * Worker function that will retrieve process metadata and send them to KM
    */
   _worker () {
+    if (!this._ipm2.rpc || !this._ipm2.rpc.getMonitorData) return debug('Cant access to getMonitorData RPC PM2 method')
     this._ipm2.rpc.getMonitorData({}, (err, processes) => {
       if (err) {
         return debug(err || 'Cant access to getMonitorData RPC PM2 method')
