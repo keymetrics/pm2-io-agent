@@ -369,7 +369,7 @@ describe('InteractorClient', () => {
         assert(config.secret_key === 'private')
         assert(config.machine_name === 'machine')
         assert(config.reverse_interact === true)
-        assert(config.info_node === 'info')
+        assert(config.info_node === 'https://info')
         fs.writeFileSync = tmpWrite
         fs.readFileSync = tmpRead
         module.exports = fs
@@ -387,7 +387,7 @@ describe('InteractorClient', () => {
         public_key: 'public',
         secret_key: 'private',
         machine_name: 'machine',
-        info_node: 'info',
+        info_node: 'https://info',
         reverse_interact: 'lol',
         version_management: {
           active: false
@@ -403,7 +403,7 @@ describe('InteractorClient', () => {
         assert(config.secret_key === 'private')
         assert(config.machine_name === 'machine')
         assert(config.reverse_interact === 'lol')
-        assert(config.info_node === 'info')
+        assert(config.info_node === 'https://info')
         fs.writeFileSync = tmpWrite
         fs.readFileSync = tmpRead
         module.exports = fs

@@ -200,6 +200,24 @@ describe('AxonTransport', () => {
         assert(transport.queue[0].data === 'data')
         done()
       })
+      it('should add to queue and remove old queue', (done) => {
+        let transport = new AxonTransport(opts, daemon)
+        let _connectCalls = 0
+        clearInterval(transport._worker)
+        transport.isConnected = _ => {
+          _connectCalls++
+          return false
+        }
+        transport.queue = []
+        for (let i = 0; i < 200; i++) transport.queue.push(['channel', 'data'])
+        assert(transport.queue.length === 200)
+        assert(transport.send('channel-custom', 'data-custom') === 200)
+        assert(_connectCalls === 1)
+        assert(transport.queue.length === 200)
+        assert(transport.queue[199].channel === 'channel-custom')
+        assert(transport.queue[199].data === 'data-custom')
+        done()
+      })
     })
     it('should store status if channel is status', (done) => {
       let transport = new AxonTransport(opts, daemon)
