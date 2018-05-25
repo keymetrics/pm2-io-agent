@@ -1112,8 +1112,8 @@ pm2-axon-rpc@^0.5.0:
     debug "^3.0"
 
 pm2-axon@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/pm2-axon/-/pm2-axon-3.2.0.tgz#570262c1607f22a1d42b080a725029f977d6cdc3"
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/pm2-axon/-/pm2-axon-3.3.0.tgz#a9badfdb8e083fbd5d7d24317b4a21eb708f0735"
   dependencies:
     amp "~0.3.1"
     amp-message "~0.1.1"
