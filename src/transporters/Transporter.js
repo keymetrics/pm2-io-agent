@@ -63,6 +63,7 @@ module.exports = class Transporter extends EventEmitter2 {
 
     // re-send all of the data
     while (this.queue.length > 0) {
+      if (!this.isConnected()) return
       let packet = this.queue[0]
       this.send(packet.channel, packet.data)
       this.queue.shift()

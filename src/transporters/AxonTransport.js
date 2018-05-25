@@ -77,10 +77,22 @@ module.exports = class AxonTransport extends Transporter {
     })
 
     // Errors / close
-    this._socket.on('close', this._onClose.bind(this))
-    this._socket.on('error', this._onError.bind(this))
-    this._axon.sock.on('close', this._onClose.bind(this))
-    this._axon.sock.on('error', this._onError.bind(this))
+    this._socket.on('close', _ => {
+      log('Got a close on nssocket connection')
+      this._onClose()
+    })
+    this._socket.on('error', (err) => {
+      log(`Got an error on nssocket connection: ${err.message}`)
+      this._onError()
+    })
+    this._axon.sock.on('close', _ => {
+      log('Got a close on axon connection')
+      this._onClose()
+    })
+    this._axon.sock.on('error', (err) => {
+      log(`Got an error on axon connection: ${err.message}`)
+      this._onError()
+    })
 
     // Setup listener
     this._socket.data('*', function (data) {
@@ -121,6 +133,8 @@ module.exports = class AxonTransport extends Transporter {
     const isNsSocketConnected = this._socket && this._socket.connected
     const isAxonConnected = this._axon && this._axon.sock.connected && this._axon.sock.socks &&
       this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
+    if (!isNsSocketConnected) log('Nssocket is not connected anymore')
+    if (!isAxonConnected) log('Axon is not connected anymore')
     return isNsSocketConnected && isAxonConnected
   }
 
