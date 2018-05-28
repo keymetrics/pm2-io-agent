@@ -326,16 +326,7 @@ module.exports = class InteractorDaemonizer {
     try {
       let fileContent = fs.readFileSync(cst.INTERACTION_CONF).toString()
       // Handle old configuration with json5
-      if (fileContent.indexOf('secret_key:') > -1) {
-        fileContent = fileContent.replace('secret_key:', '"secret_key":')
-        fileContent = fileContent.replace('version_management:', '"version_management":')
-        fileContent = fileContent.replace('machine_name:', '"machine_name":')
-        fileContent = fileContent.replace('public_key:', '"public_key":')
-        fileContent = fileContent.replace('reverse_interact:', '"reverse_interact":')
-        fileContent = fileContent.replace('info_node:', '"info_node":')
-        fileContent = fileContent.replace('active:', '"active":')
-        fileContent = fileContent.replace('password:', '"password":')
-      }
+      fileContent.replace(/\s(\w+):/g, '"$1":')
       // parse
       confFS = JSON.parse(fileContent)
 
@@ -360,9 +351,6 @@ module.exports = class InteractorDaemonizer {
     configuration.agent_transport_websocket = process.env.AGENT_TRANSPORT_WEBSOCKET || infos.agent_transport_websocket || confFS.agent_transport_websocket || 'false'
     configuration.agent_transport_axon = process.env.AGENT_TRANSPORT_AXON || infos.agent_transport_axon || confFS.agent_transport_axon || 'true'
 
-    if (configuration.info_node.indexOf('http') === -1) { // handle old file
-      configuration.info_node = `https://${configuration.info_node}`
-    }
     if (!configuration.secret_key) return cb(new Error('secret key is not defined'))
     if (!configuration.public_key) return cb(new Error('public key is not defined'))
 
@@ -372,6 +360,9 @@ module.exports = class InteractorDaemonizer {
     } catch (e) {
       console.error('Error when writting configuration file %s', cst.INTERACTION_CONF)
       return cb(e)
+    }
+    if (configuration.info_node.indexOf('http') === -1) { // handle old file
+      configuration.info_node = `https://${configuration.info_node}`
     }
     return cb(null, configuration)
   }
