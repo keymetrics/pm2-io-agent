@@ -134,8 +134,7 @@ module.exports = class AxonTransport extends Transporter {
    */
   isConnected () {
     const isNsSocketConnected = this._socket && this._socket.connected
-    const isAxonConnected = this._axon && this._axon.sock.connected && this._axon.sock.socks &&
-      this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
+    const isAxonConnected = this._axon && this._axon.sock && this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
     if (!isNsSocketConnected) log('Nssocket is not connected anymore')
     if (!isAxonConnected) log(`Axon is not connected anymore (Buffer: ${this._axon && this._axon.sock && this._axon[0] ? this._axon.sock.socks[0].bufferSize : 0})`)
     return isNsSocketConnected && isAxonConnected
@@ -152,15 +151,7 @@ module.exports = class AxonTransport extends Transporter {
     // Handle status
     if (channel === 'status' || channel === 'monitoring') return log('Status messages are handled manually with axon.')
     // Handle not connected
-    if (!this.isConnected()) {
-      log('Trying to send data while not connected, buffering ...')
-
-      // remove last element if the queue is full
-      if (this.queue.length >= cst.PACKET_QUEUE_SIZE) {
-        this.queue.shift()
-      }
-      return this.queue.push({ channel: channel, data: data })
-    }
+    if (!this.isConnected()) return false
     // Handle custom channels
     if (channel === 'profiling') return this.sendFile(data)
     if (channel.indexOf('trigger:') !== -1) return this.sendViaNssocket(channel, data)
