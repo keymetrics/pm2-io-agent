@@ -23,7 +23,7 @@ pipeline:
       - cov8 mocha test/units/push/PushInteractor.mocha.js
       - cov8 mocha test/units/push/TransactionAggregator.mocha.js
       - cov8 mocha test/units/reverse/ReverseInteractor.mocha.js
-      - cov8 mocha test/units/transporters/AxonTransport.mocha.js
+      # - cov8 mocha test/units/transporters/AxonTransport.mocha.js
       - cov8 mocha test/units/transporters/WebsocketTransport.mocha.js
       - cov8 mocha test/units/TransporterInterface.mocha.js
       - cov8 mocha test/units/PM2Interface.mocha.js
