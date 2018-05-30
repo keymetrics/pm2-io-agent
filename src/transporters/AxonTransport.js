@@ -26,6 +26,7 @@ module.exports = class AxonTransport extends Transporter {
     this.queue = []
     this.lastStatus = null
     this.buffer = {}
+    this.axonReconnectCounter = 0
 
     this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
     this._pushWorker = setInterval(this._send.bind(this), cst.STATUS_INTERVAL)
@@ -51,8 +52,7 @@ module.exports = class AxonTransport extends Transporter {
     let pushHost = pushUrl.hostname
     let pushPort = pushUrl.port
 
-    this._axon = axon.socket('pub-emitter')
-    this._axon.sock.set('retry timeout', 0)
+    this._axon = axon.socket('pub')
 
     // Create connection to reverse interaction server
     this._socket = new nssocket.NsSocket({
@@ -88,13 +88,14 @@ module.exports = class AxonTransport extends Transporter {
       log(`Got an error on nssocket connection: ${err.message}`)
       this._onError(err)
     })
-    this._axon.sock.on('close', _ => {
+    this._axon.on('close', _ => {
       log('Got a close on axon connection')
-      this._onClose()
     })
-    this._axon.sock.on('error', (err) => {
+    this._axon.on('error', (err) => {
       log(`Got an error on axon connection: ${err.message}`)
-      this._onError(err)
+    })
+    this._axon.on('reconnect attempt', _ => {
+      log(`Axon is trying to reconnect`)
     })
 
     // Setup listener
@@ -134,9 +135,9 @@ module.exports = class AxonTransport extends Transporter {
    */
   isConnected () {
     const isNsSocketConnected = this._socket && this._socket.connected
-    const isAxonConnected = this._axon && this._axon.sock && this._axon.sock.socks[0] && this._axon.sock.socks[0].bufferSize < 290000
+    const isAxonConnected = this._axon && this._axon.socks && this._axon.socks[0]
     if (!isNsSocketConnected) log('Nssocket is not connected anymore')
-    if (!isAxonConnected) log(`Axon is not connected anymore (Buffer: ${this._axon && this._axon.sock && this._axon[0] ? this._axon.sock.socks[0].bufferSize : 0})`)
+    if (!isAxonConnected) log(`Axon is not connected anymore (Buffer: ${this._axon && this._axon.socks && this._axon.socks[0] ? this._axon.sock.socks[0].bufferSize : 0})`)
     return isNsSocketConnected && isAxonConnected
   }
 
@@ -175,7 +176,7 @@ module.exports = class AxonTransport extends Transporter {
     }
     meta[data.type] = true
 
-    return this._axon.emit(JSON.stringify(meta), data.data)
+    return this._axon.send(JSON.stringify(meta), data.data)
   }
 
   /**
@@ -203,9 +204,24 @@ module.exports = class AxonTransport extends Transporter {
    * Send buffer to endpoints
    */
   _send () {
-    log(`Sending data to endpoints (Buffer size: ${Object.keys(this.buffer).length} keys)`)
+    log(`Sending data to endpoints (Buffer size: ${Object.keys(this.buffer).length} keys [${Object.keys(this.buffer).join(', ')}])`)
     if (!this.isConnected()) return log("Axon is not connected, can't send any data.")
 
+    // Handle axon buffer size
+    if (this._axon.socks[0].bufferSize > 290000) {
+      this.buffer = {} // reset buffer
+      log(`Axon buffer is too high (${this._axon.socks[0].bufferSize}), stop sending data to it.`)
+      if (++this.axonReconnectCounter > 20) {
+        log('Forcing axon reconnection')
+        this.axonReconnectCounter = 0
+        this.reconnect(this.urls, _ => {
+          log('Axon is now reconnected')
+        })
+      }
+      return false
+    }
+
+    // Send status with packet
     this.preparePacket((err) => {
       if (err) return log(`Got an error on packet preparation: ${err.message}`)
 
@@ -214,7 +230,9 @@ module.exports = class AxonTransport extends Transporter {
         data: Utility.Cipher.cipherMessage(this.buffer, this.opts.SECRET_KEY)
       }
       this.buffer = {} // reset buffer
-      return this._axon.emit(JSON.stringify(packet))
+      return this._axon.sendv2(JSON.stringify(packet), _ => {
+        log('Buffer was sended.')
+      })
     })
   }
 
