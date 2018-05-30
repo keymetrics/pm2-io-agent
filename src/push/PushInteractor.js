@@ -21,6 +21,7 @@ module.exports = class PushInteractor {
     this.transport = transport
     this.opts = opts
     this.log_buffer = {}
+    this.processes = new Map() // Key is process name, value is pm2 env
     this.broadcast_logs = new Map() // key is process name, value is true or false
 
     debug('Push interactor constructed')
@@ -81,6 +82,7 @@ module.exports = class PushInteractor {
     // Drop transitional state processes (_old_*)
     if (packet && packet.process && packet.process.pm_id && typeof packet.process.pm_id === 'string' &&
         packet.process.pm_id.indexOf('_old') > -1) return false
+    if (this.processes.get(packet.process.name) && this.processes.get(packet.process.name)._km_monitored === false) return false
 
     // bufferize logs
     if (event.match(/^log:/)) {
@@ -143,6 +145,7 @@ module.exports = class PushInteractor {
       }
       // set broadcast logs
       processes.forEach((process) => {
+        this.processes.set(process.name, process.pm2_env)
         this.broadcast_logs.set(process.name, process.pm2_env.broadcast_logs == 1 || process.pm2_env.broadcast_logs == 'true') // eslint-disable-line
       })
       // send data
