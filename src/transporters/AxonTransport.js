@@ -151,8 +151,6 @@ module.exports = class AxonTransport extends Transporter {
     if (!channel || !data) return log('Trying to send message without all necessary fields')
     // Handle status
     if (channel === 'status' || channel === 'monitoring') return log('Status messages are handled manually with axon.')
-    // Handle not connected
-    if (!this.isConnected()) return false
     // Handle custom channels
     if (channel === 'profiling') return this.sendFile(data)
     if (channel.indexOf('trigger:') !== -1) return this.sendViaNssocket(channel, data)
@@ -167,6 +165,7 @@ module.exports = class AxonTransport extends Transporter {
    * @param {Object} data
    */
   sendFile (data) {
+    if (!this.isConnected()) return log("Can't send file, axon is not connected")
     const meta = {
       pm_id: data.pm_id,
       name: data.name,
@@ -240,6 +239,7 @@ module.exports = class AxonTransport extends Transporter {
    * Send via nssocket
    */
   sendViaNssocket (channel, data) {
+    if (!this.isConnected()) return log("Can't send file, nssocket is not connected")
     return this._socket.send(channel, data)
   }
 
