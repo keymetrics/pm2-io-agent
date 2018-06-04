@@ -230,13 +230,19 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error> [optional]
    */
   start (cb) {
+    let retries = 0
     this._rpc = this.startRPC()
-
     this.opts.ROOT_URL = cst.KEYMETRICS_ROOT_URL
 
-    this._verifyEndpoint((err, result) => {
+    const verifyEndpointCallback = (err, result) => {
       if (err) {
         log('Error while trying to retrieve endpoints : ' + (err.message || err))
+        if (retries++ < 30 && process.env.NODE_ENV !== 'test') {
+          log('Retrying to retrieve endpoints...')
+          return setTimeout(_ => {
+            return this._verifyEndpoint(verifyEndpointCallback)
+          }, 200 * retries)
+        }
         process.send({ error: true, msg: err.message || err })
         return this.exit(new Error('Error retrieving endpoints'))
       }
@@ -277,7 +283,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       if (cb) {
         setTimeout(cb, 20)
       }
-    })
+    }
+    return this._verifyEndpoint(verifyEndpointCallback)
   }
 }
 
