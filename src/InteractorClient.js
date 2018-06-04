@@ -209,7 +209,15 @@ module.exports = class InteractorDaemonizer {
 
     child.unref()
 
+    const timeout = setTimeout(_ => {
+      printOut(`${chalk.yellow('[PM2.IO][WARNING]')} Not managed to connect to PM2 Plus, retrying in background.`)
+      child.removeAllListeners()
+      child.disconnect()
+      return cb(null, {}, child)
+    }, 7000)
+
     child.once('message', (msg) => {
+      clearTimeout(timeout)
       log('Interactor daemon launched :', msg)
 
       if (msg.log) {
