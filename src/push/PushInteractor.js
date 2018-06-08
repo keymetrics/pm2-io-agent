@@ -97,7 +97,7 @@ module.exports = class PushInteractor {
       this.log_buffer[packet.process.name].push(packet.data)
 
       // don't send logs if not enabled
-      if (!global._logs && !this.broadcast_logs.get(packet.process.name)) return false
+      if (!global._logs && !this.broadcast_logs.get(packet.process.pm_id)) return false
     }
 
     // attach additional info for exception
@@ -146,7 +146,7 @@ module.exports = class PushInteractor {
       // set broadcast logs
       processes.forEach((process) => {
         this.processes.set(process.name, process.pm2_env)
-        this.broadcast_logs.set(process.name, process.pm2_env.broadcast_logs == 1 || process.pm2_env.broadcast_logs == 'true') // eslint-disable-line
+        this.broadcast_logs.set(process.pm_id, process.pm2_env.broadcast_logs == 1 || process.pm2_env.broadcast_logs == 'true') // eslint-disable-line
       })
       // send data
       this.transport.send('status', {

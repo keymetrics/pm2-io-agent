@@ -318,11 +318,11 @@ describe('PushInteractor', () => {
           assert(packet.process.server === 'machine_name')
           assert(packet.process.rev === true)
           assert(packet.data.custom_data === 'custom')
-          push.broadcast_logs.set('process_name', false)
+          push.broadcast_logs.set('process_id', false)
           done()
         }
       })
-      push.broadcast_logs.set('process_name', true)
+      push.broadcast_logs.set('process_id', true)
       push._onPM2Event('log:stream', {
         process: {
           pm_id: 'process_id',
