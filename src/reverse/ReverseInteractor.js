@@ -3,17 +3,6 @@
 
 const debug = require('debug')('interactor:reverse')
 
-const PM2_REMOTE_METHOD_ALLOWED = [
-  'restart',
-  'reload',
-  'gracefulReload',
-  'reset',
-  'scale',
-  'startLogging',
-  'stopLogging',
-  'ping'
-]
-
 /**
  * ReverseInteractor is the class that handle receiving event from KM
  * @param {Object} opts interactor options
@@ -25,6 +14,7 @@ module.exports = class ReverseInteractor {
     this.ipm2 = ipm2
     this.transport = transport
     this.opts = opts
+    this.remoteMethodAlloweds = this.opts.PM2_REMOTE_METHOD_ALLOWED
   }
 
   start () {
@@ -112,7 +102,7 @@ module.exports = class ReverseInteractor {
       console.error(err)
     }
 
-    if (!method || PM2_REMOTE_METHOD_ALLOWED.indexOf(method) === -1) {
+    if (!method || this.remoteMethodAlloweds.indexOf(method) === -1) {
       return callback(new Error(method ? 'Method not allowed' : 'Invalid method'))
     }
 

@@ -18,6 +18,9 @@ module.exports = class DataRetriever {
     const formattedProcs = processes
       .filter(proc => !proc.pm2_env.name.match(/_old_/))
       .map((proc) => {
+        proc.pm2_env.axm_actions = proc.pm2_env.axm_actions.concat(conf.PM2_REMOTE_METHOD_ALLOWED.map(method => {
+          return {action_name: method, action_type: 'internal'}
+        }))
         return {
           pid: proc.pid,
           name: proc.pm2_env.name,

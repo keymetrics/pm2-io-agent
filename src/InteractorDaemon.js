@@ -211,6 +211,17 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.AGENT_TRANSPORT_WEBSOCKET = process.env.AGENT_TRANSPORT_WEBSOCKET
     opts.internal_ip = Utility.network.v4
 
+    opts.PM2_REMOTE_METHOD_ALLOWED = [
+      'restart',
+      'reload',
+      'gracefulReload',
+      'reset',
+      'scale',
+      'startLogging',
+      'stopLogging',
+      'ping'
+    ]
+
     if (!opts.MACHINE_NAME) {
       console.error('You must provide a PM2_MACHINE_NAME environment variable')
       process.exit(cst.ERROR_EXIT)
