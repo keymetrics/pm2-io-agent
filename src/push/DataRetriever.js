@@ -41,7 +41,10 @@ module.exports = class DataRetriever {
           axm_actions: proc.pm2_env.axm_actions || [],
           axm_monitor: proc.pm2_env.axm_monitor || {},
           axm_options: proc.pm2_env.axm_options || {},
-          axm_dynamic: proc.pm2_env.dynamic || {}
+          axm_dynamic: proc.pm2_env.dynamic || {},
+          axm_remote: conf.PM2_REMOTE_METHOD_ALLOWED.map(method => {
+            return {action_name: method, action_type: 'internal'}
+          })
         }
       })
 

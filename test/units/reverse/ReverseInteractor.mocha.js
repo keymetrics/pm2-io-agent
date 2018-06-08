@@ -125,7 +125,17 @@ describe('ReverseInteractor', () => {
     it('should fail with method not allowed', (done) => {
       let reverse = new ReverseInteractor({
         MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
+        PUBLIC_KEY: 'public',
+        PM2_REMOTE_METHOD_ALLOWED: [
+          'restart',
+          'reload',
+          'gracefulReload',
+          'reset',
+          'scale',
+          'startLogging',
+          'stopLogging',
+          'ping'
+        ]
       }, 'pm2', {
         send: (event, data) => {
           assert(event === 'trigger:pm2:result')
@@ -148,7 +158,17 @@ describe('ReverseInteractor', () => {
     it('should start logging', (done) => {
       let reverse = new ReverseInteractor({
         MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
+        PUBLIC_KEY: 'public',
+        PM2_REMOTE_METHOD_ALLOWED: [
+          'restart',
+          'reload',
+          'gracefulReload',
+          'reset',
+          'scale',
+          'startLogging',
+          'stopLogging',
+          'ping'
+        ]
       }, 'pm2', {
         send: (event, data) => {
           assert(global._logs === true)
@@ -175,7 +195,17 @@ describe('ReverseInteractor', () => {
     it('should stop logging', (done) => {
       let reverse = new ReverseInteractor({
         MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
+        PUBLIC_KEY: 'public',
+        PM2_REMOTE_METHOD_ALLOWED: [
+          'restart',
+          'reload',
+          'gracefulReload',
+          'reset',
+          'scale',
+          'startLogging',
+          'stopLogging',
+          'ping'
+        ]
       }, 'pm2', {
         send: (event, data) => {
           assert(global._logs === false)
@@ -199,7 +229,17 @@ describe('ReverseInteractor', () => {
     it('should launch pm2 remote', (done) => {
       let reverse = new ReverseInteractor({
         MACHINE_NAME: 'machine',
-        PUBLIC_KEY: 'public'
+        PUBLIC_KEY: 'public',
+        PM2_REMOTE_METHOD_ALLOWED: [
+          'restart',
+          'reload',
+          'gracefulReload',
+          'reset',
+          'scale',
+          'startLogging',
+          'stopLogging',
+          'ping'
+        ]
       }, {
         remote: (data, params, cb) => {
           assert(data === 'restart')
