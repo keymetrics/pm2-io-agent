@@ -84,7 +84,7 @@ module.exports = class TransactionAggregator {
 
       this.resetAggregation(data.process.name, {
         rev: rev,
-        server: this.pushInteractor.conf.MACHINE_NAME
+        server: this.pushInteractor.opts.MACHINE_NAME
       })
     })
 
