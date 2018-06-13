@@ -119,7 +119,8 @@ module.exports = class ReverseInteractor {
     if (method === 'startLogging') {
       global._logs = true
       // Stop streaming logs automatically after timeout
-      setTimeout(function () {
+      clearTimeout(this._loggingTimeoutId)
+      this._loggingTimeoutId = setTimeout(function () {
         global._logs = false
       }, process.env.NODE_ENV === 'test' ? 10 : 120000)
       return callback(null, 'Log streaming enabled')
