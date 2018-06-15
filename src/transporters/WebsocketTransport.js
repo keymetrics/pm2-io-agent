@@ -42,6 +42,7 @@ module.exports = class WebsocketTransport extends Transporter {
       cb = url
       url = this.endpoint
     }
+    this.endpoint = url
     log('Connecting websocket transporter to %s...', url)
 
     // cipher metadata to prove that we have the secret key
@@ -65,7 +66,6 @@ module.exports = class WebsocketTransport extends Transporter {
     }
     this._ws.once('error', cb)
     this._ws.once('open', () => {
-      this.endpoint = url
       log(`Connected to ${url}`)
       if (!this._ws) return false // an error occurred
       this._ws.removeListener('error', onError)
