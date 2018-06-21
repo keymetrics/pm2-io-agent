@@ -188,7 +188,7 @@ module.exports = class InteractorDaemonizer {
         AGENT_TRANSPORT_AXON: conf.agent_transport_axon,
         AGENT_TRANSPORT_WEBSOCKET: conf.agent_transport_websocket,
         PM2_VERSION: conf.pm2_version,
-        DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket,-interactor:pm2:client,-interactor:push-interactor'
+        DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket,-interactor:pm2:client,-interactor:push'
       }, process.env),
       stdio: ['ipc', out, err]
     })
