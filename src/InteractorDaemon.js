@@ -14,6 +14,8 @@ const TransporterInterface = require('./TransporterInterface.js')
 const domain = require('domain') // eslint-disable-line
 const WatchDog = require('./WatchDog')
 const InteractorClient = require('./InteractorClient')
+const semver = require('semver')
+const path = require('path')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -40,6 +42,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     })
     this.httpClient = new Utility.HTTPClient()
     this._online = true
+
+    this._internalDebugger()
   }
 
   /**
@@ -123,6 +127,73 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
     })
     return rpcServer
+  }
+
+  /**
+   * Handle specific signals to launch memory / cpu profiling
+   * if available in node
+   */
+  _internalDebugger () {
+    // inspector isn't available under node 8
+    if (semver.satisfies(process.version, '<8')) return
+
+    const inspector = require('inspector')
+    const state = {
+      heap: false,
+      cpu: false,
+      session: null
+    }
+    const commands = {
+      heap: {
+        start: 'HeapProfiler.startSampling',
+        stop: 'HeapProfiler.stopSampling'
+      },
+      cpu: {
+        start: 'Profiler.start',
+        stop: 'Profiler.stop'
+      }
+    }
+
+    const handleSignal = type => {
+      return _ => {
+        if (state.session === null) {
+          state.session = new inspector.Session()
+          state.session.connect()
+        }
+
+        const isAlreadyEnabled = state[type]
+        const debuggerCommands = commands[type]
+        const profilerDomain = type === 'cpu' ? 'Profiler' : 'HeapProfiler'
+        const fileExt = type === 'heap' ? '.heapprofile' : '.cpuprofile'
+
+        if (isAlreadyEnabled) {
+          // stopping the profiling and writting it to disk if its running
+          console.log(`[DEBUG] Stopping ${type.toUpperCase()} Profiling`)
+          state.session.post(debuggerCommands.stop, (err, data) => {
+            const profile = data.profile
+            if (err) return console.error(err)
+            const randomId = Math.random().toString(36)
+            const profilePath = path.resolve(os.tmpdir(), `${type}-${randomId}${fileExt}`)
+
+            fs.writeFileSync(profilePath, JSON.stringify(profile))
+            console.log(`[DEBUG] Writing file in ${profilePath}`)
+            state[type] = false
+            state.session.post(`${profilerDomain}.disable`)
+          })
+        } else {
+          // start the profiling otherwise
+          console.log(`[DEBUG] Starting ${type.toUpperCase()} Profiling`)
+          state.session.post(`${profilerDomain}.enable`, _ => {
+            state.session.post(debuggerCommands.start)
+            state[type] = true
+          })
+        }
+      }
+    }
+
+    // use hook
+    process.on('SIGUSR1', handleSignal('cpu'))
+    process.on('SIGUSR2', handleSignal('heap'))
   }
 
   /**
