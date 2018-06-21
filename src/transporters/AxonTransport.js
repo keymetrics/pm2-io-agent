@@ -23,12 +23,9 @@ module.exports = class AxonTransport extends Transporter {
     this._daemon = daemon
     this._socket = null
     this._axon = null
-    this.queue = []
-    this.lastStatus = null
     this.buffer = {}
     this.axonReconnectCounter = 0
 
-    this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
     this._pushWorker = setInterval(this._send.bind(this), cst.STATUS_INTERVAL)
   }
 

@@ -10,12 +10,12 @@ const os = require('os')
 const constants = require('../constants')
 const childProcess = require('child_process')
 
-const printError = (msg) => {
+const printError = function (msg) {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
   if (msg instanceof Error) return console.error(msg.message)
   return console.error.apply(console, arguments)
 }
-const printOut = () => {
+const printOut = function (msg) {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
   return console.log.apply(console, arguments)
 }
