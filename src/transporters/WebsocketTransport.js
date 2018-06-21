@@ -69,11 +69,11 @@ module.exports = class WebsocketTransport extends Transporter {
       log(`Connected to ${url}`)
       if (!this._ws) return false // an error occurred
       this._ws.removeListener('error', onError)
+      this._ws.on('close', this._onClose.bind(this))
+      this._ws.on('error', this._onError.bind(this))
       return cb()
     })
 
-    this._ws.on('close', this._onClose.bind(this))
-    this._ws.on('error', this._onError.bind(this))
     this._ws.on('message', this._onMessage.bind(this))
     this._ws.on('ping', (data) => {
       this._ws.pong()
