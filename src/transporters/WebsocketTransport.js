@@ -125,13 +125,14 @@ module.exports = class WebsocketTransport extends Transporter {
     }
 
     log('Sending packet over for channel %s', channel)
-    var packet = {
+    let packet = {
       payload: data,
       channel: channel
     }
     this._ws.send(JSON.stringify(packet), {
       compress: cst.COMPRESS_PROTOCOL || false
     }, (err) => {
+      packet = null
       if (err) {
         this.emit('error', err)
         // buffer the packet to send it when the connection will be up again

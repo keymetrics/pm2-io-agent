@@ -221,13 +221,14 @@ module.exports = class AxonTransport extends Transporter {
     this.preparePacket((err) => {
       if (err) return log(`Got an error on packet preparation: ${err.message}`)
 
-      const packet = {
+      let packet = {
         public_key: this.opts.PUBLIC_KEY,
         data: Utility.Cipher.cipherMessage(this.buffer, this.opts.SECRET_KEY)
       }
       this.buffer = {} // reset buffer
       return this._axon.sendv2(JSON.stringify(packet), _ => {
         log('Buffer was sended.')
+        packet = null
       })
     })
   }
