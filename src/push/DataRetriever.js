@@ -48,7 +48,6 @@ module.exports = class DataRetriever {
         }
       })
 
-    const nodeVersion = process.version.match(/v[123]./) ? `iojs ${process.verion}` : process.version
     const username = process.env.SUDO_USER || process.env.C9_USER || process.env.LOGNAME ||
       process.env.USER || process.env.LNAME || process.env.USERNAME
 
@@ -67,7 +66,7 @@ module.exports = class DataRetriever {
         arch: os.arch(),
         interaction: conf.REVERSE_INTERACT,
         pm2_version: conf.PM2_VERSION,
-        node_version: nodeVersion,
+        node_version: process.version,
         unique_id: constants.UNIQUE_SERVER_ID
       }
     }
