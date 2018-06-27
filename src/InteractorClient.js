@@ -334,7 +334,7 @@ module.exports = class InteractorDaemonizer {
     try {
       let fileContent = fs.readFileSync(cst.INTERACTION_CONF).toString()
       // Handle old configuration with json5
-      fileContent.replace(/\s(\w+):/g, '"$1":')
+      fileContent = fileContent.replace(/\s(\w+):/g, '"$1":')
       // parse
       confFS = JSON.parse(fileContent)
 
@@ -359,8 +359,14 @@ module.exports = class InteractorDaemonizer {
     configuration.agent_transport_websocket = process.env.AGENT_TRANSPORT_WEBSOCKET || infos.agent_transport_websocket || confFS.agent_transport_websocket || 'false'
     configuration.agent_transport_axon = process.env.AGENT_TRANSPORT_AXON || infos.agent_transport_axon || confFS.agent_transport_axon || 'true'
 
-    if (!configuration.secret_key) return cb(new Error('secret key is not defined'))
-    if (!configuration.public_key) return cb(new Error('public key is not defined'))
+    if (!configuration.secret_key) {
+      log('Secret key is not defined in configuration', configuration)
+      return cb(new Error('secret key is not defined'))
+    }
+    if (!configuration.public_key) {
+      log('Public key is not defined in configuration', configuration)
+      return cb(new Error('public key is not defined'))
+    }
 
     // write configuration on FS
     try {
