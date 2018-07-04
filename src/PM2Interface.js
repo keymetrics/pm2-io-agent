@@ -141,6 +141,13 @@ module.exports = class PM2Interface {
     if (params.id === undefined) {
       this.getProcessByName(params.name, (err, processes) => {
         if (err) return cb(err)
+
+        // in case we don't find the process ourselves
+        // we believe pm2 will find it
+        if (processes.length === 0) {
+          return fn(Object.assign({ id: params.name }, params), cb)
+        }
+
         async.eachOf(processes, (process) => {
           params.id = process.pm_id
           fn(params, cb)
