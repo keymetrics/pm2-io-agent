@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.5.7 (05/07/2018)
+- [version: patch bump to 0.5.7](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/6ad4835e6e5f5f76d43ee4466291e16732b4fb24) - @Eywek
+- [improv: send secret key via root ping / websocket headers](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d4fca650b051af99cbbd99d30bf6dc546ce6f1b2) - @Eywek
+
+---
+
+## v0.5.6 (04/07/2018)
+- [version: patch bump to 0.5.6](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/92f2d1cef8303b83b0a0a054e664b2eeb88e9702) - @vmarchaud
+- [reverse: fix resolve id instead of name](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/e4f5861b843acff0e3b37ef0294f2fdbabd88f60) - @vmarchaud
+
+---
+
+## v0.5.5 (27/06/2018)
+- [version: patch bump to 0.5.5](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/4730fd7d609f43cf3bdf0214605c2ca0fb137772) - @Eywek
+- [improv: fix old configuration retrieve](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d28aceba21568c3a5641977af3752030d5e1d59a) - @Eywek
+- [chore: add changelog.md #80](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/b19b510036a2d06c5abb41f37308ca39c0ee0ba9) - @Eywek
+- [improv: fix node version with iojs](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/b87e6e6539c56bd0cec9926f18c3c5cf483d9ff5) - @Eywek
+
+---
+
 ## v0.5.4 (25/06/2018)
 - [version: patch bump to 0.5.4](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fe2ab1b41bb9253f077c683339b33fec67cca385) - @Eywek
 - [improv: fix leak](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fa9ecd9ebfa07da69f72920901bf77b33ee19dda) - @Eywek
