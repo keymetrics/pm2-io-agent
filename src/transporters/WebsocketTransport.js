@@ -3,7 +3,6 @@
 const WebSocket = require('ws')
 const log = require('debug')('interactor:websocket')
 const cst = require('../../constants.js')
-const Utility = require('../Utility.js')
 const Transporter = require('./Transporter')
 
 /**
@@ -45,15 +44,11 @@ module.exports = class WebsocketTransport extends Transporter {
     this.endpoint = url
     log('Connecting websocket transporter to %s...', url)
 
-    // cipher metadata to prove that we have the secret key
-    var data = this._daemon.getSystemMetadata()
-    data = Utility.Cipher.cipherMessage(JSON.stringify(data), this.opts.SECRET_KEY)
-
     this._ws = new WebSocket(url, {
       perMessageDeflate: false,
       headers: {
         'X-KM-PUBLIC': this.opts.PUBLIC_KEY,
-        'X-KM-DATA': data,
+        'X-KM-SECRET': this.opts.SECRET_KEY,
         'X-KM-SERVER': this.opts.MACHINE_NAME,
         'X-PM2-VERSION': this.opts.PM2_VERSION || '0.0.0',
         'X-PROTOCOL-VERSION': cst.PROTOCOL_VERSION
