@@ -15,7 +15,6 @@ const cst = require('../../constants')
 const clone = require('clone')
 const ModuleMocker = require('../mock/module')
 const os = require('os')
-const Utility = require('../../src/Utility')
 
 const getDaemon = () => {
   let Daemon = clone(InteractorDaemon)
@@ -269,16 +268,6 @@ describe('InteractorDaemon', () => {
     })
   })
   describe('_pingRoot', _ => {
-    it('should fail to decipher', (done) => {
-      useDaemon((daemon, cb) => {
-        daemon.getSystemMetadata = _ => {}
-        daemon._pingRoot(err => {
-          assert(err instanceof Error)
-          cb()
-          done()
-        })
-      })
-    })
     it('should launch http request', (done) => {
       useDaemon((daemon, cb) => {
         daemon.getSystemMetadata = _ => {
@@ -294,8 +283,8 @@ describe('InteractorDaemon', () => {
             assert(data.url === 'root/api/node/verifyPM2')
             assert(data.method === 'POST')
             assert(data.data.public_id === process.env.PM2_PUBLIC_KEY)
-            let cipheredData = Utility.Cipher.cipherMessage(JSON.stringify({}), process.env.PM2_SECRET_KEY)
-            assert(data.data.data === cipheredData)
+            assert(data.data.private_id === process.env.PM2_SECRET_KEY)
+            assert(JSON.stringify(data.data.data) === JSON.stringify({}))
             cb()
             done()
           }

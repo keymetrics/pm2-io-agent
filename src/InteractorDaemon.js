@@ -218,15 +218,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    */
   _pingRoot (cb) {
     log('Ping root called %s', this.opts.ROOT_URL)
-    let data = this.getSystemMetadata()
-    data = Utility.Cipher.cipherMessage(JSON.stringify(data), this.opts.SECRET_KEY)
-    if (!data) return cb(new Error('Failed to retrieve/cipher system metadata'))
+    const data = this.getSystemMetadata()
 
     this.httpClient.open({
       url: this.opts.ROOT_URL + '/api/node/verifyPM2',
       method: 'POST',
       data: {
         public_id: this.opts.PUBLIC_KEY,
+        private_id: this.opts.SECRET_KEY,
         data: data
       }
     }, cb)

@@ -11,7 +11,6 @@ process.env.KEYMETRICS_NODE = 'http://cl1.km.io:3400'
 
 const assert = require('assert')
 const WebsocketTransport = require('../../../src/transporters/WebsocketTransport')
-const Utility = require('../../../src/Utility')
 const WebSocket = require('ws')
 
 const opts = {
@@ -52,8 +51,7 @@ describe('WebsocketTransport', () => {
 
       wss.on('connection', (ws, req) => {
         let content = req.headers
-        content['x-km-data'] = Utility.Cipher.decipherMessage(content['x-km-data'], opts.SECRET_KEY)
-        assert(typeof content['x-km-data'] === 'object')
+        assert(content['x-km-secret'] === opts.SECRET_KEY)
         assert(content['x-km-public'] === opts.PUBLIC_KEY)
         assert(content['x-pm2-version'] === opts.PM2_VERSION)
         assert(content['x-km-server'] === opts.MACHINE_NAME)
@@ -210,8 +208,7 @@ describe('WebsocketTransport', () => {
 
       wss.on('connection', (ws, req) => {
         let content = req.headers
-        content['x-km-data'] = Utility.Cipher.decipherMessage(content['x-km-data'], opts.SECRET_KEY)
-        assert(typeof content['x-km-data'] === 'object')
+        assert(content['x-km-secret'] === opts.SECRET_KEY)
         assert(content['x-km-public'] === opts.PUBLIC_KEY)
         assert(content['x-pm2-version'] === opts.PM2_VERSION)
         assert(content['x-km-server'] === opts.MACHINE_NAME)
