@@ -228,9 +228,9 @@ module.exports = class InteractorDaemonizer {
       child.disconnect()
 
       // Handle and show to user the different error message that can happen
-      if (msg.error === true) {
+      if (msg.km_data && msg.km_data.error === true) {
         if (!process.env.PM2_SILENT) {
-          console.log(chalk.red('[PM2.IO][ERROR]'), msg.msg)
+          console.log(chalk.red('[PM2.IO][ERROR]'), msg.km_data.msg)
           console.log(chalk.cyan('[PM2.IO]') + ' Contact support contact@keymetrics.io and send us the error message')
         }
         return cb(msg)
