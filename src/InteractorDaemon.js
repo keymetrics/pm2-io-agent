@@ -246,9 +246,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(err)
       }
 
-      if (data.error === true) {
-        return cb(new Error(data.msg))
-      }
+      this.km_data = data
 
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
@@ -256,12 +254,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
       if (data.active === false) {
         log('Interactor not active: %s', data.msg || 'no message')
-        return cb(null, false)
+        return cb(null, data)
       }
 
       log('Connect transport with endpoints')
       this.DAEMON_ACTIVE = true
-      this.km_data = data
       this.transport.connect(data.endpoints, cb)
     })
   }
