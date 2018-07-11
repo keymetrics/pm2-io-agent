@@ -247,14 +247,13 @@ module.exports = class InteractorDaemonizer {
         return cb(msg)
       } else if (msg.km_data && msg.km_data.active === false && msg.km_data.pending === true) {
         if (!process.env.PM2_SILENT) {
-          console.log('%s %s - Web Access: https://app.keymetrics.io/', chalk.red('[PM2.IO]'), chalk.bold.red('Agent PENDING'))
           console.log('%s You must upgrade your bucket in order to monitor more servers.', chalk.red('[PM2.IO]'))
         }
         return cb(msg)
       }
 
       if (msg.km_data && msg.km_data.active === true && !process.env.PM2_SILENT) {
-        console.log('%s [%s] Agent ACTIVE - Web Access: https://app.keymetrics.io/', chalk.cyan('[PM2.IO]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
+        console.log('%s %s', chalk.cyan('[PM2.IO]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
       }
       return cb(null, msg, child)
     })
