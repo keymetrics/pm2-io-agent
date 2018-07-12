@@ -345,7 +345,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
 
       // start workers
-      this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
+      this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000)
       // start interactors
       this.watchDog = WatchDog
 
