@@ -344,7 +344,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         })
       }
 
-      if (result.error == true && result.active == false) {
+      if (result && typeof(result) === 'object' &&
+          result.error == true && result.active == false) {
         log(`Error when connecting: ${result.msg}`)
         return this.exit(new Error(`Error when connecting: ${result.msg}`))
       }
