@@ -348,11 +348,15 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000 * 10)
       // start interactors
       this.watchDog = WatchDog
-      this.watchDog.start({
-        conf: {
-          ipm2: this.getPM2Client()
-        }
-      })
+
+      setTimeout(function() {
+        this.watchDog.start({
+          conf: {
+            ipm2: this.getPM2Client()
+          }
+        })
+      }, 3 * 60 * 1000)
+
       this.push = new PushInteractor(this.opts, this.getPM2Client(), this.transport)
       this.reverse = new ReverseInteractor(this.opts, this.getPM2Client(), this.transport)
       this.push.start()
