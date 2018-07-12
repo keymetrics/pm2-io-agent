@@ -448,7 +448,7 @@ module.exports = class InteractorDaemonizer {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
       if (!process.env.PM2_SILENT) {
-        console.log(chalk.cyan('[PM2.IO]') + ' Using (Public key: %s) (Private key: %s)', conf.public_key, conf.secret_key)
+        console.log(chalk.cyan('[PM2.IO]') + ' Using: Public key: %s | Private key: %s | Machine name: %s', conf.public_key, conf.secret_key, conf.machine_name)
       }
       return this.launchOrAttach(cst, conf, cb)
     })
