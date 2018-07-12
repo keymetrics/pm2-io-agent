@@ -344,6 +344,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         })
       }
 
+      if (result.error == true && result.active == false) {
+        log(`Error when connecting: ${result.msg}`)
+        return this.exit(new Error(`Error when connecting: ${result.msg}`))
+      }
+
       // start workers
       this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000)
       // start interactors
