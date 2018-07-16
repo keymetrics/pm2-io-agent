@@ -355,7 +355,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       // start interactors
       this.watchDog = WatchDog
 
-      setTimeout(function() {
+      setTimeout(() => {
         this.watchDog.start({
           conf: {
             ipm2: this.getPM2Client()
