@@ -1,6 +1,6 @@
 {
   "name": "@pm2/agent",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "PM2.io Agent Daemon",
   "main": "index.js",
   "directories": {
