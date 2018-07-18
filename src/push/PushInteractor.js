@@ -106,7 +106,7 @@ module.exports = class PushInteractor {
       packet.data = this._stackParser.attachContext(packet.data)
     }
 
-    if (event === 'axm:reply' && packet.data && packet.data.return && (packet.data.return.heapdump || packet.data.return.cpuprofile)) {
+    if (event === 'axm:reply' && packet.data && packet.data.return && (packet.data.return.heapdump || packet.data.return.cpuprofile || packet.data.return.heapprofile)) {
       return this._sendFile(packet)
     }
 
@@ -163,7 +163,16 @@ module.exports = class PushInteractor {
    */
   _sendFile (packet) {
     const filePath = JSON.parse(JSON.stringify(packet.data.return.dump_file))
-    const type = packet.data.return.heapdump ? 'heapdump' : 'cpuprofile'
+    let type = null
+    if (packet.data.return.heapdump) {
+      type = 'heapdump'
+    } else if (packet.data.return.heapprofile) {
+      type = 'heapprofile'
+    } else if (packet.data.return.cpuprofile) {
+      type = 'cpuprofile'
+    } else {
+      return debug(`Invalid profiling packet: ${JSON.stringify(packet)}`)
+    }
     debug('Send file for %s', type)
 
     packet = {
