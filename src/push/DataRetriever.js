@@ -1,6 +1,7 @@
 'use strict'
 
 const os = require('os')
+const pkg = require('../../package.json')
 const constants = require('../../constants')
 const cpuMeta = {
   number: os.cpus().length,
@@ -66,6 +67,7 @@ module.exports = class DataRetriever {
         arch: os.arch(),
         interaction: conf.REVERSE_INTERACT,
         pm2_version: conf.PM2_VERSION,
+        pm2_agent_version: pkg.version,
         node_version: process.version,
         unique_id: constants.UNIQUE_SERVER_ID
       }
