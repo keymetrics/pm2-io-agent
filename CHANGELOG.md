@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.5.10 (19/07/2018)
+- [feat: add agent version into status packet](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/306b79f6cdb2b502e65c14f5ab55b366b0fa7309) - @Eywek
+- [feat: handle heapprofile](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/e783ae3d21eb658fda88be8fe94636ec09f0e61d) - @Eywek
+
+---
+
+## v0.5.9 (16/07/2018)
+- [version: patch bump to 0.5.9](https://github.com/keymetrics/pm2-io-agent/commit/8fc8f07c572efea8d0dd1a382e2b34d7939c0a87) - @Unitech
+- [fix: scope](https://github.com/keymetrics/pm2-io-agent/commit/5c0b1e8d90c4d5d3f380282e48a77d39490ba140) - @Unitech
+
+---
+
+## v0.5.8 (16/07/2018)
+- [version: patch bump to 0.5.8](https://github.com/keymetrics/pm2-io-agent/commit/cccfe46821e5ba4ef764a557469113f41ab13d2e) - @Unitech
+- [fix: check if object](https://github.com/keymetrics/pm2-io-agent/commit/e87d14fb18bdbc5a9be636f6a0daf9ebfb7b0bf5) - @Unitech
+- [fix: abort connection if error has been received from root](https://github.com/keymetrics/pm2-io-agent/commit/dd9d83ddb1f790f2f2079ba0fa45ac94c015bf99) - @Unitech
+- [chore: add machine name on info](https://github.com/keymetrics/pm2-io-agent/commit/1577b80c3444a7ff376e4ed49ec24cbfc284551e) - @Unitech
+- [quick fix: #68 reduce time to reconnect](https://github.com/keymetrics/pm2-io-agent/commit/fd917f725348f2a5ec4af8800a23752afe770630) - @Unitech
+- [improv: delay start of watchdog (once everything is fine start it ok)](https://github.com/keymetrics/pm2-io-agent/commit/616f366ccc498e3f27e6ddb5684a08589bf8049c) - @Unitech
+- [remove old keymetrics links](https://github.com/keymetrics/pm2-io-agent/commit/5f37cc825672d12e562848343422ebc43f144cce) - @Unitech
+- [adapt test](https://github.com/keymetrics/pm2-io-agent/commit/a3d2e88420c0f6ff9b48607e9701fc32020b6c7d) - @Unitech
+- [fix #82](https://github.com/keymetrics/pm2-io-agent/commit/b01f244c28ff580bfa8ad136a6a706527b12b316) - @Unitech
+- [chore: edit changelog](https://github.com/keymetrics/pm2-io-agent/commit/671dd19b166f50f0e66ac8c66ee085d33b180ee4) - @Eywek
+
+---
+
 ## v0.5.7 (05/07/2018)
 - [version: patch bump to 0.5.7](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/6ad4835e6e5f5f76d43ee4466291e16732b4fb24) - @Eywek
 - [improv: send secret key via root ping / websocket headers](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d4fca650b051af99cbbd99d30bf6dc546ce6f1b2) - @Eywek
