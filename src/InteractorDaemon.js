@@ -60,9 +60,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
   /**
    * Terminate connections and exit
-   * @param {Error} err if provided, the exit code will be set to cst.ERROR_EXIT
+   * @param {cb} callback called at the end
    */
-  exit (err) {
+  exit (cb) {
     log('Exiting Interactor')
     // clear workers
     if (this._workerEndpoint) clearInterval(this._workerEndpoint)
@@ -71,12 +71,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     if (this.reverse) this.reverse.stop()
     if (this.push) this.push.stop()
 
+    if (this._ipm2) this._ipm2.disconnect()
+    if (this.watchDog) this.watchDog.stop()
     // stop transport
     if (this.transport) this.transport.disconnect()
-
-    this.getPM2Client().disconnect(() => {
-      log('Closed connection to PM2 bus and RPC server')
-    })
 
     try {
       fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
@@ -87,10 +85,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       return process.exit(cst.ERROR_EXIT)
     }
 
-    this._rpc.sock.close(() => {
-      log('RPC server closed')
-      process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
-    })
+    cb()
+
+    setTimeout(() => {
+      this._rpc.sock.close(() => {
+        log('RPC server closed')
+        process.exit(cst.SUCCESS_EXIT)
+      })
+    }, 10)
   }
 
   /**
@@ -106,8 +108,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     rpcServer.expose({
       kill: function (cb) {
         log('Shutdown request received via RPC')
-        cb(null)
-        return self.exit()
+        return self.exit(cb)
       },
       getInfos: function (cb) {
         if (self.opts && self.DAEMON_ACTIVE === true) {
@@ -356,12 +357,13 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this.watchDog = WatchDog
 
       setTimeout(() => {
+        log('PM2 Watchdog started')
         this.watchDog.start({
           conf: {
             ipm2: this.getPM2Client()
           }
         })
-      }, 3 * 60 * 1000)
+      }, 1000 * 60 * 3)
 
       this.push = new PushInteractor(this.opts, this.getPM2Client(), this.transport)
       this.reverse = new ReverseInteractor(this.opts, this.getPM2Client(), this.transport)
