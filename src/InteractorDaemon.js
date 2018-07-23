@@ -59,10 +59,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   }
 
   /**
-   * Terminate connections and exit
+   * Terminate aconnections and exit
    * @param {cb} callback called at the end
    */
-  exit (cb) {
+  exit (err, cb) {
     log('Exiting Interactor')
     // clear workers
     if (this._workerEndpoint) clearInterval(this._workerEndpoint)
@@ -85,12 +85,12 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       return process.exit(cst.ERROR_EXIT)
     }
 
-    cb()
+    cb && typeof(cb) === 'function' ? cb() : null
 
     setTimeout(() => {
       this._rpc.sock.close(() => {
         log('RPC server closed')
-        process.exit(cst.SUCCESS_EXIT)
+        process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
       })
     }, 10)
   }
@@ -108,7 +108,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     rpcServer.expose({
       kill: function (cb) {
         log('Shutdown request received via RPC')
-        return self.exit(cb)
+        return self.exit(null, cb)
       },
       getInfos: function (cb) {
         if (self.opts && self.DAEMON_ACTIVE === true) {
