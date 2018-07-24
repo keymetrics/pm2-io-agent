@@ -238,12 +238,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Boolean>
    */
   _verifyEndpoint (cb) {
-    log('Verifying endpoints')
     if (typeof cb !== 'function') cb = function () {}
 
     this._pingRoot((err, data) => {
       if (err) {
-        log('Got an a error on ping root')
+        log('Got an a error on ping root', err)
         return cb(err)
       }
 
@@ -258,7 +257,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(null, data)
       }
 
-      log('Connect transport with endpoints')
       this.DAEMON_ACTIVE = true
       this.transport.connect(data.endpoints, cb)
     })
