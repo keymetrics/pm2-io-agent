@@ -16,6 +16,7 @@ const WatchDog = require('./WatchDog')
 const InteractorClient = require('./InteractorClient')
 const semver = require('semver')
 const path = require('path')
+const pkg = require('../package.json')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -408,7 +409,7 @@ if (require.main === module) {
     })
   })
   d.run(_ => {
-    process.title = 'PM2 Agent (' + cst.PM2_HOME + ')'
+    process.title = `PM2 Agent v${pkg.version}: (${cst.PM2_HOME})`
 
     console.log('[PM2 Agent] Launching agent')
     new InteractorDaemon().start()
