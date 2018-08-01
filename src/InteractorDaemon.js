@@ -219,7 +219,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Object> where Object is the response sended by the server
    */
   _pingRoot (cb) {
-    log('Ping root called %s', this.opts.ROOT_URL)
     const data = this.getSystemMetadata()
 
     this.httpClient.open({
