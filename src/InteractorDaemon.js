@@ -86,7 +86,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       return process.exit(cst.ERROR_EXIT)
     }
 
-    cb && typeof(cb) === 'function' ? cb() : null
+    if (typeof cb === 'function') {
+      cb()
+    }
 
     setTimeout(() => {
       this._rpc.sock.close(() => {
@@ -320,8 +322,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
             return this._verifyEndpoint(verifyEndpointCallback)
           }, 200 * retries)
         }
-        if (process.send)
+        if (process.send) {
           process.send({ error: true, msg: err.message || err })
+        }
         return this.exit(new Error('Error retrieving endpoints'))
       }
       if (result === false) {
@@ -344,8 +347,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         })
       }
 
-      if (result && typeof(result) === 'object' &&
-          result.error == true && result.active == false) {
+      if (result && typeof result === 'object' &&
+          result.error === true && result.active === false) {
         log(`Error when connecting: ${result.msg}`)
         return this.exit(new Error(`Error when connecting: ${result.msg}`))
       }
@@ -381,7 +384,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // otherwise we just required it to use a function
 if (require.main === module) {
   const d = domain.create()
-  var _interactorInstance
+  let daemon = null
 
   d.on('error', function (err) {
     console.error('-- FATAL EXCEPTION happened --')
@@ -402,25 +405,20 @@ if (require.main === module) {
         if (err) {
           log('[PM2 Agent] Failed to rescue agent :')
           log(err)
-        }
-        else
+        } else {
           log(`Succesfully launched new agent`)
-
-        _interactorInstance.exit(0, function() {
-          log(`Previous Agent killed`)
-
-          process.exit(0)
-        })
+        }
+        daemon.exit(err)
       })
     })
   })
 
   d.run(_ => {
-    _interactorInstance = new InteractorDaemon()
+    daemon = new InteractorDaemon()
 
     process.title = `PM2 Agent v${pkg.version}: (${cst.PM2_HOME})`
 
     log('[PM2 Agent] Launching agent')
-    _interactorInstance.start()
+    daemon.start()
   })
 }
