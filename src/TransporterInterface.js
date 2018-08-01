@@ -60,7 +60,6 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * @param {Function} callback
    */
   connect (endpoints, cb) {
-    log('Connect transporters with new endpoints')
     async.each(this.transporters, (data, next) => {
       let name = data[0]
       let transport = data[1]
