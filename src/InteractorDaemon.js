@@ -320,7 +320,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
             return this._verifyEndpoint(verifyEndpointCallback)
           }, 200 * retries)
         }
-        process.send({ error: true, msg: err.message || err })
+        if (process.send)
+          process.send({ error: true, msg: err.message || err })
         return this.exit(new Error('Error retrieving endpoints'))
       }
       if (result === false) {
@@ -380,6 +381,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // otherwise we just required it to use a function
 if (require.main === module) {
   const d = domain.create()
+  var _interactorInstance
 
   d.on('error', function (err) {
     console.error('-- FATAL EXCEPTION happened --')
@@ -398,19 +400,27 @@ if (require.main === module) {
       console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
       InteractorClient.daemonize(cst, infos, (err) => {
         if (err) {
-          console.error('[PM2 Agent] Failed to rescue agent :')
-          console.error(err)
-          return process.exit(1)
+          log('[PM2 Agent] Failed to rescue agent :')
+          log(err)
         }
-        console.log(`Succesfully launched new agent`)
-        process.exit(0)
+        else
+          log(`Succesfully launched new agent`)
+
+        _interactorInstance.exit(0, function() {
+          log(`Previous Agent killed`)
+
+          process.exit(0)
+        })
       })
     })
   })
+
   d.run(_ => {
+    _interactorInstance = new InteractorDaemon()
+
     process.title = `PM2 Agent v${pkg.version}: (${cst.PM2_HOME})`
 
-    console.log('[PM2 Agent] Launching agent')
-    new InteractorDaemon().start()
+    log('[PM2 Agent] Launching agent')
+    _interactorInstance.start()
   })
 }
