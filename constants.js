@@ -72,6 +72,8 @@ let cst = {
 
   UNIQUE_SERVER_ID: getUniqueId(),
 
+  ENABLE_CONTEXT_ON_ERROR: useIfDefined(process.env.PM2_AGENT_ENABLE_CONTEXT_ON_ERROR, true),
+
   SUCCESS_EXIT: 0,
   ERROR_EXIT: 1
 }
