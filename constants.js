@@ -75,7 +75,9 @@ let cst = {
   ENABLE_CONTEXT_ON_ERROR: useIfDefined(process.env.PM2_AGENT_ENABLE_CONTEXT_ON_ERROR, true),
 
   SUCCESS_EXIT: 0,
-  ERROR_EXIT: 1
+  ERROR_EXIT: 1,
+  PM2_AGENT_ERROR_REPORT: useIfDefined(process.env.PM2_AGENT_ERROR_REPORT, true),
+  PM2_AGENT_REPORT_URI: 'https://608c72f27cc54035aff71b8a979b3b18@sentry.dev.pm2.io/3'
 }
 
 // allow overide of file paths via environnement
