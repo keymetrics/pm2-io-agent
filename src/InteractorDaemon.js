@@ -17,6 +17,7 @@ const InteractorClient = require('./InteractorClient')
 const semver = require('semver')
 const path = require('path')
 const pkg = require('../package.json')
+const raven = require('raven')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -375,6 +376,12 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       if (cb) {
         setTimeout(cb, 20)
       }
+      if (cst.PM2_AGENT_ERROR_REPORT === true) {
+        log('Starting sentry integration')
+        raven.config(cst.PM2_AGENT_REPORT_URI, {
+          release: pkg.version
+        }).install()
+      }
     }
     return this._verifyEndpoint(verifyEndpointCallback)
   }
@@ -392,6 +399,10 @@ if (require.main === module) {
     console.error(err.stack)
     console.log('Re-initiating Agent')
     delete process.env.PM2_AGENT_ONLINE
+
+    if (cst.PM2_AGENT_ERROR_REPORT === true) {
+      raven.captureException(err)
+    }
 
     InteractorClient.launchAndInteract({HAS_CRASHED: true}, null, (err) => {
       if (err) {
