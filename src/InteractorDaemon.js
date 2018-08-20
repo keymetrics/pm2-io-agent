@@ -391,25 +391,15 @@ if (require.main === module) {
     console.error(new Date())
     console.error(err.stack)
     console.log('Re-initiating Agent')
+    delete process.env.PM2_AGENT_ONLINE
 
-    InteractorClient.getOrSetConf(cst, null, (err, infos) => {
-      if (err || !infos) {
-        if (err) {
-          console.error('[PM2 Agent] Failed to rescue agent :')
-          console.error(err || new Error(`Cannot find configuration to connect to backend`))
-          return process.exit(1)
-        }
+    InteractorClient.launchAndInteract({HAS_CRASHED: true}, null, (err) => {
+      if (err) {
+        console.error('Failed to rescue agent:', err)
+        return process.exit(1)
       }
-      console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
-      InteractorClient.daemonize(cst, infos, (err) => {
-        if (err) {
-          log('[PM2 Agent] Failed to rescue agent :')
-          log(err)
-        } else {
-          log(`Succesfully launched new agent`)
-        }
-        daemon.exit(err)
-      })
+      console.log('Agent launched!')
+      return process.exit(0)
     })
   })
 
