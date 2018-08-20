@@ -101,7 +101,7 @@ module.exports = class PushInteractor {
     }
 
     // attach additional info for exception
-    if (event === 'process:exception') {
+    if (event === 'process:exception' && cst.ENABLE_CONTEXT_ON_ERROR === true) {
       packet.data.last_logs = this.log_buffer[packet.process.name]
       packet.data = this._stackParser.attachContext(packet.data)
     }

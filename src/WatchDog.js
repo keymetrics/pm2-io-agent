@@ -37,6 +37,10 @@ module.exports = class WatchDog {
     })
   }
 
+  static stop() {
+    clearInterval(this.dump_interval)
+  }
+
   static resurrect () {
     debug(`Trying to launch PM2: ${path.resolve(__dirname, '../../../../bin/pm2')}`)
     child.exec(`node ${path.resolve(__dirname, '../../../../bin/pm2')} resurrect`, _ => {

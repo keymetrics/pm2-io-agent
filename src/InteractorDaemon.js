@@ -16,6 +16,8 @@ const WatchDog = require('./WatchDog')
 const InteractorClient = require('./InteractorClient')
 const semver = require('semver')
 const path = require('path')
+const pkg = require('../package.json')
+const raven = require('raven')
 
 // use noop if not launched via IPC
 if (!process.send) {
@@ -59,10 +61,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   }
 
   /**
-   * Terminate connections and exit
-   * @param {Error} err if provided, the exit code will be set to cst.ERROR_EXIT
+   * Terminate aconnections and exit
+   * @param {cb} callback called at the end
    */
-  exit (err) {
+  exit (err, cb) {
     log('Exiting Interactor')
     // clear workers
     if (this._workerEndpoint) clearInterval(this._workerEndpoint)
@@ -71,12 +73,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     if (this.reverse) this.reverse.stop()
     if (this.push) this.push.stop()
 
+    if (this._ipm2) this._ipm2.disconnect()
+    if (this.watchDog) this.watchDog.stop()
     // stop transport
     if (this.transport) this.transport.disconnect()
-
-    this.getPM2Client().disconnect(() => {
-      log('Closed connection to PM2 bus and RPC server')
-    })
 
     try {
       fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
@@ -87,10 +87,16 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       return process.exit(cst.ERROR_EXIT)
     }
 
-    this._rpc.sock.close(() => {
-      log('RPC server closed')
-      process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
-    })
+    if (typeof cb === 'function') {
+      cb()
+    }
+
+    setTimeout(() => {
+      this._rpc.sock.close(() => {
+        log('RPC server closed')
+        process.exit(err ? cst.ERROR_EXIT : cst.SUCCESS_EXIT)
+      })
+    }, 10)
   }
 
   /**
@@ -106,8 +112,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     rpcServer.expose({
       kill: function (cb) {
         log('Shutdown request received via RPC')
-        cb(null)
-        return self.exit()
+        return self.exit(null, cb)
       },
       getInfos: function (cb) {
         if (self.opts && self.DAEMON_ACTIVE === true) {
@@ -217,7 +222,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Object> where Object is the response sended by the server
    */
   _pingRoot (cb) {
-    log('Ping root called %s', this.opts.ROOT_URL)
     const data = this.getSystemMetadata()
 
     this.httpClient.open({
@@ -237,12 +241,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Function} cb invoked with <Error, Boolean>
    */
   _verifyEndpoint (cb) {
-    log('Verifying endpoints')
     if (typeof cb !== 'function') cb = function () {}
 
     this._pingRoot((err, data) => {
       if (err) {
-        log('Got an a error on ping root')
+        log('Got an a error on ping root', err)
         return cb(err)
       }
 
@@ -257,7 +260,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(null, data)
       }
 
-      log('Connect transport with endpoints')
       this.DAEMON_ACTIVE = true
       this.transport.connect(data.endpoints, cb)
     })
@@ -321,7 +323,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
             return this._verifyEndpoint(verifyEndpointCallback)
           }, 200 * retries)
         }
-        process.send({ error: true, msg: err.message || err })
+        if (process.send) {
+          process.send({ error: true, msg: err.message || err })
+        }
         return this.exit(new Error('Error retrieving endpoints'))
       }
       if (result === false) {
@@ -344,8 +348,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         })
       }
 
-      if (result && typeof(result) === 'object' &&
-          result.error == true && result.active == false) {
+      if (result && typeof result === 'object' &&
+          result.error === true && result.active === false) {
         log(`Error when connecting: ${result.msg}`)
         return this.exit(new Error(`Error when connecting: ${result.msg}`))
       }
@@ -356,12 +360,13 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this.watchDog = WatchDog
 
       setTimeout(() => {
+        log('PM2 Watchdog started')
         this.watchDog.start({
           conf: {
             ipm2: this.getPM2Client()
           }
         })
-      }, 3 * 60 * 1000)
+      }, 1000 * 60 * 3)
 
       this.push = new PushInteractor(this.opts, this.getPM2Client(), this.transport)
       this.reverse = new ReverseInteractor(this.opts, this.getPM2Client(), this.transport)
@@ -370,6 +375,12 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       log('Interactor daemon started')
       if (cb) {
         setTimeout(cb, 20)
+      }
+      if (cst.PM2_AGENT_ERROR_REPORT === true) {
+        log('Starting sentry integration')
+        raven.config(cst.PM2_AGENT_REPORT_URI, {
+          release: pkg.version
+        }).install()
       }
     }
     return this._verifyEndpoint(verifyEndpointCallback)
@@ -380,12 +391,17 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 // otherwise we just required it to use a function
 if (require.main === module) {
   const d = domain.create()
+  let daemon = null
 
   d.on('error', function (err) {
     console.error('-- FATAL EXCEPTION happened --')
     console.error(new Date())
     console.error(err.stack)
     console.log('Re-initiating Agent')
+
+    if (cst.PM2_AGENT_ERROR_REPORT === true) {
+      raven.captureException(err)
+    }
 
     InteractorClient.getOrSetConf(cst, null, (err, infos) => {
       if (err || !infos) {
@@ -398,19 +414,22 @@ if (require.main === module) {
       console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
       InteractorClient.daemonize(cst, infos, (err) => {
         if (err) {
-          console.error('[PM2 Agent] Failed to rescue agent :')
-          console.error(err)
-          return process.exit(1)
+          log('[PM2 Agent] Failed to rescue agent :')
+          log(err)
+        } else {
+          log(`Succesfully launched new agent`)
         }
-        console.log(`Succesfully launched new agent`)
-        process.exit(0)
+        daemon.exit(err)
       })
     })
   })
-  d.run(_ => {
-    process.title = 'PM2 Agent (' + cst.PM2_HOME + ')'
 
-    console.log('[PM2 Agent] Launching agent')
-    new InteractorDaemon().start()
+  d.run(_ => {
+    daemon = new InteractorDaemon()
+
+    process.title = `PM2 Agent v${pkg.version}: (${cst.PM2_HOME})`
+
+    log('[PM2 Agent] Launching agent')
+    daemon.start()
   })
 }

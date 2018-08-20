@@ -252,9 +252,6 @@ module.exports = class InteractorDaemonizer {
         return cb(msg)
       }
 
-      if (msg.km_data && msg.km_data.active === true && !process.env.PM2_SILENT) {
-        console.log('%s %s', chalk.cyan('[PM2.IO]'), msg.km_data.new ? 'Agent created' : 'Agent updated')
-      }
       return cb(null, msg, child)
     })
   }
@@ -448,7 +445,7 @@ module.exports = class InteractorDaemonizer {
       if (err || !conf) return cb(err || new Error('Cant retrieve configuration'))
 
       if (!process.env.PM2_SILENT) {
-        console.log(chalk.cyan('[PM2.IO]') + ' Using: Public key: %s | Private key: %s | Machine name: %s', conf.public_key, conf.secret_key, conf.machine_name)
+        console.log(chalk.cyan('[PM2 I/O]') + ' Using: Public key: %s | Private key: %s | Machine name: %s', conf.public_key, conf.secret_key, conf.machine_name)
       }
       return this.launchOrAttach(cst, conf, cb)
     })

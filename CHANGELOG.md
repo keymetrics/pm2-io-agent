@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.11 (24/07/2018)
+- [version: patch bump to 0.5.11](https://github.com/keymetrics/pm2-io-agent/commit/3ea7b4ed8c76e6c029e1762f9928b28a7887ca01) - @Unitech
+- [feature: add version to process name](https://github.com/keymetrics/pm2-io-agent/commit/5a43ff192f89ad3b25fcf77c0d31960ff4492e7b) - @Unitech
+- [chore: remove some logs](https://github.com/keymetrics/pm2-io-agent/commit/c946600bb2c5f906f99cc1441d9f4fe4c9d7a5f3) - @Unitech
+- [change](https://github.com/keymetrics/pm2-io-agent/commit/46529b348a981aae4aa2c08031e167cbbe3410d3) - @Unitech
+- [disable watchdog on exit - make call to cb 'synchronous' #88](https://github.com/keymetrics/pm2-io-agent/commit/1593707c89e655f38cd0497b772f3d97798e0762) - @Unitech
+- [chore: update changelog](https://github.com/keymetrics/pm2-io-agent/commit/2de1e38085a5c83b0ff845e28ee148f66b7833d6) - @Eywek
+
+---
+
 ## v0.5.10 (19/07/2018)
 - [feat: add agent version into status packet](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/306b79f6cdb2b502e65c14f5ab55b366b0fa7309) - @Eywek
 - [feat: handle heapprofile](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/e783ae3d21eb658fda88be8fe94636ec09f0e61d) - @Eywek
@@ -27,8 +37,8 @@
 ---
 
 ## v0.5.7 (05/07/2018)
-- [version: patch bump to 0.5.7](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/6ad4835e6e5f5f76d43ee4466291e16732b4fb24) - @Eywek
-- [improv: send secret key via root ping / websocket headers](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d4fca650b051af99cbbd99d30bf6dc546ce6f1b2) - @Eywek
+- [version: patch bump to 0.5.7](https://github.com/keymetrics/pm2-io-agent/commit/6ad4835e6e5f5f76d43ee4466291e16732b4fb24) - @Eywek
+- [improv: send secret key via root ping / websocket headers](https://github.com/keymetrics/pm2-io-agent/commit/d4fca650b051af99cbbd99d30bf6dc546ce6f1b2) - @Eywek
 
 ---
 
@@ -43,12 +53,6 @@
 - [improv: fix old configuration retrieve](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d28aceba21568c3a5641977af3752030d5e1d59a) - @Eywek
 - [chore: add changelog.md #80](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/b19b510036a2d06c5abb41f37308ca39c0ee0ba9) - @Eywek
 - [improv: fix node version with iojs](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/b87e6e6539c56bd0cec9926f18c3c5cf483d9ff5) - @Eywek
-
----
-
-## v0.5.4 (25/06/2018)
-- [version: patch bump to 0.5.4](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fe2ab1b41bb9253f077c683339b33fec67cca385) - @Eywek
-- [improv: fix leak](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fa9ecd9ebfa07da69f72920901bf77b33ee19dda) - @Eywek
 
 ---
 
@@ -68,6 +72,19 @@
 - [improv: fix crash #72](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/0ad1598dbec6489090e6ec23f25cbf3826d89c6a) - @Eywek
 - [feat: add pm2 reverse actions available #69](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/da042bfa41ab75391590d27f3ffbcfedbe948d84) - @Eywek
 - [improv: use process_id instead of process_name for broadcast logs #70](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/b16dab1dc8f08f4be85f240c534f4a0978f1fb6c) - @Eywek
+
+---
+
+## v0.5.4 (25/06/2018)
+- [version: patch bump to 0.5.4](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fe2ab1b41bb9253f077c683339b33fec67cca385) - @Eywek
+- [improv: fix leak](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/fa9ecd9ebfa07da69f72920901bf77b33ee19dda) - @Eywek
+
+---
+
+## v0.4.2 (04/06/2018)
+- [version: patch bump to 0.4.2](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/551756d069a0c84e64cd5f7f5fbd635e6eb2abaa) - @vmarchaud
+- [transaction: export startTime for each span #50](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/521cbc3cbc4d8931cade0319dffdfd2be8a2aa8b) - @vmarchaud
+- [ci: add node 10](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/171edf61683282b350b7cc4525604093bf89f4ff) - @vmarchaud
 
 ---
 
@@ -95,13 +112,6 @@
 - [chore: add coverage, use codeclimate](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/059ed419c93b13067c2bb4619d4a2b58516b1439) - @Eywek
 - [fix: fix #49, logs buffer](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/ebb54be3ff34ab0357a637316781156ca43aa9d4) - @Eywek
 - [axon: handle reconnection ourselves #52](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/c7dc5b33d3cce879fa0886a22d27019d8e2eb052) - @vmarchaud
----
-
-## v0.4.2 (04/06/2018)
-- [version: patch bump to 0.4.2](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/551756d069a0c84e64cd5f7f5fbd635e6eb2abaa) - @vmarchaud
-- [transaction: export startTime for each span #50](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/521cbc3cbc4d8931cade0319dffdfd2be8a2aa8b) - @vmarchaud
-- [ci: add node 10](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/171edf61683282b350b7cc4525604093bf89f4ff) - @vmarchaud
-
 ---
 
 ## v0.4.1 (15/05/2018)

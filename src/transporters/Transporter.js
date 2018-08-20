@@ -56,6 +56,11 @@ module.exports = class Transporter extends EventEmitter2 {
    * @private
    */
   _emptyQueue () {
+    // create the queue if it doesn't exist
+    if (!this.queue) {
+      this.queue = []
+      return
+    }
     if (this.queue.length === 0) return
     if (!this.isConnected()) return
 
