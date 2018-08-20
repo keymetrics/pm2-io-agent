@@ -9,6 +9,7 @@ const chalk = require('chalk')
 const os = require('os')
 const constants = require('../constants')
 const childProcess = require('child_process')
+const findProcess = require('find-process')
 
 const printError = function (msg) {
   if (process.env.PM2_SILENT || process.env.PM2_PROGRAMMATIC) return false
@@ -257,6 +258,48 @@ module.exports = class InteractorDaemonizer {
   }
 
   /**
+   * Kill daemon via PID
+   * @param {Function} cb invoked with <processKilledCount>
+   */
+  static killDuplicatedDaemonViaPID (cb) {
+    let processKilled = 0
+    findProcess('name', 'PM2 Agent').then((list) => {
+      list.map((daemonProcess) => {
+        if (process.pid === parseInt(daemonProcess.pid)) return log(`Ignored PID ${process.pid} (current process)`)
+        processKilled++
+        log(`Kill process with PID ${daemonProcess.pid}`)
+        return process.kill(daemonProcess.pid)
+      })
+      return cb(processKilled)
+    })
+  }
+
+  /**
+   * Kill existing daemon via RPC
+   * @param {Object} conf global constants
+   * @param {Function} cb invoked with <err, killed>
+   */
+  static killLaunchedDaemon (conf, cb) {
+    // Kill via RPC
+    this.ping(conf, (err, online) => {
+      if (!err && online) {
+        this.launchRPC(conf, _ => {
+          log('Kill agent via RPC')
+          this.rpc.kill((ignoredErr) => {
+            return this.killDuplicatedDaemonViaPID(_ => {
+              return cb(null, true)
+            })
+          })
+        })
+      } else {
+        return this.killDuplicatedDaemonViaPID((processKilled) => {
+          return cb(null, processKilled > 0)
+        })
+      }
+    })
+  }
+
+  /**
    * Start or Restart the Interaction Daemon depending if its online or not
    * @private
    * @param {Object} conf global constants
@@ -267,18 +310,26 @@ module.exports = class InteractorDaemonizer {
    * @param {Function} cb invoked with <err, msg, process>
    */
   static launchOrAttach (conf, infos, cb) {
-    this.ping(conf, (err, online) => {
-      if (!err && online) {
-        log('Interactor online, restarting it...')
-        this.launchRPC(conf, _ => {
-          this.rpc.kill((ignoredErr) => {
-            this.daemonize(conf, infos, cb)
-          })
-        })
-      } else {
-        log('Interactor offline, launching it...')
-        this.daemonize(conf, infos, cb)
-      }
+    this.killLaunchedDaemon(conf, (err, killed) => {
+      if (err) return cb(err)
+      log(`Interactor ${killed ? 'online, restarting' : 'offline, launching'} it...`)
+      return this.daemonize(conf, infos, cb)
+    })
+  }
+
+  /**
+   * Kill duplicated daemon and start a new one
+   * @param {Object} conf global constants
+   * @param {Object} infos data used to start the interactor [can be recovered from FS]
+   * @param {String} infos.secret_key the secret key used to cipher data
+   * @param {String} infos.public_key the public key used identify the user
+   * @param {String} infos.machine_name [optional] override name of the machine
+   * @param {Function} cb invoked with <err, msg, process>
+   */
+  static forceLaunch (conf, infos, cb) {
+    this.killDuplicatedDaemonViaPID((processesKilled) => {
+      log(`Force launch interactor (${processesKilled} processes killed)`)
+      return this.daemonize(conf, infos, cb)
     })
   }
 
@@ -447,7 +498,12 @@ module.exports = class InteractorDaemonizer {
       if (!process.env.PM2_SILENT) {
         console.log(chalk.cyan('[PM2 I/O]') + ' Using: Public key: %s | Private key: %s | Machine name: %s', conf.public_key, conf.secret_key, conf.machine_name)
       }
-      return this.launchOrAttach(cst, conf, cb)
+
+      if (cst && cst.HAS_CRASHED) {
+        return this.forceLaunch(cst, conf, cb)
+      } else {
+        return this.launchOrAttach(cst, conf, cb)
+      }
     })
   }
 
