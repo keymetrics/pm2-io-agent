@@ -103,6 +103,7 @@ module.exports = class AxonTransport extends Transporter {
     })
 
     // Connect to interaction/reverse server
+    log(`Connect axon with ${pushHost}:${pushPort} and nssocket with ${pullHost}:${pullPort}`)
     async.parallel([
       (next) => this._axon.connect(parseInt(pushPort), pushHost, next),
       (next) => this._socket.connect(parseInt(pullPort), pullHost, next)

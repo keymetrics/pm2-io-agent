@@ -65,9 +65,11 @@ module.exports = class TransporterInterface extends EventEmitter2 {
       let transport = data[1]
       // Isn't connected, connect it
       if (!transport.isConnected()) {
+        log(`Transporters are not connected, connect them with: ${JSON.stringify(endpoints)}`)
         transport.connect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // Endpoints have changed, reconnect
       } else if (JSON.stringify(endpoints) !== JSON.stringify(this.endpoints)) {
+        log(`Received new endpoints to connect transporters: ${JSON.stringify(endpoints)}`)
         transport.reconnect(this._buildConnectParamsFromEndpoints(name, endpoints), next)
       // No changes
       } else {
