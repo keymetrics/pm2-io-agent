@@ -181,6 +181,7 @@ module.exports = class AxonTransport extends Transporter {
    * @param {Function} next
    */
   preparePacket (next) {
+    if (typeof this._daemon.getPM2Client().rpc.getMonitorData !== 'function') return next(new Error('Not able to connect to PM2'))
     this._daemon.getPM2Client().rpc.getMonitorData({}, (err, processes) => {
       if (err || !processes) return next(err || new Error('Not able to retrieve PM2 processes'))
 
