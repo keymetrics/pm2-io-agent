@@ -3,6 +3,7 @@
 const os = require('os')
 const crypto = require('crypto')
 const moment = require('moment')
+const url = require('url')
 
 const interfaceType = {
   v4: {
@@ -310,6 +311,65 @@ class Cipher {
   }
 }
 
+/**
+ * HTTP wrapper
+ */
+class HTTPClient {
+  /**
+   * Return native module (HTTP/HTTPS)
+   * @param {String} url
+   */
+  getModule (url) {
+    return url.match(/https:\/\//) ? require('https') : require('http')
+  }
+  /**
+   * Send an HTTP request and return data or error if status > 200
+   * @param {Object} opts
+   * @param {String} opts.url
+   * @param {String} opts.method
+   * @param {Object} [opts.data]
+   * @param {Function} cb invoked with <err, body>
+   */
+  open (opts, cb) {
+    const http = this.getModule(opts.url)
+    const parsedUrl = url.parse(opts.url)
+    let data = null
+    const options = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.path,
+      port: parsedUrl.port,
+      method: opts.method
+    }
+
+    if (opts.data) {
+      data = JSON.stringify(opts.data)
+      options.headers = {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+      }
+    }
+
+    const req = http.request(options, (res) => {
+      if (res.statusCode > 200) return cb(new Error(`Non 200 status code received: ${res.statusCode}`))
+      let body = ''
+
+      res.setEncoding('utf8')
+      res.on('data', (chunk) => {
+        body += chunk.toString()
+      })
+      res.on('end', () => {
+        return cb(null, JSON.parse(body))
+      })
+    })
+    req.on('error', cb)
+
+    if (data) {
+      req.write(data)
+    }
+    req.end()
+  }
+}
+
 module.exports = {
   EWMA: EWMA,
   Cache: Cache,
@@ -319,7 +379,7 @@ module.exports = {
     v4: retrieveAddress('v4'),
     v6: retrieveAddress('v6')
   },
-  HTTPClient: require('handy-http'),
+  HTTPClient: HTTPClient,
   Cipher: Cipher,
   clone: require('fclone')
 }

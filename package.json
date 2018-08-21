@@ -19,7 +19,6 @@
     "async": "^2.6.0",
     "eventemitter2": "^5.0.1",
     "fclone": "^1.0.11",
-    "handy-http": "^1.0.2",
     "moment": "^2.21.0",
     "nssocket": "^0.6.0",
     "pm2-axon": "^3.2.0",
