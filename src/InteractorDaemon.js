@@ -257,11 +257,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(err)
       }
 
+      this.km_data = data
+
       // Verify data integrity
-      if (!data.endpoints || data.active == false) {
-        console.trace(data)
-        return cb(new Error('Endpoints field not present or not active'))
-      }
 
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
@@ -272,7 +270,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(null, data)
       }
 
-      this.km_data = data
+      if (!data.endpoints || data.active == false) {
+        console.trace(data)
+        return cb(new Error('Endpoints field not present or not active'))
+      }
 
       this.DAEMON_ACTIVE = true
       this.transport.connect(data.endpoints, cb)

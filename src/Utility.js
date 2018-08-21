@@ -350,7 +350,6 @@ class HTTPClient {
     }
 
     const req = http.request(options, (res) => {
-      if (res.statusCode > 200) return cb(new Error(`Non 200 status code received: ${res.statusCode}`))
       let body = ''
 
       res.setEncoding('utf8')
