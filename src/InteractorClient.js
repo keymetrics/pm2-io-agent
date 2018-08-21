@@ -56,10 +56,14 @@ module.exports = class InteractorDaemonizer {
       if (e.code === 'EACCES') {
         fs.stat(opts.INTERACTOR_RPC_PORT, (e, stats) => {
           if (stats.uid === 0) {
-            log('Permission denied, activate current user:')
+            console.error('Permission denied, activate current user')
             return process.exit(1)
           }
         })
+      }
+      else {
+        console.error('unexpected error')
+        console.error(e)
       }
     })
 
@@ -192,6 +196,19 @@ module.exports = class InteractorDaemonizer {
       }, process.env),
       stdio: ['ipc', out, err]
     })
+
+    var prevPid = null
+    try {
+      prevPid = fs.readFileSync(constants.INTERACTOR_PID_PATH)
+      prevPid = parseInt(prevPid)
+    } catch(e) {
+    }
+
+    if (prevPid) {
+      try {
+        process.kill(prevPid)
+      }catch(e){}
+    }
 
     fs.writeFileSync(cst.INTERACTOR_PID_PATH, child.pid)
 

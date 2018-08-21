@@ -18,10 +18,6 @@ const semver = require('semver')
 const path = require('path')
 const pkg = require('../package.json')
 
-// use noop if not launched via IPC
-if (!process.send) {
-  process.send = function () {}
-}
 global._logs = false
 
 const InteractorDaemon = module.exports = class InteractorDaemon {
@@ -45,6 +41,17 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     this._online = true
 
     this._internalDebugger()
+  }
+
+  sendToParent(data) {
+    if (!process.connected || !process.send)
+      return console.log('Could not send data to parent')
+
+    try {
+      process.send(data)
+    } catch(e) {
+      console.trace('Parent process disconnected')
+    }
   }
 
   /**
@@ -77,10 +84,12 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     // stop transport
     if (this.transport) this.transport.disconnect()
 
-    try {
-      fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
-      fs.unlinkSync(cst.INTERACTOR_PID_PATH)
-    } catch (err) {}
+    if (!err) {
+      try {
+        fs.unlinkSync(cst.INTERACTOR_RPC_PORT)
+        fs.unlinkSync(cst.INTERACTOR_PID_PATH)
+      } catch (err) {}
+    }
 
     if (!this._rpc || !this._rpc.sock) {
       return process.exit(cst.ERROR_EXIT)
@@ -248,7 +257,11 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(err)
       }
 
-      this.km_data = data
+      // Verify data integrity
+      if (!data.endpoints || data.active == false) {
+        console.trace(data)
+        return cb(new Error('Endpoints field not present or not active'))
+      }
 
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
@@ -258,6 +271,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         log('Interactor not active: %s', data.msg || 'no message')
         return cb(null, data)
       }
+
+      this.km_data = data
 
       this.DAEMON_ACTIVE = true
       this.transport.connect(data.endpoints, cb)
@@ -322,9 +337,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
             return this._verifyEndpoint(verifyEndpointCallback)
           }, 200 * retries)
         }
-        if (process.send) {
-          process.send({ error: true, msg: err.message || err })
-        }
+        this.sendToParent({ error: true, msg: err.message || err })
         return this.exit(new Error('Error retrieving endpoints'))
       }
       if (result === false) {
@@ -333,19 +346,16 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
 
       // send data over IPC for CLI feedback
-      if (process.send) {
-        log('Send to process daemon is started')
-        process.send({
-          error: false,
-          km_data: this.km_data,
-          online: true,
-          pid: process.pid,
-          machine_name: this.opts.MACHINE_NAME,
-          public_key: this.opts.PUBLIC_KEY,
-          secret_key: this.opts.SECRET_KEY,
-          reverse_interaction: this.opts.REVERSE_INTERACT
-        })
-      }
+      this.sendToParent({
+        error: false,
+        km_data: this.km_data,
+        online: true,
+        pid: process.pid,
+        machine_name: this.opts.MACHINE_NAME,
+        public_key: this.opts.PUBLIC_KEY,
+        secret_key: this.opts.SECRET_KEY,
+        reverse_interaction: this.opts.REVERSE_INTERACT
+      })
 
       if (result && typeof result === 'object' &&
           result.error === true && result.active === false) {
@@ -401,6 +411,13 @@ if (require.main === module) {
         }
       }
       console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
+
+      // Exit anyway the errored agent
+      var timeout = setTimeout(function() {
+        console.error('Daemonization of failsafe agent did not worked')
+        daemon.exit(err)
+      }, 2000)
+
       InteractorClient.daemonize(cst, infos, (err) => {
         if (err) {
           log('[PM2 Agent] Failed to rescue agent :')
@@ -408,6 +425,7 @@ if (require.main === module) {
         } else {
           log(`Succesfully launched new agent`)
         }
+        clearTimeout(timeout)
         daemon.exit(err)
       })
     })

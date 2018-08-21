@@ -318,8 +318,7 @@ describe('InteractorDaemon', () => {
       useDaemon((daemon, cb) => {
         daemon._pingRoot = (cb) => cb(null, {disabled: false, pending: false, active: false})
         daemon._verifyEndpoint((err, status) => {
-          assert(err === null)
-          assert(status.active === false)
+          assert(err instanceof Error)
           cb()
           done()
         })
@@ -403,6 +402,7 @@ describe('InteractorDaemon', () => {
         let _processSendCalled = 0
         daemon.startRPC = () => _startRPCCalled++
         let sendTmp = process.send
+        process.connected = true
         process.send = (data) => {
           assert(data.error === true)
           _processSendCalled++
