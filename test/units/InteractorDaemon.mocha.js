@@ -318,7 +318,7 @@ describe('InteractorDaemon', () => {
       useDaemon((daemon, cb) => {
         daemon._pingRoot = (cb) => cb(null, {disabled: false, pending: false, active: false})
         daemon._verifyEndpoint((err, status) => {
-          assert(err instanceof Error)
+          assert(err === null)
           cb()
           done()
         })

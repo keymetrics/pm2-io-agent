@@ -263,7 +263,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this.km_data = data
 
       // Verify data integrity
-
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
         return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
@@ -272,9 +271,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         log('Interactor not active: %s', data.msg || 'no message')
         return cb(null, data)
       }
-
-      if (!data.endpoints || data.active === false) {
-        return cb(new Error(`Endpoints field not present or not active (${JSON.stringify(data)})`))
+      if (!data.endpoints) {
+        return cb(new Error(`Endpoints field not present (${JSON.stringify(data)})`))
       }
 
       this.DAEMON_ACTIVE = true
