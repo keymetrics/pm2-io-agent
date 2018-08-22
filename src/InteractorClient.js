@@ -60,8 +60,7 @@ module.exports = class InteractorDaemonizer {
             return process.exit(1)
           }
         })
-      }
-      else {
+      } else {
         console.error('unexpected error')
         console.error(e)
       }
@@ -197,17 +196,11 @@ module.exports = class InteractorDaemonizer {
       stdio: ['ipc', out, err]
     })
 
-    var prevPid = null
     try {
-      prevPid = fs.readFileSync(constants.INTERACTOR_PID_PATH)
+      let prevPid = fs.readFileSync(constants.INTERACTOR_PID_PATH)
       prevPid = parseInt(prevPid)
-    } catch(e) {
-    }
-
-    if (prevPid) {
-      try {
-        process.kill(prevPid)
-      }catch(e){}
+      process.kill(prevPid)
+    } catch (e) {
     }
 
     fs.writeFileSync(cst.INTERACTOR_PID_PATH, child.pid)

@@ -43,13 +43,16 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     this._internalDebugger()
   }
 
-  sendToParent(data) {
-    if (!process.connected || !process.send)
-      return console.log('Could not send data to parent')
+  /**
+   * Use process.send() if connected
+   * @param {Object} data
+   */
+  sendToParent (data) {
+    if (!process.connected || !process.send) return console.log('Could not send data to parent')
 
     try {
       process.send(data)
-    } catch(e) {
+    } catch (e) {
       console.trace('Parent process disconnected')
     }
   }
@@ -270,9 +273,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         return cb(null, data)
       }
 
-      if (!data.endpoints || data.active == false) {
-        console.trace(data)
-        return cb(new Error('Endpoints field not present or not active'))
+      if (!data.endpoints || data.active === false) {
+        return cb(new Error(`Endpoints field not present or not active (${JSON.stringify(data)})`))
       }
 
       this.DAEMON_ACTIVE = true
@@ -414,7 +416,7 @@ if (require.main === module) {
       console.log(`[PM2 Agent] Using (Public key: ${infos.public_key}) (Private key: ${infos.secret_key}) (Info node: ${infos.info_node})`)
 
       // Exit anyway the errored agent
-      var timeout = setTimeout(function() {
+      var timeout = setTimeout(_ => {
         console.error('Daemonization of failsafe agent did not worked')
         daemon.exit(err)
       }, 2000)
