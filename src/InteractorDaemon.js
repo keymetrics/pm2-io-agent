@@ -232,11 +232,16 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @private
    * @param {Function} cb invoked with <Error, Object> where Object is the response sended by the server
    */
-  _pingRoot (cb) {
+  _pingRoot (firstCon, cb) {
     const data = this.getSystemMetadata()
 
+    var url = `${this.opts.ROOT_URL}/api/node/verifyPM2`
+
+    if (firstCon)
+      url += `?first_con=firstCon`
+
     this.httpClient.open({
-      url: this.opts.ROOT_URL + '/api/node/verifyPM2',
+      url: url,
       method: 'POST',
       data: {
         public_id: this.opts.PUBLIC_KEY,
@@ -251,10 +256,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @private
    * @param {Function} cb invoked with <Error, Boolean>
    */
-  _verifyEndpoint (cb) {
+  _verifyEndpoint (firstCon, cb) {
+    if (typeof firstCon === 'function') {
+      cb = firstCon
+      firstCon = false
+    }
     if (typeof cb !== 'function') cb = function () {}
 
-    this._pingRoot((err, data) => {
+    this._pingRoot(firstCon, (err, data) => {
       if (err) {
         log('Got an a error on ping root', err)
         return cb(err)
@@ -387,7 +396,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         setTimeout(cb, 20)
       }
     }
-    return this._verifyEndpoint(verifyEndpointCallback)
+    return this._verifyEndpoint(true, verifyEndpointCallback)
   }
 }
 
