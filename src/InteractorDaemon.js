@@ -235,10 +235,15 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
   _pingRoot (firstCon, cb) {
     const data = this.getSystemMetadata()
 
+    if (typeof(firstCon) === 'function') {
+      cb = firstCon
+      firstCon = false
+    }
+
     var url = `${this.opts.ROOT_URL}/api/node/verifyPM2`
 
     if (firstCon)
-      url += `?first_con=firstCon`
+      url += `?first_con=true`
 
     this.httpClient.open({
       url: url,

@@ -296,7 +296,7 @@ describe('InteractorDaemon', () => {
   describe('_verifyEndpoint', _ => {
     it('should fail', (done) => {
       useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(new Error('Test'))
+        daemon._pingRoot = (v, cb) => cb(new Error('Test'))
         daemon._verifyEndpoint((err) => {
           assert(err instanceof Error)
           cb()
@@ -306,7 +306,7 @@ describe('InteractorDaemon', () => {
     })
     it('should fail if disabled', (done) => {
       useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(null, {disabled: true})
+        daemon._pingRoot = (v, cb) => cb(null, {disabled: true})
         daemon._verifyEndpoint((err) => {
           assert(err instanceof Error)
           cb()
@@ -316,7 +316,7 @@ describe('InteractorDaemon', () => {
     })
     it('should fail if not active', (done) => {
       useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(null, {disabled: false, pending: false, active: false})
+        daemon._pingRoot = (v, cb) => cb(null, {disabled: false, pending: false, active: false})
         daemon._verifyEndpoint((err, status) => {
           assert(err === null)
           cb()
@@ -326,7 +326,7 @@ describe('InteractorDaemon', () => {
     })
     it('should connect to transport', (done) => {
       useDaemon((daemon, cb) => {
-        daemon._pingRoot = (cb) => cb(null, {
+        daemon._pingRoot = (v, cb) => cb(null, {
           disabled: false,
           pending: false,
           active: true,
@@ -407,7 +407,7 @@ describe('InteractorDaemon', () => {
           assert(data.error === true)
           _processSendCalled++
         }
-        daemon._verifyEndpoint = (cb) => cb(new Error('Test'))
+        daemon._verifyEndpoint = (v, cb) => cb(new Error('Test'))
         let axonMock = new ModuleMocker('pm2-axon')
         axonMock.mock({
           socket: _ => {
@@ -453,7 +453,7 @@ describe('InteractorDaemon', () => {
           PUBLIC_KEY: process.env.PM2_PUBLIC_KEY,
           SECRET_KEY: process.env.PM2_SECRET_KEY
         }
-        daemon._verifyEndpoint = (cb) => {
+        daemon._verifyEndpoint = (v, cb) => {
           daemon._ipm2 = {
             rpc: {
               getMonitorData: _ => {}
