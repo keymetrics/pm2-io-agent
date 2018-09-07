@@ -1,11 +1,12 @@
 /* eslint-env mocha */
+'use strict'
 
 // These tests needs to be fixed (cannot run locally)
 if (!process.env.DRONE)
   return false;
 
 
-'use strict'
+
 
 process.env.NODE_ENV = 'test'
 
