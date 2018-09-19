@@ -167,16 +167,11 @@ module.exports = class PM2Interface {
   }
 
   reset (params, cb) {
-    if (params.id === undefined) {
-      this.getProcessByName(params.name, (err, processes) => {
-        if (err) return cb(err)
-        async.eachOf(processes, (process) => {
-          this.rpc.resetMetaProcessId(process.pm_id, cb)
-        })
-      })
-    } else {
-      this.rpc.resetMetaProcessId(params.id, cb)
-    }
+    this._callWithProcessId(
+      (newParams, cb) => this.rpc.resetMetaProcessId(newParams.id, cb),
+      params,
+      cb
+    )
   }
 
   ping (params, cb) {
