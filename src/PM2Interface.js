@@ -148,10 +148,10 @@ module.exports = class PM2Interface {
           return fn(Object.assign({ id: params.name }, params), cb)
         }
 
-        async.eachOf(processes, (process) => {
+        async.eachOf(processes, (process, _key, localCb) => {
           params.id = process.pm_id
-          fn(params, cb)
-        })
+          fn(params, localCb)
+        }, cb)
       })
     } else {
       fn(params, cb)
