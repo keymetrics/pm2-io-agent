@@ -307,10 +307,10 @@ describe('PM2Interface', () => {
       pm2.rpc = rpcMethods
       pm2.rpc.resetMetaProcessId = (params, cb) => {
         assert(params === 1)
-        assert(cb === 'cb')
+        assert(typeof cb === 'function')
         done()
       }
-      pm2.reset({id: 1}, 'cb')
+      pm2.reset({id: 1}, () => {})
     })
     it('should reset each process found', (done) => {
       let _getProcessCalled = false
@@ -325,11 +325,11 @@ describe('PM2Interface', () => {
       }
       pm2.rpc.resetMetaProcessId = (params, cb) => {
         assert(params === 1)
-        assert(cb === 'cb')
+        assert(typeof cb === 'function')
         assert(_getProcessCalled === true)
         done()
       }
-      pm2.reset({name: 'test-app'}, 'cb')
+      pm2.reset({name: 'test-app'}, () => {})
     })
   })
   describe('ping', _ => {
