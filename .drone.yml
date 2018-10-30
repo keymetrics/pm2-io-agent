@@ -8,7 +8,7 @@ pipeline:
       - node -v
       - yarn -v
       - uname -r
-      - yarn install 2> /dev/null
+      - yarn install
       - export PATH=$PATH:./node_modules/.bin/
       - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
       - chmod +x ./cc-test-reporter
