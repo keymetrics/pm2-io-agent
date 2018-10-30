@@ -146,6 +146,25 @@ describe('Integration test with socks proxy and websocket', _ => {
     }})
   })
 
+  it('should trigger a scoped action', (done) => {
+    wsClient.on('message', (data) => {
+      data = JSON.parse(data)
+      if (data.channel === 'status') return
+      assert(data.channel === 'trigger:action:success')
+      assert(data.payload.success === true)
+      assert(data.payload.id === 1)
+      assert(data.payload.action_name === 'reload')
+      wsClient.removeAllListeners()
+      done()
+    })
+    let data = {
+      action_name: 'reload',
+      process_id: 1,
+      uuid: 'fake-uuid'
+    }
+    wsClient.send(JSON.stringify({channel: 'trigger:scoped_action', payload: data}))
+  })
+
   after((done) => {
     // Stop daemon
     InteractorClient.killInteractorDaemon(cst, done)
