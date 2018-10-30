@@ -4,6 +4,7 @@ const WebSocket = require('ws')
 const log = require('debug')('interactor:websocket')
 const cst = require('../../constants.js')
 const Transporter = require('./Transporter')
+const SocksProxyAgent = require('socks-proxy-agent')
 
 /**
  * Websocket Transport used to communicate with KM
@@ -18,6 +19,9 @@ module.exports = class WebsocketTransport extends Transporter {
     this._daemon = daemon
     this._ws = null
     this.queue = []
+    if (cst.SOCKS_PROXY !== undefined) {
+      this.socksAgent = new SocksProxyAgent(cst.SOCKS_PROXY)
+    }
 
     this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
     this._heartbeater = setInterval(this._heartbeat.bind(this), 5000)
@@ -52,7 +56,8 @@ module.exports = class WebsocketTransport extends Transporter {
         'X-KM-SERVER': this.opts.MACHINE_NAME,
         'X-PM2-VERSION': this.opts.PM2_VERSION || '0.0.0',
         'X-PROTOCOL-VERSION': cst.PROTOCOL_VERSION
-      }
+      },
+      agent: this.socksAgent
     })
 
     let onError = (err) => {

@@ -49,6 +49,8 @@ let cst = {
   DEBUG: process.env.PM2_DEBUG || false,
   KEYMETRICS_ROOT_URL: process.env.KEYMETRICS_NODE || 'https://root.keymetrics.io',
 
+  SOCKS_PROXY: process.env.SOCKS_PROXY,
+
   PROTOCOL_VERSION: 1,
   COMPRESS_PROTOCOL: false,
   STATUS_INTERVAL: 1000,

@@ -4,6 +4,8 @@ const os = require('os')
 const crypto = require('crypto')
 const moment = require('moment')
 const url = require('url')
+const cst = require('../constants.js')
+const SocksProxyAgent = require('socks-proxy-agent')
 
 const interfaceType = {
   v4: {
@@ -339,6 +341,11 @@ class HTTPClient {
       path: parsedUrl.path,
       port: parsedUrl.port,
       method: opts.method
+    }
+
+    if (cst.SOCKS_PROXY !== undefined) {
+      const agent = new SocksProxyAgent(cst.SOCKS_PROXY)
+      options.agent = agent
     }
 
     if (opts.data) {
