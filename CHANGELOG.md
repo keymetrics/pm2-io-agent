@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.5.17 (02/11/2018)
+- [version: patch bump to 0.5.17](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/58da680a89b77640cd8383e5a69a3caa5e21247c) - @Eywek
+- [improv: use ws by default for all connections](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/63a07ded8bb1f9d9a7d752b53d7eba8de92bb09a) - @vmarchaud
+
+---
+
+## v0.5.16 (19/09/2018)
+- [version: patch bump to 0.5.16](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/5f5f8976f88a41cc012e2294a9d2a1b9a108bbf0) - @Eywek
+- [fix: don't call the action callback for each process](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/1a36002badc9d3793012ec862f643978ffddd45c) - @Benoît Zugmeyer
+- [fix: unify the 'reset' action parameters](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/8b2afdda43ec95b60cc02ceab79ce6b34ffb76f1) - @Benoît Zugmeyer
+
+---
+
+## v0.5.15 (28/08/2018)
+- [version: patch bump to 0.5.15](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/074d28e3ce5a802e0db5ba76be43b651e465673b) - @Eywek
+- [improv: fix pm2 unmonitor #105](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/620b3ee01f4b782268d10bc0fc06f229caebd71d) - @Eywek
+
+---
+
+## v0.5.14 (23/08/2018)
+- [version: patch bump to 0.5.14](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/ad05458ea75ae318cafe4b0d87f5307e038f8ced) - @Eywek
+- [improv: fix tests](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/2c15f70e44ae571393b0c783e771962b20de3beb) - @Eywek
+- [improv: standard and remove useless try catch](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/e2a58060d5bf68ffe47e36f6c867a14d80d656ce) - @Eywek
+- [fix: when wrong secret/public (statusCode>200) return proper msg to cli](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/6359e8a1a16cdb5c2c8692b776b06747bfe8f5a5) - @Unitech
+- [improv: avoid duplication and process.send exception](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/8ee11c541526dd4460209dead68d07680e93f4d3) - @Unitech
+- [remove handy-http](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/05660c34c6c7acbbe2974671c73e1c93b08db620) - @Unitech
+- [improv: fix a crash if pm2 is not ready](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/5e3e1d030bf78c84ffdc3e6068d1489c88324d8a) - @Eywek
+- [improv: add some logs to try to fix #85](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/56ab97f7e59ddd5c39878134d58a3e6ac35ca4cc) - @Eywek
+
+---
+
+## v0.5.13 (03/08/2018)
+- [version: patch bump to 0.5.13](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/4580c2e70f34460497fb4cdf628a3afb7e77bd8f) - @vmarchaud
+- [improv: allow to disable context retrivable on error](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/03685591fb538c90c75700da793a3fefeb2ae0d6) - @vmarchaud
+
+---
+
+## v0.5.12 (01/08/2018)
+- [version: patch to 0.5.12](https://github.com/keymetrics/pm2-io-agent/commit/d2a8d0fd9cc6f57fc2d09d54fd32758e9c39f93a) - @Unitech
+- [meta: standard](https://github.com/keymetrics/pm2-io-agent/commit/101f22755a835d57486e0aec46b7a314e4bf263d) - @vmarchaud
+- [#91 #92 call agent exit once new agent is spawned + protect some calls](https://github.com/keymetrics/pm2-io-agent/commit/e8db920cfdca2521d8ca95fe71ade64113bec129) - @Unitech
+- [#91](https://github.com/keymetrics/pm2-io-agent/commit/a778a8cf3c59a1db4e83ccff7b5fbdff19810ea5) - @Unitech
+- [chore: 0.5.11 CHANGELOG](https://github.com/keymetrics/pm2-io-agent/commit/5c3ef8c8c7185af9d6c8ef96726d70b55cea1c22) - @Unitech
+
+---
+
 ## v0.5.11 (24/07/2018)
 - [version: patch bump to 0.5.11](https://github.com/keymetrics/pm2-io-agent/commit/3ea7b4ed8c76e6c029e1762f9928b28a7887ca01) - @Unitech
 - [feature: add version to process name](https://github.com/keymetrics/pm2-io-agent/commit/5a43ff192f89ad3b25fcf77c0d31960ff4492e7b) - @Unitech
