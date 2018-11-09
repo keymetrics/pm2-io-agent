@@ -37,9 +37,10 @@ module.exports = class ReverseInteractor {
    * Listener for custom actions that can be triggered by KM, either scoped or normal
    * @param {Object} data
    * @param {Object} data.action_name name of the action triggered
-   * @param {Object} data.process_id id of the process where the action need to be run
-   * @param {Object} data.opts [optional] parameters used to call the method
-   * @param {Object} data.uuid [for scoped action] uuid used to recognized the scoped action
+   * @param {Object} [data.app_name] name of the process where the action need to be run
+   * @param {Object} [data.process_id] id of the process where the action need to be run
+   * @param {Object} [data.opts] parameters used to call the method
+   * @param {Object} [data.uuid] uuid used to recognized the scoped action (scoped action only)
    */
   _onCustomAction (data) {
     const type = data.uuid ? 'SCOPED' : 'REMOTE'
@@ -48,6 +49,7 @@ module.exports = class ReverseInteractor {
     debug('New %s action %s triggered for process %s', type, data.action_name, data.process_id)
     // send the request to pmx via IPC
     this.ipm2.msgProcess({
+      name: data.app_name,
       id: data.process_id,
       msg: data.action_name,
       opts: data.opts || data.options || null,
