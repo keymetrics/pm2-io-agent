@@ -22,7 +22,7 @@ module.exports = class PM2Interface {
       }
 
       list.forEach((proc) => {
-        if (proc.pm2_env.name === name || proc.pm2_env.pm_exec_path === path.resolve(name)) {
+        if (proc.pm2_env.name === name || proc.pm2_env.pm_exec_path === path.resolve(name.toString())) {
           foundProc.push(proc)
         }
       })

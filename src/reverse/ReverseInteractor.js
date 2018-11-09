@@ -91,19 +91,21 @@ module.exports = class ReverseInteractor {
         }
       })
     }
+    if (typeof data.method_name !== 'string') {
+      return debug('New PM2 action triggered with invalid method name: ', data.method_name)
+    }
+    if (this.remoteMethodAlloweds.indexOf(data.method_name) === -1) {
+      return callback(new Error('Method not allowed'))
+    }
 
     debug('New PM2 action triggered : pm2 %s %j', data.method_name, data.parameters)
 
-    const method = JSON.parse(JSON.stringify(data.method_name))
+    const method = data.method_name
     let parameters = data.parameters
     try {
       parameters = JSON.parse(JSON.stringify(data.parameters))
     } catch (err) {
       console.error(err)
-    }
-
-    if (!method || this.remoteMethodAlloweds.indexOf(method) === -1) {
-      return callback(new Error(method ? 'Method not allowed' : 'Invalid method'))
     }
 
     if (method === 'startLogging') {
