@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.18 (11/11/2018)
+- [version: patch bump to 0.5.18](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/48f5a820e9ef7e96a3b595f3877b61cced663df4) - @Eywek
+- [improv: add name params for custom actions keymetrics/pm2-io-js-api#39](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/aa3a537654e1a849d83a4dc4fa10b0e55adbb57e) - @Eywek
+- [improv: fix some crashs #110](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/51fd22862ef7e0dc8bb73f7d4d93c1c768100528) - @Eywek
+- [chore: update changelog](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/7e5f08fc682aac9b524285b2c9d757e2a62d5e67) - @Eywek
+
+---
+
 ## v0.5.17 (02/11/2018)
 - [version: patch bump to 0.5.17](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/58da680a89b77640cd8383e5a69a3caa5e21247c) - @Eywek
 - [improv: use ws by default for all connections](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/63a07ded8bb1f9d9a7d752b53d7eba8de92bb09a) - @vmarchaud
