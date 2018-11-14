@@ -265,7 +265,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       // Verify data integrity
       if (data.disabled === true || data.pending === true) {
         log('Interactor is disabled by admins')
-        return cb(new Error('Interactor disabled, contact us at contact@keymetrics.io for more informatios'))
+        return cb(new Error('Connection refused, you might have hit the limit of agents you can connect (send email at contact@keymetrics.io for more infos)'))
       }
       if (data.active === false) {
         log('Interactor not active: %s', data.msg || 'no message')
