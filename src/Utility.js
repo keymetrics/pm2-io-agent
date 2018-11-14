@@ -357,7 +357,12 @@ class HTTPClient {
         body += chunk.toString()
       })
       res.on('end', () => {
-        return cb(null, JSON.parse(body))
+        try {
+          let jsonData = JSON.parse(body)
+          return cb(null, jsonData)
+        } catch (err) {
+          return cb(err)
+        }
       })
     })
     req.on('error', cb)
