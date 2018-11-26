@@ -242,6 +242,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         public_id: this.opts.PUBLIC_KEY,
         private_id: this.opts.SECRET_KEY,
         data: data
+      },
+      headers: {
+        'User-Agent': `PM2 Agent v${pkg.version}`
       }
     }, cb)
   }

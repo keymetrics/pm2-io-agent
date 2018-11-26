@@ -19,6 +19,7 @@ const TraceFactory = require('../misc/trace_factory')
 
 const assert = require('assert')
 const cst = require('../../constants')
+const pkg = require('../../package.json')
 const axon = require('pm2-axon')
 const InteractorClient = require('../../src/InteractorClient')
 const http = require('http')
@@ -58,9 +59,17 @@ describe('Integration test with websocket transport', _ => {
     wsServer = new WebSocket.Server({ port: 3900 })
     wsServer.on('connection', (ws, req) => {
       wsClient = ws
+      const headers = req.headers
+      assert(headers['x-km-public'] === PM2_PUBLIC_KEY)
+      assert(headers['x-km-secret'] === PM2_SECRET_KEY)
+      assert(headers['x-km-server'] === PM2_MACHINE_NAME)
+      assert(headers['x-pm2-version'] === PM2_VERSION)
+      assert(headers['user-agent'] === `PM2 Agent v${pkg.version}`)
     })
     // Mock endpoints
     httpServer = http.createServer((req, res) => {
+      const headers = req.headers
+      assert(headers['user-agent'] === `PM2 Agent v${pkg.version}`)
       res.setHeader('Content-Type', 'application/json')
       res.write(JSON.stringify({
         endpoints: {

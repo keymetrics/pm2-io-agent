@@ -3,6 +3,7 @@
 const WebSocket = require('ws')
 const log = require('debug')('interactor:websocket')
 const cst = require('../../constants.js')
+const pkg = require('../../package.json')
 const Transporter = require('./Transporter')
 
 /**
@@ -51,7 +52,8 @@ module.exports = class WebsocketTransport extends Transporter {
         'X-KM-SECRET': this.opts.SECRET_KEY,
         'X-KM-SERVER': this.opts.MACHINE_NAME,
         'X-PM2-VERSION': this.opts.PM2_VERSION || '0.0.0',
-        'X-PROTOCOL-VERSION': cst.PROTOCOL_VERSION
+        'X-PROTOCOL-VERSION': cst.PROTOCOL_VERSION,
+        'User-Agent': `PM2 Agent v${pkg.version}`
       }
     })
 

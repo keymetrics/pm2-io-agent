@@ -328,6 +328,7 @@ class HTTPClient {
    * @param {String} opts.url
    * @param {String} opts.method
    * @param {Object} [opts.data]
+   * @param {Object} [opts.headers]
    * @param {Function} cb invoked with <err, body>
    */
   open (opts, cb) {
@@ -338,15 +339,16 @@ class HTTPClient {
       hostname: parsedUrl.hostname,
       path: parsedUrl.path,
       port: parsedUrl.port,
-      method: opts.method
+      method: opts.method,
+      headers: opts.headers
     }
 
     if (opts.data) {
       data = JSON.stringify(opts.data)
-      options.headers = {
+      options.headers = Object.assign({
         'Content-Type': 'application/json',
         'Content-Length': data.length
-      }
+      }, opts.headers)
     }
 
     const req = http.request(options, (res) => {
