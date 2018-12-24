@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.20 (24/12/2018)
+- [version: patch bump to 0.5.20](https://github.com/keymetrics/pm2-io-agent/commit/2762bb9915ff2ad045a7405147b28a9a73c6a770) - @Eywek
+- [meta: add user-agent #55](https://github.com/keymetrics/pm2-io-agent/commit/f08019ba9029c6a11b950c10171ee1641ca19a9c) - @Eywek
+
+---
+
+## v0.5.19 (14/11/2018)
+- [version: patch bump to 0.5.19](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/5f2a7e56954aa4218ea2d25af95e780e06ea8abe) - @vmarchaud
+- [improv: set a better message when root handshake is refused #109](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/031d204494d7dc4ba006b118f92e820ee5518aef) - @vmarchaud
+- [bug: try/catch to avoid crashing when root answer something else than json](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/d1c03f0d3189adffaeb3bf8504f12d4b5294de36) - @vmarchaud
+- [chore: update changelog](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/9495500053e2a9d85291c92f6076738f7ca43be6) - @Eywek
+
+---
+
 ## v0.5.18 (11/11/2018)
 - [version: patch bump to 0.5.18](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/48f5a820e9ef7e96a3b595f3877b61cced663df4) - @Eywek
 - [improv: add name params for custom actions keymetrics/pm2-io-js-api#39](https://api.github.com/repos/keymetrics/pm2-io-agent/git/commits/aa3a537654e1a849d83a4dc4fa10b0e55adbb57e) - @Eywek

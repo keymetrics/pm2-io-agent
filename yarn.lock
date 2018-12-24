@@ -503,10 +503,6 @@ handlebars@^4.0.3:
   optionalDependencies:
     uglify-js "^2.6"
 
-handy-http@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/handy-http/-/handy-http-1.0.2.tgz#24860dca376a69fbb7cd1a604a221e2a56639126"
-
 has-flag@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/has-flag/-/has-flag-1.0.0.tgz#9d9e793165ce017a00f00418c43f942a7b1d11fa"
