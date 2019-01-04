@@ -177,7 +177,15 @@ module.exports = class InteractorDaemonizer {
     const out = testEnv ? 1 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
     const err = testEnv ? 2 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
 
-    const child = childProcess.spawn(process.env.NODEJS_EXECUTABLE || 'node', [InteractorJS], {
+    let binary = process.execPath
+    if (binary.indexOf('node') === -1) {
+      binary = 'node'
+    }
+    if (process.env.NODEJS_EXECUTABLE) {
+      binary = process.env.NODEJS_EXECUTABLE
+    }
+
+    const child = childProcess.spawn(binary, [InteractorJS], {
       silent: false,
       detached: true,
       cwd: process.cwd(),

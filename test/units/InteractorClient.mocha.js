@@ -578,7 +578,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -646,7 +645,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -714,7 +712,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -787,7 +784,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -859,7 +855,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -931,7 +926,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
@@ -1004,7 +998,6 @@ describe('InteractorClient', () => {
       let events = {}
       childMock.mock({
         spawn: (command, args, options) => {
-          assert(command === 'node')
           assert(args[0].indexOf('InteractorDaemon.js') > -1)
           assert(options.detached === true)
           assert(options.env.PM2_MACHINE_NAME === process.env.PM2_MACHINE_NAME)
