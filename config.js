@@ -23,14 +23,14 @@ const useIfDefined = (value, fallback) => {
 module.exports = {
   transporters: {
     axon: {
-      enabled: useIfDefined(process.env.AGENT_TRANSPORT_AXON, false),
+      enabled: false, // useIfDefined(process.env.AGENT_TRANSPORT_AXON, false),
       endpoints: {
         push: process.env.AGENT_PUSH_ENDPOINT || 'push',
         pull: process.env.AGENT_REVERSE_ENDPOINT || 'reverse'
       }
     },
     websocket: {
-      enabled: useIfDefined(process.env.AGENT_TRANSPORT_WEBSOCKET, true),
+      enabled: true, // useIfDefined(process.env.AGENT_TRANSPORT_WEBSOCKET, true),
       endpoints: process.env.AGENT_WEBSOCKET_ENDPOINT || 'ws'
     }
   }
