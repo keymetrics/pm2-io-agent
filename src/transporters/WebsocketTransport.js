@@ -61,7 +61,7 @@ module.exports = class WebsocketTransport extends Transporter {
       log('Error on websocket connect', err)
       return cb(err)
     }
-    this._ws.once('error', cb)
+    this._ws.once('error', onError)
     this._ws.once('open', () => {
       log(`Connected to ${url}`)
       if (!this._ws) return false // an error occurred
