@@ -223,6 +223,7 @@ module.exports = class TransactionAggregator {
 
     // Get http path of current span
     let path = newTrace.spans[0].labels[this.LABELS.HTTP_PATH_LABEL_KEY]
+    if (!path) return false
 
     // Cleanup spans
     this.censorSpans(newTrace.spans)
