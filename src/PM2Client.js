@@ -100,7 +100,7 @@ module.exports = class PM2Client extends EventEmitter {
 
   remote (method, parameters, cb) {
     log('remote send %s', method, parameters)
-    if (this.pm2Interface[method] === 'undefined') {
+    if (typeof this.pm2Interface[method] === 'undefined') {
       return cb(new Error('Deprecated or invalid method'))
     }
     this.pm2Interface[method](parameters, cb)
