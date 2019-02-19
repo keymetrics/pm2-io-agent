@@ -129,7 +129,6 @@ describe('ReverseInteractor', () => {
         PM2_REMOTE_METHOD_ALLOWED: [
           'restart',
           'reload',
-          'gracefulReload',
           'reset',
           'scale',
           'startLogging',
@@ -162,7 +161,6 @@ describe('ReverseInteractor', () => {
         PM2_REMOTE_METHOD_ALLOWED: [
           'restart',
           'reload',
-          'gracefulReload',
           'reset',
           'scale',
           'startLogging',
@@ -199,7 +197,6 @@ describe('ReverseInteractor', () => {
         PM2_REMOTE_METHOD_ALLOWED: [
           'restart',
           'reload',
-          'gracefulReload',
           'reset',
           'scale',
           'startLogging',
@@ -233,7 +230,6 @@ describe('ReverseInteractor', () => {
         PM2_REMOTE_METHOD_ALLOWED: [
           'restart',
           'reload',
-          'gracefulReload',
           'reset',
           'scale',
           'startLogging',

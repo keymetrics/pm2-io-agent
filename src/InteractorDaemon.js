@@ -301,7 +301,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.PM2_REMOTE_METHOD_ALLOWED = [
       'restart',
       'reload',
-      'gracefulReload',
       'reset',
       'scale',
       'startLogging',
