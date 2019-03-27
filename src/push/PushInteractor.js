@@ -98,6 +98,8 @@ module.exports = class PushInteractor {
 
       // don't send logs if not enabled
       if (!global._logs && !this.broadcast_logs.get(packet.process.pm_id)) return false
+      // disabled logs anyway
+      if (!this.processes.has(packet.process.name) || this.processes.get(packet.process.name).send_logs === false) return false
     }
 
     // attach additional info for exception

@@ -295,6 +295,7 @@ describe('PushInteractor', () => {
         }
       })
       global._logs = true
+      push.processes.set('process_name', {})
       push._onPM2Event('log:stream', {
         process: {
           pm_id: 'process_id',
@@ -323,6 +324,7 @@ describe('PushInteractor', () => {
         }
       })
       push.broadcast_logs.set('process_id', true)
+      push.processes.set('process_name', {})
       push._onPM2Event('log:stream', {
         process: {
           pm_id: 'process_id',

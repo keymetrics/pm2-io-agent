@@ -1,5 +1,6 @@
 [
   {
+    "name": "test_process_1",
     "pid": 1,
     "pm2_env": {
       "name": "test_process_1",

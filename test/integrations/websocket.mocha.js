@@ -286,14 +286,14 @@ describe('Integration test with websocket transport', _ => {
           let sended = data.payload
           assert(sended.log_type === 'stream')
           assert(sended.data === 'A log line')
-          assert(sended.process.name === 'test')
+          assert(sended.process.name === 'test_process_1')
           wsClient.removeAllListeners()
           done()
         })
         // Send some logs
         pm2PubEmitter.emit('log:stream', {
           process: {
-            name: 'test'
+            name: 'test_process_1'
           },
           data: 'A log line'
         })
