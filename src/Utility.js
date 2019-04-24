@@ -4,6 +4,8 @@ const os = require('os')
 const crypto = require('crypto')
 const moment = require('moment')
 const url = require('url')
+const ProxyAgent = require('proxy-agent')
+const cst = require('../constants.js')
 
 const interfaceType = {
   v4: {
@@ -340,7 +342,8 @@ class HTTPClient {
       path: parsedUrl.path,
       port: parsedUrl.port,
       method: opts.method,
-      headers: opts.headers
+      headers: opts.headers,
+      agent: cst.PROXY ? new ProxyAgent(cst.PROXY) : undefined
     }
 
     if (opts.data) {
