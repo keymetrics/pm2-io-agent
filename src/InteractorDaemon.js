@@ -367,7 +367,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       }
 
       // start workers
-      this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this), 60000)
+      this._workerEndpoint = setInterval(this._verifyEndpoint.bind(this, (err, result) => {
+        if (err) return
+        // We need to exit agent if bucket is disabled (trialing)
+        if (result && typeof result === 'object' && result.error === true && result.active === false) {
+          log(`Error when connecting: ${result.msg}`)
+          return this.exit(new Error(`Error when connecting: ${result.msg}`))
+        }
+      }), 60000)
       // start interactors
       this.watchDog = WatchDog
 
