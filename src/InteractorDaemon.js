@@ -371,8 +371,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
         if (err) return
         // We need to exit agent if bucket is disabled (trialing)
         if (result && typeof result === 'object' && result.error === true && result.active === false) {
-          log(`Error when connecting: ${result.msg}`)
-          return this.exit(new Error(`Error when connecting: ${result.msg}`))
+          log(`Error when connecting: ${result.msg}, disconnecting transporters`)
+          return this.transport.disconnect()
         }
       }), 60000)
       // start interactors
