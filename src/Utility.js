@@ -2,7 +2,7 @@
 
 const os = require('os')
 const crypto = require('crypto')
-const moment = require('moment')
+const dayjs = require('dayjs')
 const url = require('url')
 const ProxyAgent = require('proxy-agent')
 const cst = require('../constants.js')
@@ -60,7 +60,7 @@ class Cache {
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i]
       let value = this._ttl[key]
-      if (moment().isAfter(value)) {
+      if (dayjs().isAfter(value)) {
         delete this._cache[key]
         delete this._ttl[key]
       }
@@ -95,7 +95,7 @@ class Cache {
     if (!key || !value) return false
     this._cache[key] = value
     if (this._ttl_time) {
-      this._ttl[key] = moment().add(this._ttl_time, 'seconds')
+      this._ttl[key] = dayjs().add(this._ttl_time, 'seconds')
     }
     return true
   }

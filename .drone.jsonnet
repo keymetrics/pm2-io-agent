@@ -7,9 +7,9 @@ local pipeline(version) = {
             image: "node:" + version,
             commands: [
                 "node -v",
-                "yarn -v",
+                "npm -v",
                 "uname -r",
-                "yarn install 2> /dev/null",
+                "npm install 2> /dev/null",
                 "export PATH=$PATH:./node_modules/.bin/",
                 "curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter",
                 "chmod +x ./cc-test-reporter",
