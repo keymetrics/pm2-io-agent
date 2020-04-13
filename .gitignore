@@ -11,4 +11,3 @@ test/child
 dist/
 *.deb
 *.rpm
-package-lock.json
