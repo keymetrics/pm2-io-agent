@@ -1,7 +1,7 @@
 'use strict'
 
 var crypto = require('crypto')
-var moment = require('moment')
+var dayjs = require('dayjs')
 var path = require('path')
 var WEBSITE_ROOT = 'http://toto.com'
 var spanId = 0
@@ -43,8 +43,8 @@ function generateTrace (routePath, dbQueryNb) {
         'http/source/ip': '::ffff:127.0.0.1',
         'http/status_code': '204'
       },
-      'startTime': moment().subtract(dbQueryNb + 1, 'seconds').toISOString(),
-      'endTime': moment().toISOString()
+      'startTime': dayjs().subtract(dbQueryNb + 1, 'seconds').toISOString(),
+      'endTime': dayjs().toISOString()
     }]
   }
 
@@ -59,8 +59,8 @@ function generateTrace (routePath, dbQueryNb) {
         'cmd': '{"find":"devdb6.tokens","limit":-1,"skip":0,"query":{"type":"access_token","token":"u00i7l2f5e81"},"slaveOk":false,"batchSize":1}',
         'results': '{_id:{_bsontype:ObjectID,id:X(Â\\},token:u009vf00...'
       },
-      'startTime': moment().subtract(dbQueryNb - i + 1, 'seconds').toISOString(),
-      'endTime': moment().subtract(dbQueryNb - i, 'seconds').toISOString()
+      'startTime': dayjs().subtract(dbQueryNb - i + 1, 'seconds').toISOString(),
+      'endTime': dayjs().subtract(dbQueryNb - i, 'seconds').toISOString()
     }
   }
 
