@@ -44,8 +44,10 @@ module.exports = class WebsocketTransport extends Transporter {
       url = this.endpoint
     }
     this.endpoint = url
-    log('Connecting websocket transporter to %s...', url)
 
+    if (!url) return cb(new Error('Websocket URL is not defined!'))
+
+    log('Connecting websocket transporter to %s...', url)
     this._ws = new WebSocket(url, {
       perMessageDeflate: false,
       headers: {
