@@ -211,7 +211,7 @@ module.exports = class InteractorDaemonizer {
     } catch (e) {
     }
 
-    let pid = null
+    let pid = ''
 
     if (child.pid)
       pid = child.pid.toString()
