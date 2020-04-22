@@ -211,7 +211,7 @@ module.exports = class InteractorDaemonizer {
     } catch (e) {
     }
 
-    fs.writeFileSync(cst.INTERACTOR_PID_PATH, child.pid)
+    fs.writeFileSync(cst.INTERACTOR_PID_PATH, child.pid.toString())
 
     child.on('close', (status) => {
       if (status === constants.ERROR_EXIT) {
