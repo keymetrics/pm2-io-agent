@@ -376,7 +376,6 @@ describe('PushInteractor', () => {
           assert(data.data === 'data-retriever')
           assert(data.server_name === 'server_name')
           assert(data.internal_ip === 'internal_ip')
-          assert(data.rev_con === true)
           DataRetrieverMock.reset()
           done()
         }
