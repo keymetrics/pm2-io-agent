@@ -140,23 +140,27 @@ module.exports = class PushInteractor {
    * Worker function that will retrieve process metadata and send them to KM
    */
   _worker () {
-    if (!this._ipm2.rpc || !this._ipm2.rpc.getMonitorData) return debug('Cant access to getMonitorData RPC PM2 method')
+    if (!this._ipm2.rpc || !this._ipm2.rpc.getMonitorData)
+      return debug('Cant access to getMonitorData RPC PM2 method')
+
     this._ipm2.rpc.getMonitorData({}, (err, processes) => {
       if (err) {
-        return debug(err || 'Cant access to getMonitorData RPC PM2 method')
+        return console.error(err || 'Cant access to getMonitorData RPC PM2 method')
       }
+
       // set broadcast logs
       processes.forEach((process) => {
         this.processes.set(process.name, process.pm2_env)
         this.broadcast_logs.set(process.pm_id, process.pm2_env.broadcast_logs == 1 || process.pm2_env.broadcast_logs == 'true') // eslint-disable-line
       })
+
       processes = processes.filter(process => process.pm2_env._km_monitored !== false)
+
       // send data
       this.transport.send('status', {
         data: DataRetriever.status(processes, this.opts),
         server_name: this.opts.MACHINE_NAME,
-        internal_ip: this.opts.internal_ip,
-        rev_con: true
+        internal_ip: this.opts.internal_ip
       })
     })
   }

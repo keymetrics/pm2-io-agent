@@ -49,7 +49,7 @@ module.exports = class WebsocketTransport extends Transporter {
 
     log('Connecting websocket transporter to %s...', url)
     this._ws = new WebSocket(url, {
-      perMessageDeflate: false,
+      perMessageDeflate: process.env.WS_GZIP || false,
       headers: {
         'X-KM-PUBLIC': this.opts.PUBLIC_KEY,
         'X-KM-SECRET': this.opts.SECRET_KEY,

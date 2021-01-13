@@ -86,6 +86,8 @@ module.exports = class TransporterInterface extends EventEmitter2 {
    * Send to each transporters
    */
   send (channel, data) {
+    if (process.env.VERBOSE)
+      console.log(`channel=${channel}: data=${JSON.stringify(data, '', 2)}`)
     this.transporters.forEach(transporter => {
       transporter.send(channel, data)
     })
