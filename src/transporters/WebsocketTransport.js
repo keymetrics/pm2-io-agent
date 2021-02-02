@@ -6,7 +6,8 @@ const log = require('debug')('interactor:websocket')
 const cst = require('../../constants.js')
 const pkg = require('../../package.json')
 const Transporter = require('./Transporter')
-
+const jsonPatch = require('fast-json-patch')
+const fs = require('fs')
 /**
  * Websocket Transport used to communicate with KM
  * @param {Object} opts options
@@ -20,7 +21,8 @@ module.exports = class WebsocketTransport extends Transporter {
     this._daemon = daemon
     this._ws = null
     this.queue = []
-
+    this._last_status = null
+    this._resend_status = false
     this._worker = setInterval(this._emptyQueue.bind(this), process.env.NODE_ENV === 'test' ? 2 : 10000)
     this._heartbeater = setInterval(this._heartbeat.bind(this), 5000)
   }
@@ -67,6 +69,7 @@ module.exports = class WebsocketTransport extends Transporter {
     }
     this._ws.once('error', onError)
     this._ws.once('open', () => {
+      this._resend_status = true
       log(`Connected to ${url}`)
       if (!this._ws) return false // an error occurred
       this._ws.removeListener('error', onError)
@@ -125,6 +128,38 @@ module.exports = class WebsocketTransport extends Transporter {
       return this.queue.push({ channel: channel, data: data })
     }
 
+    if (channel === 'status' && process.env.WS_JSON_PATCH) {
+      if (this._last_status == null || this._resend_status == true) {
+        if (this._resend_status)
+          log('Sending fresh new status')
+        this._resend_status = false
+        this._last_status = data
+      }
+      else {
+        let patch = jsonPatch.compare(this._last_status, data)
+
+        let packet = {
+          payload: patch,
+          channel: 'status:patch'
+        }
+
+        this._last_status = data
+
+
+        if (process.env.WS_JSON_PATCH_BENCH) {
+          fs.writeFileSync('status', JSON.stringify(data))
+          fs.writeFileSync('patch', JSON.stringify(packet))
+        }
+
+        return this._ws.send(JSON.stringify(packet), (err) => {
+          packet = null
+          if (err) {
+            this.emit('error', err)
+          }
+        })
+      }
+    }
+
     log('Sending packet over for channel %s', channel)
     let packet = {
       payload: data,
@@ -152,6 +187,11 @@ module.exports = class WebsocketTransport extends Transporter {
       data = JSON.parse(data)
     } catch (err) {
       return log('Bad packet received from remote : %s', err.message || err)
+    }
+
+    if (process.env.WS_JSON_PATCH && data.channel == 'status:resend') {
+      log(`Wrong patch sent to backend, resending fresh status`)
+      this._resend_status = true
     }
 
     // ensure that all required field are present

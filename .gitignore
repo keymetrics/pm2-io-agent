@@ -11,3 +11,5 @@ test/child
 dist/
 *.deb
 *.rpm
+/patch
+/status
