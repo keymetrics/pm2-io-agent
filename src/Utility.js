@@ -385,6 +385,7 @@ module.exports = {
   StackTraceParser: StackTraceParser,
   serialize: require('fclone'),
   network: {
+    getIP: retrieveAddress,
     v4: retrieveAddress('v4'),
     v6: retrieveAddress('v6')
   },

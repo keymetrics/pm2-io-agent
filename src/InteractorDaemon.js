@@ -305,7 +305,9 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       'scale',
       'startLogging',
       'stopLogging',
-      'ping'
+      'ping',
+      'launchSysMonitoring',
+      'deepUpdate'
     ]
 
     if (!opts.MACHINE_NAME) {

@@ -23,7 +23,7 @@ module.exports = class PushInteractor {
     this.log_buffer = {}
     this.processes = new Map() // Key is process name, value is pm2 env
     this.broadcast_logs = new Map() // key is process name, value is true or false
-
+    this.ip_interval_counter = 60
     debug('Push interactor constructed')
     this._cacheFS = new Utility.Cache({
       miss: function (key) {
@@ -142,6 +142,11 @@ module.exports = class PushInteractor {
   _worker () {
     if (!this._ipm2.rpc || !this._ipm2.rpc.getMonitorData)
       return debug('Cant access to getMonitorData RPC PM2 method')
+
+    if (this.ip_interval_counter-- <= 0) {
+      this.opts.internal_ip = Utility.network.getIP('v4')
+      this.ip_interval_counter = 60
+    }
 
     this._ipm2.rpc.getMonitorData({}, (err, processes) => {
       if (err) {
