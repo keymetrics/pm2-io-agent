@@ -196,8 +196,6 @@ module.exports = class InteractorDaemonizer {
         PM2_PUBLIC_KEY: conf.public_key,
         PM2_REVERSE_INTERACT: conf.reverse_interact,
         KEYMETRICS_NODE: conf.info_node,
-        AGENT_TRANSPORT_AXON: conf.agent_transport_axon,
-        AGENT_TRANSPORT_WEBSOCKET: conf.agent_transport_websocket,
         PM2_VERSION: conf.pm2_version,
         DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket,-interactor:pm2:client,-interactor:push'
       }, process.env),
@@ -370,13 +368,12 @@ module.exports = class InteractorDaemonizer {
     //    -> from configuration on FS
     configuration.public_key = process.env.PM2_PUBLIC_KEY || process.env.KEYMETRICS_PUBLIC || infos.public_key || confFS.public_key
     configuration.secret_key = process.env.PM2_SECRET_KEY || process.env.KEYMETRICS_SECRET || infos.secret_key || confFS.secret_key
-    configuration.machine_name = process.env.PM2_MACHINE_NAME || process.env.INSTANCE_NAME || infos.machine_name || confFS.machine_name || os.hostname()
+    configuration.machine_name = process.env.PM2_MACHINE_NAME || process.env.INSTANCE_NAME || infos.machine_name || confFS.machine_name || `${os.hostname()}-${require('crypto').randomBytes(2).toString('hex')}`
     configuration.pm2_version = process.env.PM2_VERSION || infos.pm2_version || confFS.pm2_version
     configuration.reverse_interact = confFS.reverse_interact || true
     // is setup empty ? use the one provided in env OR root OTHERWISE get the one on FS conf OR fallback on root
     configuration.info_node = process.env.KEYMETRICS_NODE || infos.info_node || confFS.info_node || cst.KEYMETRICS_ROOT_URL
-    configuration.agent_transport_websocket = process.env.AGENT_TRANSPORT_WEBSOCKET || infos.agent_transport_websocket || confFS.agent_transport_websocket || 'false'
-    configuration.agent_transport_axon = process.env.AGENT_TRANSPORT_AXON || infos.agent_transport_axon || confFS.agent_transport_axon || 'true'
+
 
     if (!configuration.secret_key) {
       log('Secret key is not defined in configuration', configuration)

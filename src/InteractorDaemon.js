@@ -27,12 +27,10 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     log(`MACHINE_NAME=${this.opts.MACHINE_NAME}`)
     log(`PUBLIC_KEY=${this.opts.PUBLIC_KEY}`)
     log(`WEBSOCKET_ENABLED=${process.env.AGENT_TRANSPORT_WEBSOCKET}`)
-    log(`AXON_ENABLED=${process.env.AGENT_TRANSPORT_AXON}`)
     log(`ROOT_URL=${cst.KEYMETRICS_ROOT_URL}`)
 
     this.DAEMON_ACTIVE = false
     this.transport = new TransporterInterface(this.opts, this)
-      .bind('axon')
       .bind('websocket')
     this.transport.on('error', (err) => {
       return console.error('[NETWORK] Error : ' + err.message || err)
@@ -294,7 +292,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     opts.SECRET_KEY = process.env.PM2_SECRET_KEY
     opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
     opts.PM2_VERSION = process.env.PM2_VERSION || '0.0.0'
-    opts.AGENT_TRANSPORT_AXON = process.env.AGENT_TRANSPORT_AXON
     opts.AGENT_TRANSPORT_WEBSOCKET = process.env.AGENT_TRANSPORT_WEBSOCKET
     opts.internal_ip = Utility.network.v4
 
