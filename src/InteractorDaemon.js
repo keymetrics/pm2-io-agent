@@ -26,7 +26,6 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
     log(`MACHINE_NAME=${this.opts.MACHINE_NAME}`)
     log(`PUBLIC_KEY=${this.opts.PUBLIC_KEY}`)
-    log(`WEBSOCKET_ENABLED=${process.env.AGENT_TRANSPORT_WEBSOCKET}`)
     log(`ROOT_URL=${cst.KEYMETRICS_ROOT_URL}`)
 
     this.DAEMON_ACTIVE = false
@@ -289,6 +288,7 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
 
     opts.MACHINE_NAME = process.env.PM2_MACHINE_NAME
     opts.PUBLIC_KEY = process.env.PM2_PUBLIC_KEY
+    opts.PM2_BINARY_PATH = process.env.PM2_BINARY_PATH
     opts.SECRET_KEY = process.env.PM2_SECRET_KEY
     opts.RECYCLE = process.env.KM_RECYCLE ? JSON.parse(process.env.KM_RECYCLE) : false
     opts.PM2_VERSION = process.env.PM2_VERSION || '0.0.0'
@@ -378,13 +378,14 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
       this.watchDog = WatchDog
 
       setTimeout(() => {
-        log('PM2 Watchdog started')
+        log('>> PM2 Watchdog started')
         this.watchDog.start({
+          pm2_binary_path: this.opts.PM2_BINARY_PATH,
           conf: {
             ipm2: this.getPM2Client()
           }
         })
-      }, 1000 * 60 * 3)
+      }, 30 * 1000)
 
       this.push = new PushInteractor(this.opts, this.getPM2Client(), this.transport)
       this.reverse = new ReverseInteractor(this.opts, this.getPM2Client(), this.transport)

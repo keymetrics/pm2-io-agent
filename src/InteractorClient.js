@@ -170,6 +170,7 @@ module.exports = class InteractorDaemonizer {
    */
   static daemonize (cst, conf, cb) {
     const InteractorJS = path.resolve(path.dirname(module.filename), 'InteractorDaemon.js')
+    const PM2Path = require.main.filename
 
     // Redirect PM2 internal err and out
     // to STDERR STDOUT when running with Travis
@@ -195,6 +196,7 @@ module.exports = class InteractorDaemonizer {
         PM2_SECRET_KEY: conf.secret_key,
         PM2_PUBLIC_KEY: conf.public_key,
         PM2_REVERSE_INTERACT: conf.reverse_interact,
+        PM2_BINARY_PATH: PM2Path,
         KEYMETRICS_NODE: conf.info_node,
         PM2_VERSION: conf.pm2_version,
         DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket,-interactor:pm2:client,-interactor:push'
