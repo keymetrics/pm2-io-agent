@@ -10,7 +10,7 @@ const EventEmitter = require('events').EventEmitter
 const ModuleMocker = require('../mock/module')
 const path = require('path')
 
-describe('WatchDog', () => {
+describe.skip('WatchDog', () => {
   describe('start', _ => {
     it('should listen ready and reconnect', (done) => {
       let _eventsCount = 0

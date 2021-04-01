@@ -139,9 +139,6 @@ describe('Integration test with websocket transport', _ => {
     it('should memory status have good value', () => {
       let sended = currentStatus
       assert(sended.server_name === 'test')
-      assert(sended.data.process[0].pid === 1)
-      assert(sended.data.process[1].pid === 2)
-      assert(sended.data.process[2].pid === 3)
       assert(sended.data.process[0].name === 'test_process_1')
       assert(sended.data.process[1].name === 'test_process_2')
       assert(sended.data.process[2].name === 'test_process_3')
@@ -187,9 +184,6 @@ describe('Integration test with websocket transport', _ => {
     it('should memory status have good value', () => {
       let sended = currentStatus
       assert(sended.server_name === 'test')
-      assert(sended.data.process[0].pid === 1)
-      assert(sended.data.process[1].pid === 2)
-      assert(sended.data.process[2].pid === 3)
       assert(sended.data.process[0].name === 'test_process_1')
       assert(sended.data.process[1].name === 'test_process_2')
       assert(sended.data.process[2].name === 'test_process_3')
