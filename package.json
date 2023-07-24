@@ -1,6 +1,6 @@
 {
   "name": "@pm2/agent",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "PM2.io Agent Daemon",
   "main": "index.js",
   "directories": {
@@ -27,7 +27,7 @@
     "pm2-axon": "~4.0.1",
     "pm2-axon-rpc": "~0.7.0",
     "proxy-agent": "~6.3.0",
-    "semver": "~7.2.0",
+    "semver": "~7.5.0",
     "ws": "~7.4.0"
   },
   "devDependencies": {
