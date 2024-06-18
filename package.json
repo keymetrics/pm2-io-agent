@@ -6,6 +6,10 @@
   "directories": {
     "test": "test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keymetrics/pm2-io-agent.git"
+  },
   "scripts": {
     "test": "mocha test/units/*.mocha.js"
   },
