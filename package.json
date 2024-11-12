@@ -1,10 +1,11 @@
 {
   "name": "@pm2/agent",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "description": "PM2.io Agent Daemon",
   "main": "index.js",
-  "directories": {
-    "test": "test"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keymetrics/pm2-io-agent.git"
   },
   "scripts": {
     "test": "mocha test/units/*.mocha.js"
@@ -23,16 +24,15 @@
     "eventemitter2": "~5.0.1",
     "fast-json-patch": "^3.0.0-1",
     "fclone": "~1.0.11",
-    "nssocket": "0.6.0",
     "pm2-axon": "~4.0.1",
     "pm2-axon-rpc": "~0.7.0",
-    "proxy-agent": "~6.3.0",
+    "proxy-agent": "~6.4.0",
     "semver": "~7.5.0",
     "ws": "~7.5.10"
   },
   "devDependencies": {
     "clone": "^2.1.1",
-    "mocha": "^7.1",
+    "mocha": "^10.8.0",
     "nock": "^13.0.11",
     "simple-socks": "^2.0.2"
   },

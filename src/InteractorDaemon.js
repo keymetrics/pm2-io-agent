@@ -37,7 +37,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
     this.httpClient = new Utility.HTTPClient()
     this._online = true
 
-    this._internalDebugger()
+    if (cst.IS_BUN === false)
+      this._internalDebugger()
   }
 
   /**

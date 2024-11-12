@@ -179,12 +179,13 @@ module.exports = class InteractorDaemonizer {
     const err = testEnv ? 2 : fs.openSync(constants.INTERACTOR_LOG_FILE_PATH, 'a')
 
     let binary = process.execPath
-    if (binary.indexOf('node') === -1) {
+
+    if (cst.IS_BUN === true)
+      binary = process.execPath
+    else if (binary.indexOf('node') === -1)
       binary = 'node'
-    }
-    if (process.env.NODEJS_EXECUTABLE) {
+    if (process.env.NODEJS_EXECUTABLE)
       binary = process.env.NODEJS_EXECUTABLE
-    }
 
     const child = childProcess.spawn(binary, [InteractorJS], {
       silent: false,
@@ -201,7 +202,8 @@ module.exports = class InteractorDaemonizer {
         PM2_VERSION: conf.pm2_version,
         DEBUG: process.env.DEBUG || 'interactor:*,-interactor:axon,-interactor:websocket,-interactor:pm2:client,-interactor:push'
       }, process.env),
-      stdio: ['ipc', out, err]
+      stdio: [null, out, err, 'ipc'], // Redirect stdout, stderr, and enable IPC
+      //stdio: ['ipc', out, err]
     })
 
     try {
@@ -222,6 +224,7 @@ module.exports = class InteractorDaemonizer {
       if (status === constants.ERROR_EXIT) {
         return cb(new Error('Agent has shutdown for unknown reason'))
       }
+
       return cb()
     })
 
@@ -235,7 +238,8 @@ module.exports = class InteractorDaemonizer {
     const timeout = setTimeout(_ => {
       printOut(`${chalk.yellow('[PM2.IO][WARNING]')} Not managed to connect to PM2 Plus, retrying in background.`)
       child.removeAllListeners()
-      child.disconnect()
+      if (child.disconnect)
+        child.disconnect()
       return cb(null, {}, child)
     }, 7000)
 
@@ -248,6 +252,8 @@ module.exports = class InteractorDaemonizer {
       }
 
       child.removeAllListeners('error')
+      if (cst.IS_BUN === true)
+        child.removeAllListeners('close')
       child.disconnect()
 
       // Handle and show to user the different error message that can happen
