@@ -190,6 +190,7 @@ module.exports = class InteractorDaemonizer {
     const child = childProcess.spawn(binary, [InteractorJS], {
       silent: false,
       detached: true,
+      windowsHide: true,
       cwd: process.cwd(),
       env: Object.assign({
         PM2_HOME: cst.PM2_HOME,
@@ -232,6 +233,10 @@ module.exports = class InteractorDaemonizer {
       log('Error when launching Interactor, please check the agent logs')
       return cb(err)
     })
+
+    if (cst.IS_BUN === true) {
+      return cb(null, {}, child)
+    }
 
     child.unref()
 

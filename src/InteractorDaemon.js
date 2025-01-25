@@ -46,7 +46,8 @@ const InteractorDaemon = module.exports = class InteractorDaemon {
    * @param {Object} data
    */
   sendToParent (data) {
-    if (!process.connected || !process.send) return console.log('Could not send data to parent')
+    if (!process.connected || !process.send || cst.IS_BUN == true)
+      return console.log('Could not send data to parent')
 
     try {
       process.send(data)
